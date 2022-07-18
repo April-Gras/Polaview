@@ -1,20 +1,14 @@
 {
   "compilerOptions": {
     "paths": {
-      "client/*": [
-        "./src/*"
-      ],
       "~/*": [
         "./*"
       ]
     },
-    "experimentalDecorators": true,
     "sourceMap": true,
-    "outDir": "dist",
-    "skipLibCheck": true,
-    "isolatedModules": true,
     "moduleResolution": "Node",
     "jsx": "preserve",
+    "baseUrl": ".",
     "resolveJsonModule": true,
     "strict": true,
     "lib": [
@@ -23,9 +17,4 @@
     ],
     "esModuleInterop": true
   },
-  "references": [
-    {
-      "path": "./tsconfig.node.json"
-    }
-  ]
 }
