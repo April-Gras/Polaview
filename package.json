@@ -7,6 +7,10 @@
     "client-build": "vue-tsc --noEmit && vite build",
     "client-preview": "vite preview",
     "server-dev": "nodemon server-index.ts",
+    "lint:check": "eslint \"**/*.{ts,js,vue}\"",
+    "lint:fix": "eslint --fix \"**/*.{ts,js,vue}\"",
+    "format:check": "prettier --check .",
+    "format:fix": "prettier --write .",
     "prepare": "husky install"
   },
   "author": "April",
@@ -30,6 +34,7 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-vue": "^9.2.0",
     "husky": "^8.0.1",
+    "lint-staged": "^13.0.3",
     "nodemon": "^2.0.19",
     "postcss": "^8.4.14",
     "prisma": "^4.0.0",

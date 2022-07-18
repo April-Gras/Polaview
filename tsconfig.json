@@ -8,8 +8,15 @@
         "./*"
       ]
     },
+    "experimentalDecorators": true,
     "sourceMap": true,
     "outDir": "dist",
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "useDefineForClassFields": true,
+    "moduleResolution": "Node",
+    "jsx": "preserve",
+    "resolveJsonModule": true,
     "strict": true,
     "lib": [
       "esnext",
