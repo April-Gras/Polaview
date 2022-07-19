@@ -1,65 +1,50 @@
 import { PrismaClient } from "@prisma/client";
 import express, { Express } from "express";
-import { RequestHandler } from "./types/RequestHandler";
-
-import { userPost, userGetById } from "./server/user/index";
+import {
+  RuntimeConfig,
+  Verb,
+  JsonCompliantData,
+  BuildHandlerFromData,
+  SingleRuntimeConfig,
+} from "./types/Route";
+import { userGetById, userPost, userPatchById } from "./server/user";
 
 const prisma = new PrismaClient();
 const app: Express = express();
 const port = process.env.PORT ?? "8080";
 
-type Verb = "get" | "post" | "delete" | "patch";
-
-function buildRoute<
+function buildSingleRuntimeConfigEntry<
   V extends Verb,
-  U extends string,
-  H extends RequestHandler,
-  EXTPECTED_RETURN = undefined,
-  EXPECTED_PAYLOAD = undefined
+  URL extends string,
+  RETURN extends JsonCompliantData,
+  PAYLOAD extends JsonCompliantData | undefined
 >(
   verb: V,
-  url: U,
-  handler: H
-): {
-  url: U;
-  verb: V;
-  expectedReturn: EXTPECTED_RETURN;
-  expectedPayload: EXPECTED_PAYLOAD;
-} {
-  app[verb](url, (req, res) => {
-    handler(prisma, req, res);
-  });
-  // @ts-ignore
-  return;
+  url: URL,
+  fn: BuildHandlerFromData<RETURN, PAYLOAD>
+): SingleRuntimeConfig<[V, URL, RETURN, PAYLOAD]> {
+  return [verb, url, fn];
 }
 
-type RoutingType = ReturnType<typeof buildRoute>;
+const ROUTES: RuntimeConfig = [
+  buildSingleRuntimeConfigEntry("get", "/", async () => {
+    return "health" as const;
+  }),
+  buildSingleRuntimeConfigEntry("get", "/user/:id", userGetById),
+  buildSingleRuntimeConfigEntry("post", "/user", userPost),
+  buildSingleRuntimeConfigEntry("patch", "/user/:id", userPatchById),
+];
 
-const TGetRoot = buildRoute("get", "/", async (_, __, res) => {
-  res.status(200).send("health");
-});
-const TUserPost = buildRoute("post", "/user", userPost);
-const TUserGetById = buildRoute("get", "/user/:id", userGetById);
+for (const index in ROUTES) {
+  const [verb, url, handler] = ROUTES[index];
 
-export type Routing = [typeof TGetRoot, typeof TUserPost, typeof TUserGetById];
-
-export type ExtractRoutesFromVerb<
-  V extends Verb,
-  R = Routing,
-  PREVIOUS extends RoutingType[] = []
-> = R extends [infer ROUTE, ...infer REST]
-  ? ROUTE extends RoutingType
-    ? ROUTE["verb"] extends V
-      ? ExtractRoutesFromVerb<V, REST, [ROUTE, ...PREVIOUS]>
-      : ExtractRoutesFromVerb<V, REST, [...PREVIOUS]>
-    : PREVIOUS
-  : PREVIOUS;
-
-export type GetRoutes = ExtractRoutesFromVerb<"get", Routing>;
-export type PostRoutes = ExtractRoutesFromVerb<"post", Routing>;
-export type DeleteRoutes = ExtractRoutesFromVerb<"delete", Routing>;
-export type PatchRoutes = ExtractRoutesFromVerb<"patch", Routing>;
+  app[verb](url, (req, res) => {
+    handler(prisma, req, res, req.body).then((data) => {
+      res.status(200).json(data);
+    });
+  });
+}
 
 app.listen(port, () => {
-  console.log(`⚡️ Polaview-server is running at http://localhost:${port}`);
+  console.log(`ܡ is running at http://localhost:${port}`);
 });
