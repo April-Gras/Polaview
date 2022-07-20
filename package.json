@@ -6,7 +6,7 @@
     "client-dev": "vite --host",
     "client-build": "vue-tsc --noEmit && vite build",
     "client-preview": "vite preview",
-    "server-dev": "nodemon server-index.ts",
+    "server-dev": "nodemon ./server/index.ts",
     "lint:check": "eslint \"**/*.{ts,js,vue}\"",
     "lint:fix": "eslint --fix \"**/*.{ts,js,vue}\"",
     "format:check": "prettier --check .",

@@ -9,9 +9,9 @@ import {
   JsonCompliantData,
   BuildHandlerFromData,
   SingleRuntimeConfig,
-} from "./types/Route";
-import { userGetById, userPost, userPatchById } from "./server/user";
-import { authLoginPost, authUserGet } from "./server/auth";
+} from "~/types/Route";
+import { userGetById, userPost, userPatchById } from "#/user";
+import { authLoginPost, authUserGet } from "#/auth";
 
 const prisma = new PrismaClient();
 const app: Express = express();

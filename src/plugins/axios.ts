@@ -10,8 +10,7 @@ import {
 export const axiosPlugin: Plugin = {
   install(app, options) {
     const axiosTransporter = axios.create({
-      baseURL: "http://localhost:8080",
-      withCredentials: true,
+      baseURL: "/api",
     });
 
     app.config.globalProperties.$postRequest = axiosTransporter.post;

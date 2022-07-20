@@ -1,4 +1,4 @@
-export * from "~/server-index";
+export * from "#/index";
 
 import { ExtractRouteEntriesByVerb, RouteEntry } from "~/types/Route";
 import { AxiosRequestConfig, AxiosResponse } from "axios";

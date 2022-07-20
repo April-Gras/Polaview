@@ -1,0 +1,26 @@
+FROM node:lts
+
+RUN mkdir -p /client/
+WORKDIR /client
+
+COPY tsconfig.node.json /client/tsconfig.node.json
+COPY tsconfig.json /client/tsconfig.json
+COPY package.json /client/package.json
+COPY vite.config.ts /client/vite.config.ts
+COPY index.html /client/index.html
+COPY postcss.config.cjs /client/postcss.config.cjs
+COPY tailwind.config.cjs /client/tailwind.config.cjs
+
+COPY shared /client/shared
+COPY prisma /client/prisma
+COPY .env /client/.env
+
+COPY src /client/src
+
+# Install dependencies
+RUN npm install
+
+# Prisma routine
+RUN npx prisma db push
+
+EXPOSE 5173

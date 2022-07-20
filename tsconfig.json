@@ -5,10 +5,13 @@
   "compilerOptions": {
     "paths": {
       "~/*": [
-        "./*"
+        "./shared/*"
       ],
       "@/*": [
         "./src/*"
+      ],
+      "#/*": [
+        "./server/*"
       ]
     },
     "sourceMap": true,

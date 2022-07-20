@@ -1,0 +1,22 @@
+FROM node:lts
+
+RUN mkdir -p /api/
+WORKDIR /api
+
+COPY tsconfig.node.json /api/tsconfig.node.json
+COPY tsconfig.json /api/tsconfig.json
+COPY package.json /api/package.json
+COPY nodemon.config.json /api/nodemon.config.json
+
+COPY shared /api/shared
+COPY prisma /api/prisma
+COPY .env /api/.env
+COPY server /api/server
+
+# Install dependencies
+RUN npm install
+
+# Prisma routine
+RUN npx prisma db push
+
+EXPOSE 8080

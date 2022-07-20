@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    networks:
+      - polaview.network
+    ports:
+      - 8080:8080
+    restart: unless-stopped
+    tty: true
+    command: npm run server-dev
+    volumes:
+      - ./server:/api/server
+      - ./node_modules:/api/node_modules
+
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    networks:
+      - polaview.network
+    ports:
+      - 5173:5173
+      - 3010:3010
+    restart: unless-stopped
+    tty: true
+    command: npm run client-dev
+    volumes:
+      - ./src:/client/src
+      - ./node_modules:/client/node_modules
+
+  nginx:
+    image: nginx
+    build:
+      context: ./nginx
+    ports:
+      - 0.0.0.0:80:80
+    volumes:
+      - .:/var/www/
+    restart: unless-stopped
+    networks:
+      - polaview.network
+
+networks:
+  polaview.network:
+    driver: bridge
