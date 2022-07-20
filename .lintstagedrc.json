@@ -1,5 +1,0 @@
-
-{
-  "*.{js,ts,vue}": "eslint --cache --fix",
-  "*": "prettier --ignore-unknown --write"
-}

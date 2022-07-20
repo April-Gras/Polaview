@@ -1,8 +1,14 @@
 {
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
+  },
   "compilerOptions": {
     "paths": {
       "~/*": [
         "./*"
+      ],
+      "@/*": [
+        "./src/*"
       ]
     },
     "sourceMap": true,

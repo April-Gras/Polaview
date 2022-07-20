@@ -1,17 +1,17 @@
-import { User } from "@prisma/client";
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
-
+import { AllRoutes } from "~/types/RouteLibrary";
 const availableVerbs = ["get", "post", "delete", "patch"] as const;
 
 export type JsonCompliantData =
   | Record<string, unknown>
   | string
   | number
+  | boolean
   | unknown[];
 export type Verb = typeof availableVerbs[number];
 
-type BuildRouteEntry<
+export type BuildRouteEntry<
   V extends Verb,
   URL extends string,
   RETURN extends JsonCompliantData,
@@ -22,16 +22,6 @@ export type RouteEntry = [
   string,
   JsonCompliantData,
   JsonCompliantData | undefined
-];
-
-export type AllRoutes = [
-  // GET
-  BuildRouteEntry<"get", "/", "health">,
-  BuildRouteEntry<"get", "/user/:id", User>,
-  // POST
-  BuildRouteEntry<"post", "/user", User, User>,
-  // PATCH
-  BuildRouteEntry<"patch", "/user/:id", User, Partial<Omit<User, "id">>>
 ];
 
 export type BuildHandlerFromData<
@@ -49,26 +39,7 @@ export type SingleRuntimeConfig<ENTRY extends RouteEntry> = [
   BuildHandlerFromData<ENTRY[2], ENTRY[3]>
 ];
 
-type ExtractRouteEntriesByVerb<
-  V extends Verb,
-  REST extends RouteEntry[] = [],
-  ROUTES extends RouteEntry[] = AllRoutes
-> = ROUTES extends [infer ENTRY, ...infer END]
-  ? ENTRY extends RouteEntry
-    ? END extends RouteEntry[]
-      ? ENTRY[0] extends V
-        ? ExtractRouteEntriesByVerb<V, [...REST, ENTRY], END>
-        : ExtractRouteEntriesByVerb<V, REST, END>
-      : REST
-    : REST
-  : REST;
-
-type GetRoutes = ExtractRouteEntriesByVerb<"get">;
-type PostRoutes = ExtractRouteEntriesByVerb<"post">;
-type PatchRoutes = ExtractRouteEntriesByVerb<"patch">;
-type DeletetRoutes = ExtractRouteEntriesByVerb<"delete">;
-
-type ExtractRouteArgument<
+export type ExtractRouteEntriesByVerb<
   V extends Verb,
   REST extends RouteEntry[] = [],
   ROUTES extends RouteEntry[] = AllRoutes

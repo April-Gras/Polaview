@@ -1,8 +1,9 @@
 {
   "watch": [
     "server-index.ts",
-    "server/**/*"
+    "server/**/*",
+    "validators/*"
   ],
   "ext": "ts,json",
-  "exec": "ts-node ./server-index.ts" // or "npx ts-node src/index.ts"
+  "exec": "ts-node ./server-index.ts"
 }

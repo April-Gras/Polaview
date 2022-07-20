@@ -1,11 +1,23 @@
 import { GetRouteDataHandlerFromUrlAndVerb } from "~/types/Route";
+import { hash } from "argon2";
+
+import { userValidator } from "~/validators/User";
 
 export const userPost: GetRouteDataHandlerFromUrlAndVerb<
   "post",
   "/user"
-> = async (prisma, req) => {
+> = async (prisma, _, __, payload) => {
+  if (userValidator(payload).length) throw "Malformed payload";
   const user = await prisma.user.create({
-    data: req.body,
+    data: {
+      email: payload.email,
+      name: payload.name,
+      passwordHash: await hash(payload.clearPassword),
+    },
+    select: {
+      email: true,
+      name: true,
+    },
   });
 
   return user;

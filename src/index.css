@@ -1,3 +1,49 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html, body {
+    @apply bg-neutral-100 dark:bg-slate-800;
+  }
+
+  input {
+    @apply bg-neutral-200 dark:bg-slate-600 px-4 py-1
+  }
+
+  body *,
+  ::placeholder,
+  input
+   {
+    @apply text-base-color;
+    font-family: 'Roboto', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply capitalize;
+
+    font-family: 'Bebas Neue', cursive;
+  }
+}
+
+@layer utilities {
+  .page-layout {
+    @apply w-full mx-4 sm:mx-6;
+  }
+
+  .text-base-color {
+    @apply text-neutral-800 dark:text-neutral-100;
+  }
+
+  .base-text {
+    @apply md:text-lg text-base-color font-semibold text-base;
+  }
+
+  .title-text {
+    @apply md:text-5xl text-3xl text-base-color font-medium;
+  }
+
+  .subtitle-text {
+    @apply md:text-3xl text-xl text-neutral-700 dark:text-neutral-200;
+  }
+}

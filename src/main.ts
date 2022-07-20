@@ -1,16 +1,10 @@
-import axios, { AxiosRequestConfig } from "axios";
 import { createApp } from "vue";
-import App from "./App.vue";
-import "./index.css";
+import { i18nPlugin } from "@/plugins/i18n";
 
-const app = createApp(App);
+import { axiosPlugin } from "@/plugins/axios";
+import { routerPlugin } from "@/plugins/router";
 
-app.use((app) => {
-  const axiosTransporter = axios.create({});
-  app.config.globalProperties.postRequest = axiosTransporter.post;
-  app.config.globalProperties.getRequest = axiosTransporter.get;
-  app.config.globalProperties.deleteRequest = axiosTransporter.delete;
-  app.config.globalProperties.patchRequest = axiosTransporter.patch;
-});
+import App from "@/App.vue";
+import "@/index.css";
 
-app.mount("#app");
+createApp(App).use(axiosPlugin).use(routerPlugin).use(i18nPlugin).mount("#app");
