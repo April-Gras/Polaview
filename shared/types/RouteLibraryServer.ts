@@ -1,12 +1,12 @@
 import { User } from "@prisma/client";
-import { BuildRouteEntry } from "~/types/Route";
+import { BuildRouteEntry, RuntimeConfigBuilder } from "~/types/Route";
 import { NoId } from "~/types/Utils";
 
 export type AllRoutes = [
   // GET
   BuildRouteEntry<"get", "/", "health">,
-  BuildRouteEntry<"get", "/auth/user", User>,
-  BuildRouteEntry<"get", "/user/:id", User>,
+  BuildRouteEntry<"get", "/auth/user", Omit<User, "passwordHash">>,
+  BuildRouteEntry<"get", "/user/:id", Omit<User, "passwordHash">>,
   // POST
   BuildRouteEntry<
     "post",
@@ -14,6 +14,7 @@ export type AllRoutes = [
     NoId<Omit<User, "passwordHash">>,
     Pick<User, "email"> & { clearPassword: string }
   >,
+  BuildRouteEntry<"post", "/auth/logout", true>,
   BuildRouteEntry<
     "post",
     "/user",
@@ -24,3 +25,5 @@ export type AllRoutes = [
   BuildRouteEntry<"patch", "/user/:id", User, NoId<User>>
   // DELETE
 ];
+
+export type ServerRuntimeConfig = RuntimeConfigBuilder<AllRoutes>;

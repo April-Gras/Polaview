@@ -1,7 +1,11 @@
 <script lang="ts">
 import { defineComponent } from "vue";
+import { useUserStore } from "@/stores/user";
 
 export default defineComponent({
+  setup: () => ({
+    USER_STORE: useUserStore(),
+  }),
   data() {
     return {};
   },
@@ -9,5 +13,5 @@ export default defineComponent({
 </script>
 
 <template>
-  <nav></nav>
+  <nav class="w-full"></nav>
 </template>

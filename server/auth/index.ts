@@ -5,7 +5,7 @@ export const authUserGet: GetRouteDataHandlerFromUrlAndVerb<
   "get",
   "/auth/user"
 > = async (prisma, req) => {
-  const sessionid = req.headers.sessionid;
+  const { sessionid } = req.cookies;
 
   if (!sessionid || sessionid instanceof Array) throw "Not logged in";
   const session = await prisma.session.findFirst({
@@ -40,9 +40,13 @@ export const authLoginPost: GetRouteDataHandlerFromUrlAndVerb<
     },
   });
 
-  res.setHeader("Set-Cookie", `sessionid=${session.id}; Secure; HttpOnly`);
+  res.cookie("sessionid", session.id, {
+    httpOnly: true,
+    path: "/",
+  });
   return {
     email: user.email,
     name: user.name,
+    isAdmin: user.isAdmin,
   };
 };

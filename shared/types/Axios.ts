@@ -1,12 +1,12 @@
-export * from "#/index";
-
 import { ExtractRouteEntriesByVerb, RouteEntry } from "~/types/Route";
 import { AxiosRequestConfig, AxiosResponse } from "axios";
+import { AllRoutes as ServerRoutes } from "~/types/RouteLibraryServer";
+import { AllRoutes as ScrapImdbRoutes } from "~/types/RouteLibraryScrapImdb";
 
-type GetRoutes = ExtractRouteEntriesByVerb<"get">;
-type PostRoutes = ExtractRouteEntriesByVerb<"post">;
-type PatchRoutes = ExtractRouteEntriesByVerb<"patch">;
-type DeleteRoutes = ExtractRouteEntriesByVerb<"delete">;
+type GetRoutes = ExtractRouteEntriesByVerb<"get", ServerRoutes>;
+type PostRoutes = ExtractRouteEntriesByVerb<"post", ServerRoutes>;
+type PatchRoutes = ExtractRouteEntriesByVerb<"patch", ServerRoutes>;
+type DeleteRoutes = ExtractRouteEntriesByVerb<"delete", ServerRoutes>;
 
 type ExtractAvailableUrlsFromCollection<COLLECTION extends RouteEntry[]> =
   COLLECTION[number] extends infer ENTRY
@@ -40,3 +40,7 @@ export type AxiosGetRequest = BuildAxiosHandler<GetRoutes>;
 export type AxiosPostRequest = BuildAxiosHandler<PostRoutes>;
 export type AxiosPatchRequest = BuildAxiosHandler<PatchRoutes>;
 export type AxiosDeleteRequest = BuildAxiosHandler<DeleteRoutes>;
+
+export type AxiosScrapperPostRequest = BuildAxiosHandler<
+  ExtractRouteEntriesByVerb<"post", ScrapImdbRoutes>
+>;

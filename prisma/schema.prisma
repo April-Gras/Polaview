@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   url      = env("DATABASE_URL")
-  provider = "sqlite"
+  provider = "postgres"
 }
 
 model User {
@@ -12,6 +12,7 @@ model User {
   email        String    @unique
   passwordHash String
   name         String
+  isAdmin      Boolean   @default(false)
   sessions     Session[]
 }
 
@@ -33,4 +34,17 @@ model File {
   path     String
   source   Source @relation(references: [id], fields: [sourceId])
   sourceId Int
+}
+
+model ImdbSearch {
+  imdbId              String           @id @unique
+  title               String
+  thumbnailUrl        String?
+  ImdbSearchCache     ImdbSearchCache? @relation(fields: [imdbSearchCacheTerm], references: [term])
+  imdbSearchCacheTerm String
+}
+
+model ImdbSearchCache {
+  term    String       @id @unique
+  results ImdbSearch[]
 }

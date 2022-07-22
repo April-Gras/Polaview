@@ -3,40 +3,42 @@ import express, { Express } from "express";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 
-import {
-  RuntimeConfig,
-  Verb,
-  JsonCompliantData,
-  BuildHandlerFromData,
-  SingleRuntimeConfig,
-} from "~/types/Route";
+import { ServerRuntimeConfig } from "~/types/RouteLibraryServer";
+import { buildSingleRuntimeConfigEntry } from "~/express-utils";
+
 import { userGetById, userPost, userPatchById } from "#/user";
 import { authLoginPost, authUserGet } from "#/auth";
+import { JsonCompliantData } from "~/types/Route";
 
 const prisma = new PrismaClient();
 const app: Express = express();
 const port = process.env.PORT ?? "8080";
 
-function buildSingleRuntimeConfigEntry<
-  V extends Verb,
-  URL extends string,
-  RETURN extends JsonCompliantData,
-  PAYLOAD extends JsonCompliantData | undefined
->(
-  verb: V,
-  url: URL,
-  fn: BuildHandlerFromData<RETURN, PAYLOAD>
-): SingleRuntimeConfig<[V, URL, RETURN, PAYLOAD]> {
-  return [verb, url, fn];
-}
-
-const ROUTES: RuntimeConfig = [
+const ROUTES: ServerRuntimeConfig = [
   buildSingleRuntimeConfigEntry("get", "/", async () => {
     return "health" as const;
   }),
   buildSingleRuntimeConfigEntry("get", "/auth/user", authUserGet),
   buildSingleRuntimeConfigEntry("get", "/user/:id", userGetById),
   buildSingleRuntimeConfigEntry("post", "/auth/login", authLoginPost),
+  buildSingleRuntimeConfigEntry(
+    "post",
+    "/auth/logout",
+    async (prisma, req, res) => {
+      const { sessionid } = req.cookies;
+
+      await prisma.session.delete({
+        where: {
+          id: sessionid,
+        },
+      });
+      res.cookie("sessionid", "", {
+        httpOnly: true,
+        path: "/",
+      });
+      return true;
+    }
+  ),
   buildSingleRuntimeConfigEntry("post", "/user", userPost),
   buildSingleRuntimeConfigEntry("patch", "/user/:id", userPatchById),
 ];
@@ -53,11 +55,12 @@ for (const index in ROUTES) {
   const [verb, url, handler] = ROUTES[index];
 
   app[verb](url, (req, res) => {
+    // @ts-ignore
     handler(prisma, req, res, req.body)
-      .then((data) => {
+      .then((data: JsonCompliantData) => {
         res.status(200).json(data);
       })
-      .catch((err) => {
+      .catch((err: Error) => {
         if (err instanceof Prisma.PrismaClientKnownRequestError)
           res.status(400).json(err.message);
         else res.status(400).json(err);
@@ -66,5 +69,5 @@ for (const index in ROUTES) {
 }
 
 app.listen(port, () => {
-  console.log(`ܡ is running at http://localhost:${port}`);
+  console.log(`ܡ main server is running at http://localhost:${port}`);
 });

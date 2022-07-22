@@ -1,0 +1,28 @@
+# FROM node:lts
+FROM node:14
+
+RUN mkdir -p /scrapper/
+WORKDIR /scrapper
+
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \ 
+    && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list
+RUN apt-get update && apt-get -y install google-chrome-stable
+
+COPY tsconfig.node.json /scrapper/tsconfig.node.json
+COPY tsconfig.json /scrapper/tsconfig.json
+COPY package.json /scrapper/package.json
+COPY package-lock.json /scrapper/package-lock.json
+COPY nodemon.config.json /scrapper/nodemon.config.json
+
+COPY shared /scrapper/shared
+COPY prisma /scrapper/prisma
+COPY .env /scrapper/.env
+COPY scrapimdb /scrapper/scrapimdb
+
+# Install dependencies
+RUN npm install
+
+# Prisma routine
+RUN npx prisma db push --force-reset
+
+EXPOSE 8081

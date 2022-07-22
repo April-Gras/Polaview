@@ -17,6 +17,7 @@ export const userPost: GetRouteDataHandlerFromUrlAndVerb<
     select: {
       email: true,
       name: true,
+      isAdmin: true,
     },
   });
 

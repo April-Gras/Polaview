@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
-import { AllRoutes } from "~/types/RouteLibrary";
+import { AllRoutes } from "~/types/RouteLibraryServer";
 const availableVerbs = ["get", "post", "delete", "patch"] as const;
 
 export type JsonCompliantData =
@@ -15,7 +15,7 @@ export type BuildRouteEntry<
   V extends Verb,
   URL extends string,
   RETURN extends JsonCompliantData,
-  PAYLOAD extends JsonCompliantData | undefined = undefined
+  PAYLOAD extends Record<string, unknown> | unknown[] | undefined = undefined
 > = [V, URL, RETURN, PAYLOAD];
 export type RouteEntry = [
   Verb,
@@ -31,8 +31,9 @@ export type BuildHandlerFromData<
   prisma: PrismaClient,
   req: Request,
   res: Response,
-  ...args: PAYLOAD extends undefined ? [payload?: PAYLOAD] : [payload: PAYLOAD]
+  payload: PAYLOAD
 ) => Promise<RETURN>;
+
 export type SingleRuntimeConfig<ENTRY extends RouteEntry> = [
   ENTRY[0],
   ENTRY[1],
@@ -42,7 +43,7 @@ export type SingleRuntimeConfig<ENTRY extends RouteEntry> = [
 export type ExtractRouteEntriesByVerb<
   V extends Verb,
   REST extends RouteEntry[] = [],
-  ROUTES extends RouteEntry[] = AllRoutes
+  ROUTES extends RouteEntry[] = []
 > = ROUTES extends [infer ENTRY, ...infer END]
   ? ENTRY extends RouteEntry
     ? END extends RouteEntry[]
@@ -53,13 +54,13 @@ export type ExtractRouteEntriesByVerb<
     : REST
   : REST;
 
-export type RuntimeConfig<
-  REST extends SingleRuntimeConfig<RouteEntry>[] = [],
-  ROUTES extends RouteEntry[] = AllRoutes
+export type RuntimeConfigBuilder<
+  ROUTES extends RouteEntry[] = [],
+  REST extends SingleRuntimeConfig<RouteEntry>[] = []
 > = ROUTES extends [infer ENTRY, ...infer END]
   ? ENTRY extends RouteEntry
     ? END extends RouteEntry[]
-      ? RuntimeConfig<[...REST, SingleRuntimeConfig<ENTRY>], END>
+      ? RuntimeConfigBuilder<END, [...REST, SingleRuntimeConfig<ENTRY>]>
       : REST
     : REST
   : REST;
