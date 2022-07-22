@@ -37,6 +37,7 @@ const searchThreadWorker: SearchThreadWorker = async (searchTerm: string) => {
     await browser.close();
     return results;
   } catch (err) {
+    console.log(err);
     return [];
   }
 };

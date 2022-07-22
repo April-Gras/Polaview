@@ -1,5 +1,4 @@
-# FROM node:lts
-FROM node:14
+FROM node:lts
 
 RUN mkdir -p /scrapper/
 WORKDIR /scrapper
@@ -11,7 +10,6 @@ RUN apt-get update && apt-get -y install google-chrome-stable
 COPY tsconfig.node.json /scrapper/tsconfig.node.json
 COPY tsconfig.json /scrapper/tsconfig.json
 COPY package.json /scrapper/package.json
-COPY package-lock.json /scrapper/package-lock.json
 COPY nodemon.config.json /scrapper/nodemon.config.json
 
 COPY shared /scrapper/shared
@@ -19,10 +17,12 @@ COPY prisma /scrapper/prisma
 COPY .env /scrapper/.env
 COPY scrapimdb /scrapper/scrapimdb
 
+COPY node_modules /scrapper/node_modules/
+
 # Install dependencies
-RUN npm install
+# RUN yarn install
 
 # Prisma routine
-RUN npx prisma db push --force-reset
+RUN npx prisma generate
 
 EXPOSE 8081

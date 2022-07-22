@@ -30,12 +30,14 @@ const ROUTES: ScrapImdbRuntimeConfig = [
       console.log({ searchCacheEntry: !!searchCacheEntry });
       if (!searchCacheEntry) {
         const searchThread: SearchThreadWorker = await spawn(
-          new Worker("./workers/search.ts", {})
+          new Worker("./workers/search.ts")
         );
         const saveSearchThread: SaveSearchThreadWorker = await spawn(
           new Worker("./workers/saveSearch.ts")
         );
+        console.time("Scrap Search");
         const scrapResults = await searchThread(term);
+        console.timeEnd("Scrap Search");
 
         saveSearchThread({ results: scrapResults, term });
         return scrapResults;
@@ -67,6 +69,7 @@ for (const index in ROUTES) {
         res.status(200).json(data);
       })
       .catch((err) => {
+        console.log(err);
         if (err instanceof Prisma.PrismaClientKnownRequestError)
           res.status(400).json(err.message);
         else res.status(400).json(err);

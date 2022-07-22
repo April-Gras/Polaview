@@ -22,12 +22,6 @@ const saveSearchThreadWorker: SaveSearchThreadWorker = async ({
         },
       },
     });
-    await prisma.imdbSearchCache.findFirst({
-      where: {
-        term,
-      },
-    });
-    console.log("ksadhakshdkas");
     return;
   } catch (err) {
     console.log(err);

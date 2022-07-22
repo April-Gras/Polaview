@@ -1,4 +1,4 @@
-FROM node:14
+FROM node:lts
 
 RUN mkdir -p /client/
 WORKDIR /client
@@ -15,12 +15,14 @@ COPY shared /client/shared
 COPY prisma /client/prisma
 COPY .env /client/.env
 
+COPY node_modules /client/node_modules 
+
 COPY src /client/src
 
 # Install dependencies
-RUN npm install
+# RUN yarn install
 
 # Prisma routine
-RUN npx prisma db push
+RUN npx prisma generate
 
 EXPOSE 5173

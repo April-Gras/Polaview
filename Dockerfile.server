@@ -1,5 +1,4 @@
-# FROM node:lts
-FROM node:14
+FROM node:lts
 
 RUN mkdir -p /api/
 WORKDIR /api
@@ -14,10 +13,12 @@ COPY prisma /api/prisma
 COPY .env /api/.env
 COPY server /api/server
 
+COPY node_modules /api/node_modules
+
 # Install dependencies
-RUN npm install
+# RUN yarn install
 
 # Prisma routine
-RUN npx prisma db push
+RUN npx prisma generate
 
 EXPOSE 8080
