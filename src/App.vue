@@ -1,38 +1,53 @@
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
 import { useUserStore } from "@/stores/user";
 
 import NavigationVue from "./components/Navigation.vue";
 
-const noMandatoryLoginRoutes = ["/login", "/logout"];
+const noMandatoryLoginRoutes = [
+  "/login",
+  "/logout",
+  "/signup",
+  "/signup/confirmed",
+];
+
+const adminRoutes = ["/admin"];
 
 export default defineComponent({
   components: {
     NavigationVue,
   },
   setup() {
-    return { USER_STORE: useUserStore() };
+    return {
+      USER_STORE: useUserStore(),
+    };
   },
   async created() {
-    await this.USER_STORE.ATTEMPT_LOGIN();
+    try {
+      await this.USER_STORE.ATTEMPT_LOGIN();
+    } catch (_) {}
 
-    // Is logged in skip
-    if (this.USER_STORE.id) return;
-
-    console.log(this.$route.path);
     if (
-      this.currentRouteRequiresLogin &&
-      !this.USER_STORE.CURRENT_USER_IS_LOGGED_IN
+      (this.currentRouteRequiresLogin &&
+        !this.USER_STORE.CURRENT_USER_IS_LOGGED_IN) ||
+      (!this.USER_STORE.isAdmin && this.currentRouteRequiresAdmin)
     )
-      this.$router.push("/login");
+      this.$router.push(
+        this.USER_STORE.CURRENT_USER_IS_LOGGED_IN ? "/" : "/login"
+      );
   },
   computed: {
     currentRouteRequiresLogin(): boolean {
       return !noMandatoryLoginRoutes.includes(this.$route.path);
     },
+    currentRouteRequiresAdmin(): boolean {
+      return adminRoutes.includes(this.$route.path);
+    },
     canDisplayRouteComponent(): boolean {
+      if (this.USER_STORE.isAdmin) return true;
       return (
-        this.USER_STORE.CURRENT_USER_IS_LOGGED_IN ||
+        (this.USER_STORE.CURRENT_USER_IS_LOGGED_IN &&
+          !this.currentRouteRequiresAdmin) ||
         !this.currentRouteRequiresLogin
       );
     },
@@ -41,11 +56,9 @@ export default defineComponent({
 </script>
 
 <template>
-  <div>
-    <nav class="page-layout text-center shadow">
-      <NavigationVue />
-    </nav>
-    <div class="page-layout bg-red-500">
+  <div class="min-h-screen bg-neutral-100 dark:bg-slate-800">
+    <NavigationVue class="bg-neutral-200 dark:bg-slate-700" />
+    <div class="page-layout">
       <RouterView v-slot="{ Component }">
         <transition name="fade" mode="out-in">
           <component :is="Component" v-if="canDisplayRouteComponent" />

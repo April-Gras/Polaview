@@ -7,6 +7,7 @@ export type AllRoutes = [
   BuildRouteEntry<"get", "/", "health">,
   BuildRouteEntry<"get", "/auth/user", Omit<User, "passwordHash">>,
   BuildRouteEntry<"get", "/user/:id", Omit<User, "passwordHash">>,
+  BuildRouteEntry<"get", "/user", Omit<User, "passwordHash">[]>,
   // POST
   BuildRouteEntry<
     "post",
@@ -20,6 +21,12 @@ export type AllRoutes = [
     "/user",
     NoId<Omit<User, "passwordHash">>,
     Pick<User, "email" | "name"> & { clearPassword: string }
+  >,
+  BuildRouteEntry<
+    "post",
+    "/user/toggleIsActivate",
+    Omit<User, "passwordHash">,
+    { id: number }
   >,
   // PATCH
   BuildRouteEntry<"patch", "/user/:id", User, NoId<User>>

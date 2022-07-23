@@ -5,11 +5,7 @@
 @layer base {
   html,
   body {
-    @apply bg-neutral-100 dark:bg-slate-800;
-  }
-
-  input {
-    @apply bg-neutral-200 px-4 py-1 dark:bg-slate-600;
+    @apply min-h-screen bg-neutral-200 dark:bg-slate-700;
   }
 
   body *,
@@ -33,7 +29,7 @@
 
 @layer utilities {
   .page-layout {
-    @apply relative w-full px-4 py-2 sm:px-6;
+    @apply relative w-full px-4 py-10 sm:px-6 md:mx-auto md:max-w-3xl lg:max-w-5xl;
   }
 
   .text-base-color {
@@ -41,7 +37,11 @@
   }
 
   .base-text {
-    @apply text-base-color text-base font-semibold md:text-lg;
+    @apply text-base-color font-regular text-base md:text-lg;
+  }
+
+  .label-text {
+    @apply text-base-color text-base font-medium  md:text-lg;
   }
 
   .title-text {
@@ -51,4 +51,14 @@
   .subtitle-text {
     @apply text-xl text-neutral-700 dark:text-neutral-200 md:text-3xl;
   }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 150ms ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }

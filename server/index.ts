@@ -1,13 +1,18 @@
+import { buildSingleMiddleware } from "~/expressUtils";
+import { userIsAdminMiddleware } from "#/middlewares/userIsAdmin";
+import { AllRoutes } from "~/types/RouteLibraryServer";
 import { PrismaClient, Prisma } from "@prisma/client";
-import express, { Express } from "express";
+import express, { Express, NextFunction, Router } from "express";
 import bodyParser from "body-parser";
+import "dotenv/config";
 import cookieParser from "cookie-parser";
+import { hash } from "argon2";
 
 import { ServerRuntimeConfig } from "~/types/RouteLibraryServer";
-import { buildSingleRuntimeConfigEntry } from "~/express-utils";
+import { buildSingleRuntimeConfigEntry } from "~/expressUtils";
 
-import { userGetById, userPost, userPatchById } from "#/user";
-import { authLoginPost, authUserGet } from "#/auth";
+import { getUser, userGetById, userPost, userPatchById } from "#/user";
+import { authLoginPost, authUserGet, authLogoutPost } from "#/auth";
 import { JsonCompliantData } from "~/types/Route";
 
 const prisma = new PrismaClient();
@@ -20,36 +25,59 @@ const ROUTES: ServerRuntimeConfig = [
   }),
   buildSingleRuntimeConfigEntry("get", "/auth/user", authUserGet),
   buildSingleRuntimeConfigEntry("get", "/user/:id", userGetById),
+  buildSingleRuntimeConfigEntry("get", "/user", getUser),
   buildSingleRuntimeConfigEntry("post", "/auth/login", authLoginPost),
+  buildSingleRuntimeConfigEntry("post", "/auth/logout", authLogoutPost),
+  buildSingleRuntimeConfigEntry("post", "/user", userPost),
   buildSingleRuntimeConfigEntry(
     "post",
-    "/auth/logout",
-    async (prisma, req, res) => {
-      const { sessionid } = req.cookies;
-
-      await prisma.session.delete({
+    "/user/toggleIsActivate",
+    async (prisma, _, __, { id }) => {
+      const user = await prisma.user.findUnique({
         where: {
-          id: sessionid,
+          id,
         },
       });
-      res.cookie("sessionid", "", {
-        httpOnly: true,
-        path: "/",
+
+      if (!user || user.isAdmin) throw "Illegal Operation";
+      const updatedUser = await prisma.user.update({
+        where: {
+          id,
+        },
+        data: {
+          isActive: !user.isActive,
+        },
+        select: {
+          email: true,
+          id: true,
+          isActive: true,
+          isAdmin: true,
+          name: true,
+        },
       });
-      return true;
+      return updatedUser;
     }
   ),
-  buildSingleRuntimeConfigEntry("post", "/user", userPost),
   buildSingleRuntimeConfigEntry("patch", "/user/:id", userPatchById),
 ];
 
+const router = Router();
+const MIDDLEWARES = [
+  buildSingleMiddleware<AllRoutes, "get">(
+    "get",
+    "/user",
+    userIsAdminMiddleware
+  ),
+  buildSingleMiddleware<AllRoutes, "post">(
+    "post",
+    "/user/activate",
+    userIsAdminMiddleware
+  ),
+] as const;
+
 app.use(bodyParser.json());
-app.use((_, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Headers", "*");
-  next();
-});
 app.use(cookieParser());
+app.use("/", router);
 
 for (const index in ROUTES) {
   const [verb, url, handler] = ROUTES[index];
@@ -67,6 +95,43 @@ for (const index in ROUTES) {
       });
   });
 }
+
+for (const index in MIDDLEWARES) {
+  const [verb, url, handler] = MIDDLEWARES[index];
+
+  // @ts-ignore
+  router[verb](url, (req, res, next) => {
+    handler.bind({ prisma })(req, res, next);
+  });
+}
+
+// CREATE Base admin user
+const { BASE_ADMIN_EMAIL, BASE_ADMIN_PASSWORD, BASE_ADMIN_NAME } = process.env;
+
+if (!BASE_ADMIN_EMAIL || !BASE_ADMIN_NAME || !BASE_ADMIN_PASSWORD)
+  throw "Please set BASE_ADMIN_EMAIL, BASE_ADMIN_PASSWORD, BASE_ADMIN_NAME .env varaibles";
+
+async function createBaseAdmin() {
+  const userData = {
+    name: BASE_ADMIN_NAME as string,
+    passwordHash: await hash(BASE_ADMIN_PASSWORD as string),
+    email: BASE_ADMIN_EMAIL as string,
+  };
+
+  if (
+    !!(await prisma.user.findFirst({
+      where: {
+        email: BASE_ADMIN_EMAIL,
+        name: BASE_ADMIN_NAME,
+      },
+    }))
+  )
+    return;
+  await prisma.user.create({
+    data: { ...userData, isActive: true, isAdmin: true },
+  });
+}
+createBaseAdmin();
 
 app.listen(port, () => {
   console.log(`ܡ main server is running at http://localhost:${port}`);

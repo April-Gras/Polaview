@@ -5,32 +5,37 @@ type ClientUser = Omit<User, "passwordHash">;
 
 export const useUserStore = defineStore("user", {
   state() {
-    return {
+    const out: ClientUser = {
       email: "",
       name: "",
       id: 0,
-    } as ClientUser;
+      isActive: false,
+      isAdmin: false,
+    };
+    return out;
   },
   actions: {
-    SET_CURRENT_USER({ email, name, id }: ClientUser) {
+    SET_CURRENT_USER({ email, name, id, isActive, isAdmin }: ClientUser) {
       this.email = email;
       this.name = name;
       this.id = id;
+      this.isActive = isActive;
+      this.isAdmin = isAdmin;
     },
     async ATTEMPT_LOGIN() {
-      try {
-        const { data } = await this.$getRequest("/auth/user");
+      const { data } = await this.$getRequest("/auth/user");
 
-        if (data) this.SET_CURRENT_USER(data);
-      } catch (_) {
-        return;
-      }
+      if (data) this.SET_CURRENT_USER(data);
     },
     LOGOUT() {
       this.$postRequest("/auth/logout");
-      this.$reset();
-      // Reload the app, fuck you don't log off you dummy
-      window.location.reload;
+      this.SET_CURRENT_USER({
+        email: "",
+        id: 0,
+        name: "",
+        isActive: false,
+        isAdmin: false,
+      });
     },
   },
   getters: {

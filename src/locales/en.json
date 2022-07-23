@@ -1,1 +1,18 @@
-{}
+{
+  "common.email": "Email",
+  "common.login": "Login",
+  "common.name": "User name",
+  "common.password": "Password",
+  "common.signup": "Singup",
+  "inputErrors.email": "Invalid email",
+  "inputErrors.name": "At least two letters",
+  "inputErrors.password": "The password must be at least 8 characters long",
+  "pages.admin.title": "Admin page",
+  "pages.login.title.Login": "Login",
+  "pages.signup.title": "Signup request",
+  "pages.signupConfirmed.subtitle": "Now waiting is in order",
+  "pages.signupConfirmed.text": "Someone will take care of your request",
+  "pages.signupConfirmed.title": "Congrats",
+  "placeholders.email": "Enter email address",
+  "placeholders.name": "User name"
+}

@@ -1,6 +1,6 @@
+// import { ExpressMiddleware } from "~/types/ExpressMiddleware";
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
-import { AllRoutes } from "~/types/RouteLibraryServer";
 const availableVerbs = ["get", "post", "delete", "patch"] as const;
 
 export type JsonCompliantData =
@@ -42,14 +42,14 @@ export type SingleRuntimeConfig<ENTRY extends RouteEntry> = [
 
 export type ExtractRouteEntriesByVerb<
   V extends Verb,
-  REST extends RouteEntry[] = [],
-  ROUTES extends RouteEntry[] = []
+  ROUTES extends RouteEntry[],
+  REST extends RouteEntry[] = []
 > = ROUTES extends [infer ENTRY, ...infer END]
   ? ENTRY extends RouteEntry
     ? END extends RouteEntry[]
       ? ENTRY[0] extends V
-        ? ExtractRouteEntriesByVerb<V, [...REST, ENTRY], END>
-        : ExtractRouteEntriesByVerb<V, REST, END>
+        ? ExtractRouteEntriesByVerb<V, END, [...REST, ENTRY]>
+        : ExtractRouteEntriesByVerb<V, END, REST>
       : REST
     : REST
   : REST;
@@ -65,19 +65,22 @@ export type RuntimeConfigBuilder<
     : REST
   : REST;
 
-export type AvailableUrlsFromVerb<V extends Verb> =
-  AllRoutes[number] extends infer ENTRY
-    ? ENTRY extends RouteEntry
-      ? ENTRY[0] extends V
-        ? ENTRY[1]
-        : never
+export type AvailableUrlsFromVerb<
+  V extends Verb,
+  COLLECTION extends RouteEntry[]
+> = COLLECTION[number] extends infer ENTRY
+  ? ENTRY extends RouteEntry
+    ? ENTRY[0] extends V
+      ? ENTRY[1]
       : never
-    : never;
+    : never
+  : never;
 
 export type GetRouteDataHandlerFromUrlAndVerb<
   V extends Verb,
-  URL extends AvailableUrlsFromVerb<V>
-> = AllRoutes[number] extends infer ENTRY
+  COLLECTION extends RouteEntry[],
+  URL extends AvailableUrlsFromVerb<V, COLLECTION>
+> = COLLECTION[number] extends infer ENTRY
   ? ENTRY extends RouteEntry
     ? ENTRY[0] extends V
       ? ENTRY[1] extends URL

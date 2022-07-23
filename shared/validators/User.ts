@@ -1,16 +1,35 @@
 import { User } from "@prisma/client";
 import { ValidatorFunction } from "~/types/Validator";
 
-type UserAlias = Pick<User, "email" | "name"> & { clearPassword: string };
+type PasswordObj = { clearPassword: string };
 
+type UserAlias = Pick<User, "email" | "name"> & PasswordObj;
 export const userValidator: ValidatorFunction<UserAlias> = function (user) {
-  const out: (keyof UserAlias)[] = [];
+  const out: (keyof UserAlias)[] = userLoginValidator(user);
 
-  if (!validateEmail(user.email)) out.push("email");
-  if (user.name.length < 2) out.push("name");
-  if (user.clearPassword.length < 8) out.push("clearPassword");
+  if (!validateUserName(user.name)) out.push("name");
   return out;
 };
+
+type UserLogin = Pick<User, "email"> & PasswordObj;
+export const userLoginValidator: ValidatorFunction<UserLogin> = function ({
+  email,
+  clearPassword,
+}) {
+  const out: (keyof UserLogin)[] = [];
+
+  if (!validateEmail(email)) out.push("email");
+  if (!validateClearPassword(clearPassword)) out.push("clearPassword");
+  return out;
+};
+
+function validateUserName(name: string): boolean {
+  return name.length > 2;
+}
+
+function validateClearPassword(clearPassword: string): boolean {
+  return clearPassword.length > 8;
+}
 
 function validateEmail(email: string): boolean {
   return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email);

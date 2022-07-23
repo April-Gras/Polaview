@@ -7,7 +7,7 @@ import { spawn, Worker } from "threads";
 import { SearchThreadWorker } from "#/workers/search";
 import { SaveSearchThreadWorker } from "./workers/saveSearch";
 
-import { buildSingleRuntimeConfigEntry } from "~/express-utils";
+import { buildSingleRuntimeConfigEntry } from "~/expressUtils";
 import { ScrapImdbRuntimeConfig } from "~/types/RouteLibraryScrapImdb";
 
 const prisma = new PrismaClient();
@@ -35,9 +35,7 @@ const ROUTES: ScrapImdbRuntimeConfig = [
         const saveSearchThread: SaveSearchThreadWorker = await spawn(
           new Worker("./workers/saveSearch.ts")
         );
-        console.time("Scrap Search");
         const scrapResults = await searchThread(term);
-        console.timeEnd("Scrap Search");
 
         saveSearchThread({ results: scrapResults, term });
         return scrapResults;
@@ -52,11 +50,6 @@ const ROUTES: ScrapImdbRuntimeConfig = [
 ];
 
 app.use(bodyParser.json());
-app.use((_, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Headers", "*");
-  next();
-});
 app.use(cookieParser());
 
 for (const index in ROUTES) {

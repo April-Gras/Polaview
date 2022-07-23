@@ -1,50 +1,41 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 
-import { useUserStore } from "@/stores/user";
-
-import { userLoginValidator } from "~/validators/User";
-
 import VTextInputVue from "@/components/ui/VTextInput.vue";
 import VButtonMainVue from "@/components/ui/VButtonMain.vue";
 
+import { userValidator } from "~/validators/User";
+
 export default defineComponent({
-  setup() {
-    return {
-      USER_STORE: useUserStore(),
-    };
-  },
   components: {
     VTextInputVue,
     VButtonMainVue,
   },
   data() {
     return {
-      email: "april@polaview.com",
-      password: "securepasswd",
+      name: "",
+      email: "",
+      password: "",
       validationArray: [] as string[],
     };
   },
   methods: {
-    verifyLoginInputs() {
-      this.validationArray = userLoginValidator({
+    attemptSignup() {
+      if (!this.validateSignupData()) return;
+      this.$postRequest("/user", {
         email: this.email,
+        clearPassword: this.password,
+        name: this.name,
+      });
+      this.$router.push("/signup/confirmed");
+    },
+    validateSignupData(): boolean {
+      this.validationArray = userValidator({
+        email: this.email,
+        name: this.name,
         clearPassword: this.password,
       });
       return this.validationArray.length === 0;
-    },
-    async attemptLogin() {
-      if (!this.verifyLoginInputs()) return;
-      try {
-        await this.$postRequest("/auth/login", {
-          email: this.email,
-          clearPassword: this.password,
-        });
-        await this.USER_STORE.ATTEMPT_LOGIN();
-        this.$router.push("/");
-      } catch (err) {
-        // TODO handle shit
-      }
     },
   },
 });
@@ -53,7 +44,17 @@ export default defineComponent({
 <template>
   <div class="grid gap-10">
     <div class="grid-col-1 grid w-full gap-4">
-      <h1 class="title-text">{{ $t("pages.login.title.Login") }}</h1>
+      <h1 class="title-text">{{ $t("pages.signup.title") }}</h1>
+      <VTextInputVue
+        v-model="name"
+        v-model:validationArray="validationArray"
+        validation-key="name"
+        label-for-uid="name"
+        :placeholder="$t('placeholders.name')"
+      >
+        <template #label>{{ $t("common.name") }}</template>
+        <template #error-message>{{ $t("inputErrors.name") }}</template>
+      </VTextInputVue>
       <VTextInputVue
         v-model="email"
         v-model:validationArray="validationArray"
@@ -77,8 +78,8 @@ export default defineComponent({
       </VTextInputVue>
     </div>
     <div class="flex justify-end">
-      <VButtonMainVue @action="attemptLogin">{{
-        $t("common.login")
+      <VButtonMainVue @action="attemptSignup">{{
+        $t("common.signup")
       }}</VButtonMainVue>
     </div>
   </div>
