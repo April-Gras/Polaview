@@ -74,41 +74,43 @@ export default defineComponent({
 </script>
 
 <template>
-  <nav class="w-full overflow-auto shadow-md">
-    <div
-      class="page-layout flex items-center justify-between space-x-6 !py-4 text-center"
-    >
-      <div class="flex items-center justify-center space-x-6">
-        <RouterLink
-          v-for="entry in navigationEntries"
-          :to="entry.route"
-          class="flex cursor-pointer items-center justify-center space-x-3 rounded-sm bg-neutral-100 px-4 py-2 text-center shadow-sm transition duration-150 ease-in-out hover:bg-slate-300 hover:bg-opacity-25 hover:shadow-lg dark:bg-slate-800 hover:dark:bg-slate-900"
-        >
-          <span class="material-symbols-outlined overflow-hidden">{{
-            entry.icon
-          }}</span>
-          <span class="font-bold">{{ entry.text }}</span>
-        </RouterLink>
-      </div>
-      <div class="flex space-x-4">
-        <button
-          @click="
-            appTheme = appTheme === 'dark' ? 'light' : 'dark';
-            applyAppTheme();
-          "
-          class="flex items-center justify-center"
-        >
-          <span class="material-symbols-outlined">{{
-            appTheme === "dark" ? "light_mode" : "dark_mode"
-          }}</span>
-        </button>
-        <button
-          v-if="USER_STORE.CURRENT_USER_IS_LOGGED_IN"
-          @click="handleLogout"
-          class="flex items-center justify-center"
-        >
-          <span class="material-symbols-outlined"> logout </span>
-        </button>
+  <nav class="w-full shadow-md">
+    <div class="page-layout !py-4">
+      <div
+        class="flex items-center justify-between space-x-6 overflow-auto text-center"
+      >
+        <div class="flex items-center justify-center space-x-6">
+          <RouterLink
+            v-for="entry in navigationEntries"
+            :to="entry.route"
+            class="flex cursor-pointer items-center justify-center space-x-3 rounded-sm bg-neutral-100 px-4 py-2 text-center shadow-sm transition duration-150 ease-in-out hover:bg-slate-300 hover:bg-opacity-25 hover:shadow-lg dark:bg-slate-800 hover:dark:bg-slate-900"
+          >
+            <span class="material-symbols-outlined overflow-hidden">{{
+              entry.icon
+            }}</span>
+            <span class="font-bold">{{ entry.text }}</span>
+          </RouterLink>
+        </div>
+        <div class="flex space-x-4">
+          <button
+            @click="
+              appTheme = appTheme === 'dark' ? 'light' : 'dark';
+              applyAppTheme();
+            "
+            class="flex items-center justify-center"
+          >
+            <span class="material-symbols-outlined">{{
+              appTheme === "dark" ? "light_mode" : "dark_mode"
+            }}</span>
+          </button>
+          <button
+            v-if="USER_STORE.CURRENT_USER_IS_LOGGED_IN"
+            @click="handleLogout"
+            class="flex items-center justify-center"
+          >
+            <span class="material-symbols-outlined"> logout </span>
+          </button>
+        </div>
       </div>
     </div>
   </nav>

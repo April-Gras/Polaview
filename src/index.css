@@ -8,7 +8,8 @@
     @apply min-h-screen bg-neutral-200 dark:bg-slate-700;
   }
 
-  body *,
+  body,
+  *,
   ::placeholder,
   input {
     @apply text-base-color box-border;
@@ -28,8 +29,8 @@
 }
 
 @layer utilities {
-  .page-layout {
-    @apply relative w-full px-4 py-10 sm:px-6 md:mx-auto md:max-w-3xl lg:max-w-5xl;
+  .ellipsis {
+    @apply relative overflow-hidden overflow-ellipsis whitespace-nowrap;
   }
 
   .text-base-color {
@@ -50,6 +51,18 @@
 
   .subtitle-text {
     @apply text-xl text-neutral-700 dark:text-neutral-200 md:text-3xl;
+  }
+}
+
+.page-layout {
+  @apply relative mx-4 w-full overflow-hidden py-10 sm:mx-6 md:mx-auto md:!max-w-3xl lg:!max-w-3xl;
+
+  max-width: calc(100vw - (theme("space.4") * 2));
+}
+
+@screen sm {
+  .page-layout {
+    max-width: calc(100vw - (theme("space.6") * 2));
   }
 }
 

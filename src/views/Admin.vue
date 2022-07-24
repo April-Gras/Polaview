@@ -34,38 +34,61 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="grid grid-cols-1 gap-6">
+  <div class="relative grid grid-cols-1 gap-6">
     <h1 class="title-text">{{ $t("pages.admin.title") }}</h1>
-    <ul class="grid gap-6">
-      <li
-        v-for="{ name, email, isAdmin, isActive, id } in users"
-        class="tableGrid"
-      >
-        <div>{{ name }}</div>
-        <div class="hidden md:block">{{ email }}</div>
-        <div
-          class="booleanIcon"
-          :class="{ 'bg-green-500': isAdmin, 'bg-red-500': !isAdmin }"
+    <div class="relative w-full space-y-10">
+      <div class="tableGrid">
+        <span class="ellipsis">{{ $t("pages.admin.table.name") }}</span>
+        <span class="ellipsis">{{ $t("pages.admin.table.email") }}</span>
+        <span class="ellipsis">{{ $t("pages.admin.table.isAdmin") }}</span>
+        <span class="ellipsis">{{ $t("pages.admin.table.isActive") }}</span>
+        <span class="ellipsis">{{
+          $t("pages.admin.table.toggleIsActive")
+        }}</span>
+      </div>
+      <ul class="grid gap-6">
+        <li
+          v-for="{ name, email, isAdmin, isActive, id } in users"
+          class="tableGrid"
         >
-          <span class="material-symbols-outlined" v-if="isAdmin"> check </span>
-          <span class="material-symbols-outlined" v-else> close </span>
-        </div>
-        <button
-          class="booleanIcon"
-          :class="{ 'bg-green-500': isActive, 'bg-red-500': !isActive }"
-        >
-          <transition name="fade" mode="out-in">
-            <span class="material-symbols-outlined" v-if="isActive">
+          <div class="ellipsis">{{ name }}</div>
+          <div class="ellipsis">{{ email }}</div>
+          <div
+            class="booleanIcon"
+            :class="{ 'bg-green-500': isAdmin, 'bg-red-500': !isAdmin }"
+          >
+            <span class="material-symbols-outlined text-white" v-if="isAdmin">
               check
             </span>
-            <span class="material-symbols-outlined" v-else> close </span>
-          </transition>
-        </button>
-        <VButtonMainVue @action="handleToggleIsActive(id)">
-          Toggle
-        </VButtonMainVue>
-      </li>
-    </ul>
+            <span class="material-symbols-outlined text-white" v-else>
+              close
+            </span>
+          </div>
+          <button
+            class="booleanIcon"
+            :class="{ 'bg-green-500': isActive, 'bg-red-500': !isActive }"
+          >
+            <transition name="fade" mode="out-in">
+              <span
+                class="material-symbols-outlined text-white"
+                v-if="isActive"
+              >
+                check
+              </span>
+              <span class="material-symbols-outlined text-white" v-else>
+                close
+              </span>
+            </transition>
+          </button>
+          <VButtonMainVue
+            @action="handleToggleIsActive(id)"
+            class="col-span-2 md:col-span-1"
+          >
+            Toggle
+          </VButtonMainVue>
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 
@@ -75,12 +98,10 @@ export default defineComponent({
 }
 
 .tableGrid {
-  @apply grid items-center gap-4 rounded-sm border border-solid border-slate-100 py-2 px-4;
-
-  grid-template-columns: auto theme("space.6") theme("space.6");
+  @apply grid w-full grid-cols-2 items-center gap-4 border border-solid border-slate-300 py-2 px-4 dark:border-slate-700 md:grid-cols-4;
 
   @screen md {
-    grid-template-columns: 25% 25% theme("space.6") theme("space.6") auto;
+    @apply grid-cols-5;
   }
 }
 </style>
