@@ -1,11 +1,11 @@
 import { expose } from "threads/worker";
 import puppeteer from "puppeteer";
-import { PrismaClient } from "@prisma/client";
+import { getBrowserFromPuppeteer } from "#/utils/getBrowserFromPuppeteer";
 
 export type SearchThreadWorkerReturn = {
   thumbnailUrl: string | null;
   imdbId: string;
-  title: string;
+  name: string;
 };
 export type SearchThreadWorker = (
   searchTerm: string
@@ -13,14 +13,7 @@ export type SearchThreadWorker = (
 
 const searchThreadWorker: SearchThreadWorker = async (searchTerm: string) => {
   try {
-    const browser = await puppeteer.launch({
-      args: [
-        "--disable-gpu",
-        "--disable-dev-shm-usage",
-        "--disable-setuid-sandbox",
-        "--no-sandbox",
-      ],
-    });
+    const browser = await getBrowserFromPuppeteer(puppeteer);
     const processedSearchTerm = searchTerm.replace(/ /gi, "+");
     const page = await browser.newPage();
 
@@ -50,15 +43,15 @@ async function evaluateResultEntry(
   if (!linkElement) return null;
 
   const link = await linkElement.getProperty("href");
-  const title = await linkElement.evaluate((el) => el.textContent);
+  const name = await linkElement.evaluate((el) => el.textContent);
   const imdbId = extractImdbIdFromTitleLink(link.toString());
 
-  if (!imdbId || !title) return null;
+  if (!imdbId || !name) return null;
 
   const pictureElement = await resultEntry.$(".primary_photo img");
   return {
     imdbId,
-    title,
+    name,
     thumbnailUrl: pictureElement
       ? // @ts-expect-error
         (await (await pictureElement.getProperty("src")).jsonValue()).toString()

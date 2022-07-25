@@ -23,6 +23,7 @@
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
+    "ffmetadata": "^1.7.0",
     "pinia": "^2.0.16",
     "puppeteer": "^15.5.0",
     "threads": "^1.7.0",

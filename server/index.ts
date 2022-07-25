@@ -1,15 +1,20 @@
-import { buildSingleMiddleware } from "~/expressUtils";
-import { userIsAdminMiddleware } from "#/middlewares/userIsAdmin";
-import { AllRoutes } from "~/types/RouteLibraryServer";
-import { PrismaClient, Prisma } from "@prisma/client";
-import express, { Express, NextFunction, Router } from "express";
-import bodyParser from "body-parser";
 import "dotenv/config";
+import express, { Express, Router } from "express";
+import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
-import { hash } from "argon2";
+
+import { PrismaClient, Prisma } from "@prisma/client";
+
+import { buildSingleMiddleware } from "~/expressUtils";
 
 import { ServerRuntimeConfig } from "~/types/RouteLibraryServer";
 import { buildSingleRuntimeConfigEntry } from "~/expressUtils";
+import { AllRoutes } from "~/types/RouteLibraryServer";
+
+import { userIsAdminMiddleware } from "#/middlewares/userIsAdmin";
+
+import { startupCreateBaseUsers } from "#/startupUtils/createBaseUser";
+import { startupProcessSources } from "#/startupUtils/processSources";
 
 import { getUser, userGetById, userPost, userPatchById } from "#/user";
 import { authLoginPost, authUserGet, authLogoutPost } from "#/auth";
@@ -18,6 +23,9 @@ import { JsonCompliantData } from "~/types/Route";
 const prisma = new PrismaClient();
 const app: Express = express();
 const port = process.env.PORT ?? "8080";
+
+startupCreateBaseUsers(prisma);
+startupProcessSources(prisma);
 
 const ROUTES: ServerRuntimeConfig = [
   buildSingleRuntimeConfigEntry("get", "/", async () => {
@@ -104,34 +112,6 @@ for (const index in MIDDLEWARES) {
     handler.bind({ prisma })(req, res, next);
   });
 }
-
-// CREATE Base admin user
-const { BASE_ADMIN_EMAIL, BASE_ADMIN_PASSWORD, BASE_ADMIN_NAME } = process.env;
-
-if (!BASE_ADMIN_EMAIL || !BASE_ADMIN_NAME || !BASE_ADMIN_PASSWORD)
-  throw "Please set BASE_ADMIN_EMAIL, BASE_ADMIN_PASSWORD, BASE_ADMIN_NAME .env varaibles";
-
-async function createBaseAdmin() {
-  const userData = {
-    name: BASE_ADMIN_NAME as string,
-    passwordHash: await hash(BASE_ADMIN_PASSWORD as string),
-    email: BASE_ADMIN_EMAIL as string,
-  };
-
-  if (
-    !!(await prisma.user.findFirst({
-      where: {
-        email: BASE_ADMIN_EMAIL,
-        name: BASE_ADMIN_NAME,
-      },
-    }))
-  )
-    return;
-  await prisma.user.create({
-    data: { ...userData, isActive: true, isAdmin: true },
-  });
-}
-createBaseAdmin();
 
 app.listen(port, () => {
   console.log(`ܡ main server is running at http://localhost:${port}`);

@@ -12,9 +12,13 @@ services:
     restart: unless-stopped
     tty: true
     command: npm run server-dev
+    depends_on:
+      - postgres
     volumes:
       - ./server:/api/server
       - ./shared:/api/shared
+      - /media/${USER}:/openMedia
+      - /home/${USER}:/openMedia
       - ./node_modules:/api/node_modules
 
   client:

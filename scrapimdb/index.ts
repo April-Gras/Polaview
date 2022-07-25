@@ -2,51 +2,32 @@ import { PrismaClient, Prisma } from "@prisma/client";
 import express, { Express } from "express";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
-import { spawn, Worker } from "threads";
-
-import { SearchThreadWorker } from "#/workers/search";
-import { SaveSearchThreadWorker } from "./workers/saveSearch";
 
 import { buildSingleRuntimeConfigEntry } from "~/expressUtils";
 import { ScrapImdbRuntimeConfig } from "~/types/RouteLibraryScrapImdb";
+
+import { searchPost } from "#/search/index";
+import { movieGetByImdbId, getMovieCastsFromMovieImdbId } from "#/movie/index";
 
 const prisma = new PrismaClient();
 const app: Express = express();
 const port = process.env.PORT ?? "8081";
 
 const ROUTES: ScrapImdbRuntimeConfig = [
+  buildSingleRuntimeConfigEntry("get", "/movie/:imdbId", movieGetByImdbId),
   buildSingleRuntimeConfigEntry(
-    "post",
-    "/search",
-    async (prisma, _, __, { term }) => {
-      console.log({ term });
-      if (!term || !term.length) return [];
-      const searchCacheEntry = await prisma.imdbSearchCache.findFirst({
-        where: {
-          term,
-        },
-      });
-
-      console.log({ searchCacheEntry: !!searchCacheEntry });
-      if (!searchCacheEntry) {
-        const searchThread: SearchThreadWorker = await spawn(
-          new Worker("./workers/search.ts")
-        );
-        const saveSearchThread: SaveSearchThreadWorker = await spawn(
-          new Worker("./workers/saveSearch.ts")
-        );
-        const scrapResults = await searchThread(term);
-
-        saveSearchThread({ results: scrapResults, term });
-        return scrapResults;
-      }
-      const searchResults = await prisma.imdbSearch.findMany({
-        where: { imdbSearchCacheTerm: searchCacheEntry.term },
-      });
-
-      return searchResults;
-    }
+    "get",
+    "/movie/:imdbId/cast",
+    getMovieCastsFromMovieImdbId
   ),
+  buildSingleRuntimeConfigEntry("get", "/person/:imdbId", async () => {
+    return {
+      imdbId: "",
+      name: "",
+      pictureUrl: "",
+    };
+  }),
+  buildSingleRuntimeConfigEntry("post", "/search", searchPost),
 ];
 
 app.use(bodyParser.json());

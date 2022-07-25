@@ -24,22 +24,9 @@ model Session {
   lastAccess DateTime @default(now())
 }
 
-model Source {
-  id    Int    @id @default(autoincrement())
-  path  String
-  files File[]
-}
-
-model File {
-  id       Int    @id @default(autoincrement())
-  path     String
-  source   Source @relation(references: [id], fields: [sourceId])
-  sourceId Int
-}
-
 model ImdbSearch {
   imdbId              String           @id @unique
-  title               String
+  name                String
   thumbnailUrl        String?
   ImdbSearchCache     ImdbSearchCache? @relation(fields: [imdbSearchCacheTerm], references: [term])
   imdbSearchCacheTerm String
@@ -48,4 +35,28 @@ model ImdbSearch {
 model ImdbSearchCache {
   term    String       @id @unique
   results ImdbSearch[]
+}
+
+model Title {
+  imdbId      String        @id @unique
+  name        String
+  releaseYear String?
+  pictureUrl  String?
+  titleOnCast TitleOnCast[]
+}
+
+model Person {
+  imdbId      String        @id @unique
+  name        String
+  pictureUrl  String?
+  titleOnCast TitleOnCast[]
+}
+
+model TitleOnCast {
+  title    Title  @relation(fields: [titleId], references: [imdbId])
+  titleId  String
+  person   Person @relation(fields: [personId], references: [imdbId])
+  personId String
+
+  @@id([titleId, personId])
 }
