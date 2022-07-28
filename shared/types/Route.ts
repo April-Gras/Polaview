@@ -89,3 +89,22 @@ export type GetRouteDataHandlerFromUrlAndVerb<
       : never
     : never
   : never;
+
+export type ExtractAvailableUrlsFromCollection<
+  COLLECTION extends RouteEntry[]
+> = COLLECTION[number] extends infer ENTRY
+  ? ENTRY extends RouteEntry
+    ? ENTRY[1]
+    : never
+  : never;
+
+export type GetEntryInCollectionFromUrl<
+  COLLECTION extends RouteEntry[],
+  URL = ExtractAvailableUrlsFromCollection<COLLECTION>
+> = COLLECTION[number] extends infer ENTRY
+  ? ENTRY extends RouteEntry
+    ? ENTRY[1] extends URL
+      ? ENTRY
+      : never
+    : never
+  : never;

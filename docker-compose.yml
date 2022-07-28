@@ -17,8 +17,7 @@ services:
     volumes:
       - ./server:/api/server
       - ./shared:/api/shared
-      - /media/${USER}:/openMedia
-      - /home/${USER}:/openMedia
+      - /home/${USER}/Videos:/openMedia # TODO Could change later
       - ./node_modules:/api/node_modules
 
   client:
@@ -68,9 +67,10 @@ services:
     volumes:
       - ./scrapimdb:/scrapper/scrapimdb
       - ./shared:/scrapper/shared
-      - ./node_modules:/client/node_modules
+      - ./node_modules:/scrapper/node_modules
 
   postgres:
+    container_name: pg_container
     image: postgres:latest
     restart: always
     environment:
@@ -83,6 +83,18 @@ services:
       - db:/var/lib/postgresql/data
     networks:
       - polaview.network
+
+  # pgadmin:
+  #   container_name: pgadmin4_container
+  #   image: dpage/pgadmin4
+  #   restart: always
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: admin@admin.com
+  #     PGADMIN_DEFAULT_PASSWORD: root
+  #   ports:
+  #     - "5050:80"
+  #   networks:
+  #     - polaview.network
 
 networks:
   polaview.network:

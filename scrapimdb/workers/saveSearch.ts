@@ -14,11 +14,32 @@ const saveSearchThreadWorker: SaveSearchThreadWorker = async ({
   term,
 }) => {
   try {
-    await prisma.imdbSearchCache.create({
-      data: {
+    await prisma.imdbSearchCache.upsert({
+      where: {
+        term,
+      },
+      create: {
         term,
         results: {
-          create: results,
+          connectOrCreate: results.map((result) => {
+            return {
+              create: result,
+              where: {
+                imdbId: result.imdbId,
+              },
+            };
+          }),
+        },
+      },
+      update: {
+        term,
+        results: {
+          connectOrCreate: results.map((result) => ({
+            create: result,
+            where: {
+              imdbId: result.imdbId,
+            },
+          })),
         },
       },
     });

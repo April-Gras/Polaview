@@ -7,18 +7,31 @@ import { buildSingleRuntimeConfigEntry } from "~/expressUtils";
 import { ScrapImdbRuntimeConfig } from "~/types/RouteLibraryScrapImdb";
 
 import { searchPost } from "#/search/index";
-import { movieGetByImdbId, getMovieCastsFromMovieImdbId } from "#/movie/index";
+import { titleGetByImdbId, getTitleCastsFromMovieImdbId } from "#/title/index";
 
 const prisma = new PrismaClient();
 const app: Express = express();
 const port = process.env.PORT ?? "8081";
 
 const ROUTES: ScrapImdbRuntimeConfig = [
-  buildSingleRuntimeConfigEntry("get", "/movie/:imdbId", movieGetByImdbId),
   buildSingleRuntimeConfigEntry(
     "get",
-    "/movie/:imdbId/cast",
-    getMovieCastsFromMovieImdbId
+    "/serie/:imdbId",
+    async (prisma, req) => {
+      const { imdbId } = req.params;
+
+      return await prisma.serie.findFirstOrThrow({
+        where: {
+          imdbId,
+        },
+      });
+    }
+  ),
+  buildSingleRuntimeConfigEntry("get", "/title/:imdbId", titleGetByImdbId),
+  buildSingleRuntimeConfigEntry(
+    "get",
+    "/title/:imdbId/cast",
+    getTitleCastsFromMovieImdbId
   ),
   buildSingleRuntimeConfigEntry("get", "/person/:imdbId", async () => {
     return {

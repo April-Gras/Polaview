@@ -32,6 +32,7 @@ model ImdbSearch {
   imdbSearchCacheTerm String
 }
 
+// TODO Change all imdbIds to int and prepend the url code when needed
 model ImdbSearchCache {
   term    String       @id @unique
   results ImdbSearch[]
@@ -40,9 +41,18 @@ model ImdbSearchCache {
 model Title {
   imdbId      String        @id @unique
   name        String
-  releaseYear String?
+  releaseYear Int?
+  mediaType   String?
   pictureUrl  String?
   titleOnCast TitleOnCast[]
+  Serie       Serie?        @relation(fields: [serieImdbId], references: [imdbId])
+  serieImdbId String?
+}
+
+model Serie {
+  imdbId   String  @id @unique
+  episodes Title[]
+  name     String
 }
 
 model Person {

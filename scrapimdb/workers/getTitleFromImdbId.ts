@@ -1,11 +1,17 @@
-import { expose } from "threads";
-import { Title, Person } from "@prisma/client";
+import { Worker, spawn, expose } from "threads";
+import { GetTitlesFromEpisodeListThreadWorker } from "./getTitlesFromEpisodeList";
+import { Title, Person, Serie } from "@prisma/client";
 import puppeteer from "puppeteer";
 import { getBrowserFromPuppeteer } from "#/utils/getBrowserFromPuppeteer";
+import { getCastFromTitlePage } from "#/utils/getCastFromTitlePage";
+import { extractImdbIdFromTitleLink } from "#/utils/extractImdbIdsFromUrl";
 
 export type GetTitleDataFromImdbIdThreadWorkerResult = {
-  title: Title;
-  casts: Person[];
+  serie?: Serie;
+  collection: {
+    title: Title;
+    casts: Person[];
+  }[];
 };
 export type GetTitleDataFromImdbIdThreadWorker = (
   imdbId: string
@@ -19,20 +25,48 @@ const getTitleDataFromImdbIdWorker: GetTitleDataFromImdbIdThreadWorker = async (
 
   await page.goto(`https://www.imdb.com/title/${imdbId}/`);
 
-  const [name, releaseYear, pictureUrl] = await Promise.all([
+  // If exist this means the title is part of a show with multiple episodes
+  const episodeGuideElement =
+    (await page.$('a[aria-label="View episode guide"]')) ||
+    (await page.$('a[aria-label="View all episodes"]'));
+
+  if (episodeGuideElement) {
+    const episodeGuideLink = await (
+      await episodeGuideElement.getProperty("href")
+    ).jsonValue();
+
+    if (typeof episodeGuideLink !== "string")
+      throw "Episode guide link is not a string";
+    const episodeListingImdbId = extractImdbIdFromTitleLink(episodeGuideLink);
+    if (!episodeListingImdbId) throw "Missing link for episode listing";
+    const getTitlesFromEpisodeListWorker: GetTitlesFromEpisodeListThreadWorker =
+      await spawn(new Worker("./getTitlesFromEpisodeList.ts"));
+
+    console.log({ imdbId, episodeListingImdbId });
+    return await getTitlesFromEpisodeListWorker(episodeListingImdbId);
+  }
+
+  // Regular title
+  const [name, { releaseYear, mediaType }, pictureUrl] = await Promise.all([
     getNameFromPage(page),
-    getReleaseYearFromPage(page),
+    getMetadatasFromPage(page),
     getPictureUrlFromPage(page),
   ]);
 
   return {
-    title: {
-      imdbId,
-      releaseYear,
-      name,
-      pictureUrl: pictureUrl?.toString() ?? null,
-    },
-    casts: await getCastImdbIdsFromPage(page),
+    collection: [
+      {
+        title: {
+          imdbId,
+          releaseYear,
+          mediaType,
+          name,
+          pictureUrl: pictureUrl?.toString() ?? null,
+          serieImdbId: null,
+        },
+        casts: await getCastFromTitlePage(page),
+      },
+    ],
   };
 };
 
@@ -47,16 +81,37 @@ async function getNameFromPage(page: puppeteer.Page): Promise<string> {
   return name;
 }
 
-async function getReleaseYearFromPage(
+type ExpectedReturn = {
+  releaseYear: number | null;
+  mediaType: string | null;
+};
+async function getMetadatasFromPage(
   page: puppeteer.Page
-): Promise<string | null> {
-  const releaseDateElem = await page.$(
-    ".ipc-page-section > div:nth-child(2) > div > div > ul > li > a"
-  );
+): Promise<ExpectedReturn> {
+  const metadataBlock = await page.$('a[aria-label="View episode guide"]');
 
-  return releaseDateElem
-    ? await releaseDateElem.evaluate((e) => e.textContent)
-    : null;
+  if (!metadataBlock)
+    return {
+      mediaType: null,
+      releaseYear: null,
+    };
+
+  const listElements = await metadataBlock.$$("li > span");
+  if (!listElements.length) return { mediaType: null, releaseYear: null };
+  const listTextContent = await Promise.all(
+    listElements.map((element) => element.evaluate((e) => e.textContent))
+  );
+  // Check if first value is year if, so we don't need to get more data since
+  // The media type will always be before in the <ul />
+  if (!Number.isNaN(Number(listTextContent[0])))
+    return { releaseYear: Number(listTextContent[0]), mediaType: null };
+  const potencialYear = Number(listTextContent[1]);
+  const potencialMediaType = listTextContent[0];
+
+  return {
+    releaseYear: !isNaN(potencialYear) ? potencialYear : null,
+    mediaType: potencialMediaType ? potencialMediaType : null,
+  };
 }
 
 async function getPictureUrlFromPage(
@@ -66,41 +121,6 @@ async function getPictureUrlFromPage(
   return pictureElem
     ? await (await pictureElem.getProperty("src")).jsonValue()
     : null;
-}
-
-async function getCastImdbIdsFromPage(page: puppeteer.Page) {
-  const personImdbIds = [] as Person[];
-  const castElementArray = await page.$$(
-    ".title-cast > div:nth-child(2) > .ipc-sub-grid .ipc-avatar"
-  );
-
-  for (const castElement of castElementArray) {
-    const pictureElem = await castElement.$("img");
-    const linkElement = await castElement.$("a");
-
-    if (!pictureElem || !linkElement) continue;
-    const personName = await (await pictureElem.getProperty("alt")).jsonValue();
-    const pictureUrl = await (await pictureElem.getProperty("src")).jsonValue();
-    const castLink = await (await linkElement.getProperty("href")).jsonValue();
-    const imdbId = await getImdbIdFromCastLink(castLink);
-
-    if (typeof personName !== "string") throw "Person name is no string";
-    personImdbIds.push({
-      imdbId,
-      name: personName,
-      pictureUrl: typeof pictureUrl !== "string" ? null : pictureUrl,
-    });
-  }
-  return personImdbIds;
-}
-
-async function getImdbIdFromCastLink(link: unknown) {
-  if (typeof link !== "string") throw "link was not a string";
-  const regex = /https:\/\/www.imdb.com\/name\/(nm.*)\?/gi;
-  const matches = regex.exec(link);
-
-  if (!matches) throw "No regex link matches";
-  return matches[1];
 }
 
 expose(getTitleDataFromImdbIdWorker);

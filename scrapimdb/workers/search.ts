@@ -1,6 +1,7 @@
 import { expose } from "threads/worker";
 import puppeteer from "puppeteer";
 import { getBrowserFromPuppeteer } from "#/utils/getBrowserFromPuppeteer";
+import { extractImdbIdFromTitleLink } from "#/utils/extractImdbIdsFromUrl";
 
 export type SearchThreadWorkerReturn = {
   thumbnailUrl: string | null;
@@ -57,15 +58,6 @@ async function evaluateResultEntry(
         (await (await pictureElement.getProperty("src")).jsonValue()).toString()
       : null,
   };
-}
-
-function extractImdbIdFromTitleLink(link: string): string | null {
-  const reg = /https:\/\/www.imdb.com\/title\/(tt.*)\/.*/gi;
-  const results = reg.exec(link);
-
-  if (!results) return null;
-  if (!results[1]) return null;
-  return results[1];
 }
 
 expose(searchThreadWorker);

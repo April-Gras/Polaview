@@ -1,10 +1,11 @@
-import { ImdbSearch, Title, Person } from "@prisma/client";
+import { ImdbSearch, Title, Person, Serie } from "@prisma/client";
 import { BuildRouteEntry, RuntimeConfigBuilder } from "~/types/Route";
 
 export type AllRoutes = [
   // GET
-  BuildRouteEntry<"get", "/movie/:imdbId", Title>,
-  BuildRouteEntry<"get", "/movie/:imdbId/cast", Person[]>,
+  BuildRouteEntry<"get", "/serie/:imdbId", Serie>,
+  BuildRouteEntry<"get", "/title/:imdbId", Title>,
+  BuildRouteEntry<"get", "/title/:imdbId/cast", Person[]>,
   BuildRouteEntry<"get", "/person/:imdbId", Person>,
   // POST
   BuildRouteEntry<

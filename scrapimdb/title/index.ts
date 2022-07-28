@@ -9,15 +9,15 @@ import { Worker, spawn } from "threads";
 async function scrapTitleData(imdbId: string) {
   const getTitleDataFromImdbIdThread: GetTitleDataFromImdbIdThreadWorker =
     await spawn(new Worker("../workers/getTitleFromImdbId.ts"));
-  const { title, casts } = await getTitleDataFromImdbIdThread(imdbId);
+  const collection = await getTitleDataFromImdbIdThread(imdbId);
 
-  return { title, casts };
+  return collection;
 }
 
-export const movieGetByImdbId: GetRouteDataHandlerFromUrlAndVerb<
+export const titleGetByImdbId: GetRouteDataHandlerFromUrlAndVerb<
   "get",
   AllRoutes,
-  "/movie/:imdbId"
+  "/title/:imdbId"
 > = async (prisma, req) => {
   const { imdbId } = req.params;
 
@@ -28,21 +28,35 @@ export const movieGetByImdbId: GetRouteDataHandlerFromUrlAndVerb<
   });
 
   if (cachedTitle) return cachedTitle;
-  const { title, casts } = await scrapTitleData(imdbId);
+  const cachedSerie = await prisma.serie.findFirst({
+    where: {
+      imdbId: imdbId,
+    },
+    include: {
+      episodes: true,
+    },
+  });
+
+  if (cachedSerie) throw "This is a series imdbId";
+  const { collection, serie } = await scrapTitleData(imdbId);
 
   const saveTitleAndPersonsThread: SaveTitleAndPersonsThreadWorker =
     await spawn(new Worker("../workers/saveTitleAndCast.ts"));
 
-  saveTitleAndPersonsThread({ title, casts });
+  console.log({ serie });
+  saveTitleAndPersonsThread({ collection, serie });
+  const match = collection.find((e) => e.title.imdbId === imdbId);
 
-  return title;
+  if (!match)
+    throw "No match for this imdb title, probably part of an episode list";
+  return match.title;
 };
 
-export const getMovieCastsFromMovieImdbId: GetRouteDataHandlerFromUrlAndVerb<
+export const getTitleCastsFromMovieImdbId: GetRouteDataHandlerFromUrlAndVerb<
   "get",
   AllRoutes,
-  "/movie/:imdbId/cast"
-> = async (prisma, req, res) => {
+  "/title/:imdbId/cast"
+> = async (prisma, req) => {
   const { imdbId } = req.params;
   const cachedCasts = await prisma.titleOnCast.findMany({
     where: {
@@ -55,11 +69,14 @@ export const getMovieCastsFromMovieImdbId: GetRouteDataHandlerFromUrlAndVerb<
 
   if (cachedCasts.length) return cachedCasts.map((e) => e.person);
 
-  const { casts, title } = await scrapTitleData(imdbId);
+  const { collection, serie } = await scrapTitleData(imdbId);
   const saveTitleAndPersonsThread: SaveTitleAndPersonsThreadWorker =
     await spawn(new Worker("../workers/saveTitleAndCast.ts"));
 
-  saveTitleAndPersonsThread({ title, casts });
+  saveTitleAndPersonsThread({ collection, serie });
+  const match = collection.find((e) => e.title.imdbId === imdbId);
 
-  return casts;
+  if (!match)
+    throw "No match for this imdb title, probably part of an episode list";
+  return match.casts;
 };

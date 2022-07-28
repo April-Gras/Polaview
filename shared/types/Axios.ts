@@ -1,4 +1,9 @@
-import { ExtractRouteEntriesByVerb, RouteEntry } from "~/types/Route";
+import {
+  ExtractRouteEntriesByVerb,
+  RouteEntry,
+  ExtractAvailableUrlsFromCollection,
+  GetEntryInCollectionFromUrl,
+} from "~/types/Route";
 import { AxiosRequestConfig, AxiosResponse } from "axios";
 import { AllRoutes as ServerRoutes } from "~/types/RouteLibraryServer";
 import { AllRoutes as ScrapImdbRoutes } from "~/types/RouteLibraryScrapImdb";
@@ -8,29 +13,16 @@ type PostRoutes = ExtractRouteEntriesByVerb<"post", ServerRoutes>;
 type PatchRoutes = ExtractRouteEntriesByVerb<"patch", ServerRoutes>;
 type DeleteRoutes = ExtractRouteEntriesByVerb<"delete", ServerRoutes>;
 
-type ExtractAvailableUrlsFromCollection<COLLECTION extends RouteEntry[]> =
-  COLLECTION[number] extends infer ENTRY
-    ? ENTRY extends RouteEntry
-      ? ENTRY[1]
-      : never
-    : never;
+type Primitive = number | string;
 
-type GetEntryInCollectionFromUrl<
-  COLLECTION extends RouteEntry[],
-  URL = ExtractAvailableUrlsFromCollection<COLLECTION>
-> = COLLECTION[number] extends infer ENTRY
-  ? ENTRY extends RouteEntry
-    ? ENTRY[1] extends URL
-      ? ENTRY
-      : never
-    : never
-  : never;
+type TransformExpressUrl<URL extends string> =
+  URL extends `${infer START}/:${infer R}` ? `${START}/:${Primitive}` : URL;
 
 type BuildAxiosHandler<COLLECTION extends RouteEntry[]> = <
   URL extends ExtractAvailableUrlsFromCollection<COLLECTION>,
   ENTRY extends RouteEntry = GetEntryInCollectionFromUrl<COLLECTION, URL>
 >(
-  url: URL,
+  url: TransformExpressUrl<URL>,
   ...args: ENTRY[3] extends undefined
     ? [payload?: undefined, config?: AxiosRequestConfig]
     : [payload: ENTRY[3], config?: AxiosRequestConfig]
@@ -43,4 +35,7 @@ export type AxiosDeleteRequest = BuildAxiosHandler<DeleteRoutes>;
 
 export type AxiosScrapperPostRequest = BuildAxiosHandler<
   ExtractRouteEntriesByVerb<"post", ScrapImdbRoutes>
+>;
+export type AxiosScrapperGetRequest = BuildAxiosHandler<
+  ExtractRouteEntriesByVerb<"get", ScrapImdbRoutes>
 >;

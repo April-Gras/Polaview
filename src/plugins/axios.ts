@@ -1,4 +1,3 @@
-import axios from "axios";
 import "pinia";
 import { PiniaPluginContext } from "pinia";
 import { Plugin, markRaw } from "vue";
@@ -9,16 +8,10 @@ import {
   AxiosPostRequest,
   AxiosScrapperPostRequest,
 } from "~/types/Axios";
-
-const serverApiTransporter = axios.create({
-  baseURL: "/api",
-  withCredentials: true,
-});
-
-const scrapIdmdbTransporter = axios.create({
-  baseURL: "/scrapimdb",
-  withCredentials: true,
-});
+import {
+  serverApiTransporter,
+  scrapIdmdbTransporter,
+} from "~/axiosTransporters/index";
 
 // Vue3 Plugin
 export const axiosPlugin: Plugin = {
