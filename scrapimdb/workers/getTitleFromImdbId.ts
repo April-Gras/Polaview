@@ -1,20 +1,25 @@
-import { Worker, spawn, expose } from "threads";
-import { GetTitlesFromEpisodeListThreadWorker } from "./getTitlesFromEpisodeList";
+import { Worker, spawn, expose, Pool } from "threads";
+import {
+  GetSeasonWorkerThread,
+  GetSeasonWorkerThreadReturn,
+} from "./getSeason";
 import { Title, Person, Serie } from "@prisma/client";
 import puppeteer from "puppeteer";
 import { getBrowserFromPuppeteer } from "#/utils/getBrowserFromPuppeteer";
 import { getCastFromTitlePage } from "#/utils/getCastFromTitlePage";
 import { extractImdbIdFromTitleLink } from "#/utils/extractImdbIdsFromUrl";
+import { removePictureCropDirectiveFromUrl } from "#/utils/removePictureCropDirectivesFromUrl";
 
 export type GetTitleDataFromImdbIdThreadWorkerResult = {
   serie?: Serie;
+  seasonsDescriptors?: Title["imdbId"][][];
   collection: {
     title: Title;
     casts: Person[];
   }[];
 };
 export type GetTitleDataFromImdbIdThreadWorker = (
-  imdbId: string
+  imdbId: Title["imdbId"]
 ) => Promise<GetTitleDataFromImdbIdThreadWorkerResult>;
 
 const getTitleDataFromImdbIdWorker: GetTitleDataFromImdbIdThreadWorker = async (
@@ -22,32 +27,23 @@ const getTitleDataFromImdbIdWorker: GetTitleDataFromImdbIdThreadWorker = async (
 ) => {
   const browser = await getBrowserFromPuppeteer(puppeteer);
   const page = await browser.newPage();
+  const url = `https://www.imdb.com/title/${imdbId}/`;
 
-  await page.goto(`https://www.imdb.com/title/${imdbId}/`);
+  console.info(`Going to ${url}`);
+  await page.goto(url, {
+    timeout: 0,
+  });
 
   // If exist this means the title is part of a show with multiple episodes
   const episodeGuideElement =
     (await page.$('a[aria-label="View episode guide"]')) ||
     (await page.$('a[aria-label="View all episodes"]'));
 
-  if (episodeGuideElement) {
-    const episodeGuideLink = await (
-      await episodeGuideElement.getProperty("href")
-    ).jsonValue();
-
-    if (typeof episodeGuideLink !== "string")
-      throw "Episode guide link is not a string";
-    const episodeListingImdbId = extractImdbIdFromTitleLink(episodeGuideLink);
-    if (!episodeListingImdbId) throw "Missing link for episode listing";
-    const getTitlesFromEpisodeListWorker: GetTitlesFromEpisodeListThreadWorker =
-      await spawn(new Worker("./getTitlesFromEpisodeList.ts"));
-
-    console.log({ imdbId, episodeListingImdbId });
-    return await getTitlesFromEpisodeListWorker(episodeListingImdbId);
-  }
+  if (episodeGuideElement)
+    return processSeasonFromEpisodeGuideElement(page, episodeGuideElement);
 
   // Regular title
-  const [name, { releaseYear, mediaType }, pictureUrl] = await Promise.all([
+  const [name, { releaseYear }, pictureUrl] = await Promise.all([
     getNameFromPage(page),
     getMetadatasFromPage(page),
     getPictureUrlFromPage(page),
@@ -59,10 +55,11 @@ const getTitleDataFromImdbIdWorker: GetTitleDataFromImdbIdThreadWorker = async (
         title: {
           imdbId,
           releaseYear,
-          mediaType,
           name,
           pictureUrl: pictureUrl?.toString() ?? null,
-          serieImdbId: null,
+          seasonId: null,
+          episodeNumber: 0,
+          createdOn: new Date(),
         },
         casts: await getCastFromTitlePage(page),
       },
@@ -118,9 +115,74 @@ async function getPictureUrlFromPage(
   page: puppeteer.Page
 ): Promise<string | null> {
   const pictureElem = await page.$("img.ipc-image");
-  return pictureElem
+  const pictureUrl = pictureElem
     ? await (await pictureElem.getProperty("src")).jsonValue()
     : null;
+
+  return removePictureCropDirectiveFromUrl(pictureUrl);
+}
+
+async function processSeasonFromEpisodeGuideElement(
+  page: puppeteer.Page,
+  episodeGuideElement: puppeteer.ElementHandle<Element>
+): Promise<GetTitleDataFromImdbIdThreadWorkerResult> {
+  const episodeGuideLink = await (
+    await episodeGuideElement.getProperty("href")
+  ).jsonValue();
+
+  if (typeof episodeGuideLink !== "string")
+    throw "Episode guide link is not a string";
+  const episodeListingImdbId = extractImdbIdFromTitleLink(episodeGuideLink);
+  const seasonCount = await getSeasonCountFromPage(page);
+  if (!episodeListingImdbId) throw "Missing link for episode listing";
+  const threadPool = Pool(
+    () => {
+      return spawn<GetSeasonWorkerThread>(new Worker("./getSeason.ts"));
+    },
+    {
+      maxQueuedJobs: seasonCount,
+    }
+  );
+
+  const tasks = [] as ReturnType<typeof threadPool.queue>[];
+
+  for (let index = 0; index < seasonCount; index++)
+    tasks.push(threadPool.queue((task) => task(episodeListingImdbId, index)));
+
+  const results: GetSeasonWorkerThreadReturn[] = await Promise.all(tasks);
+
+  await threadPool.terminate();
+
+  if (results.length !== seasonCount) throw "Missmatch season count";
+  return {
+    serie: results[0].serie,
+    seasonsDescriptors: results.map(({ collection }) => {
+      return collection.map((e) => e.title.imdbId);
+    }),
+    collection: results.flatMap(({ collection }) => {
+      return collection;
+    }),
+  };
+}
+
+async function getSeasonCountFromPage(page: puppeteer.Page): Promise<number> {
+  const seasonElement = await page.$("#browse-episodes-season");
+
+  if (!seasonElement) throw "Could not find season element";
+  const seasonText = await seasonElement.evaluate((e) =>
+    e.getAttribute("aria-label")
+  );
+
+  if (typeof seasonText !== "string") throw "Season text is not a string";
+
+  const matches = new RegExp(/([0-9]*) seasons?/gi).exec(seasonText);
+
+  if (!matches || !matches[1]) throw "No matches for season regex";
+  const seasonCount = Number(matches[1]);
+
+  if (isNaN(seasonCount)) throw "Season count is NaN :<";
+
+  return seasonCount;
 }
 
 expose(getTitleDataFromImdbIdWorker);

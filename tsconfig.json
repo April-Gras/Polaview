@@ -4,16 +4,9 @@
   },
   "compilerOptions": {
     "paths": {
-      "~/*": [
-        "./shared/*"
-      ],
-      "@/*": [
-        "./src/*"
-      ],
-      "#/*": [
-        "./server/*",
-        "./scrapimdb/*"
-      ]
+      "~/*": ["./shared/*"],
+      "@/*": ["./src/*"],
+      "#/*": ["./server/*", "./scrapimdb/*"]
     },
     "sourceMap": true,
     "moduleResolution": "Node",
@@ -21,10 +14,11 @@
     "baseUrl": ".",
     "resolveJsonModule": true,
     "strict": true,
-    "lib": [
-      "esnext",
-      "dom"
-    ],
-    "esModuleInterop": true
-  },
+    "lib": ["esnext", "dom"],
+    "esModuleInterop": true,
+    "strictBindCallApply": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
+    "strictFunctionTypes": true
+  }
 }

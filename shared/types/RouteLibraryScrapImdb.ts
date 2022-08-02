@@ -1,9 +1,28 @@
-import { ImdbSearch, Title, Person, Serie } from "@prisma/client";
+import { ImdbSearch, Title, Person, Serie, Season } from "@prisma/client";
 import { BuildRouteEntry, RuntimeConfigBuilder } from "~/types/Route";
 
 export type AllRoutes = [
   // GET
-  BuildRouteEntry<"get", "/serie/:imdbId", Serie>,
+  BuildRouteEntry<"get", "/latest-movie/", Title[]>,
+  // BuildRouteEntry<"get", "/title/mostWatched/", Title[]>,
+  // BuildRouteEntry<"get", "/series/latest/", Title[]>,
+  // BuildRouteEntry<"get", "/series/mostWatched/", Title[]>,
+  BuildRouteEntry<
+    "get",
+    "/serie/:imdbId",
+    Serie & {
+      seasons: {
+        id: string;
+        serieImdbId: string;
+        episodes: Title[];
+      }[];
+    }
+  >,
+  BuildRouteEntry<
+    "get",
+    "/serie/:imdbId/seasons",
+    (Season & { serie: Serie; episodes: Title[] })[]
+  >,
   BuildRouteEntry<"get", "/title/:imdbId", Title>,
   BuildRouteEntry<"get", "/title/:imdbId/cast", Person[]>,
   BuildRouteEntry<"get", "/person/:imdbId", Person>,

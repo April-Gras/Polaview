@@ -2,10 +2,11 @@ import { expose } from "threads/worker";
 import puppeteer from "puppeteer";
 import { getBrowserFromPuppeteer } from "#/utils/getBrowserFromPuppeteer";
 import { extractImdbIdFromTitleLink } from "#/utils/extractImdbIdsFromUrl";
+import { Title } from "@prisma/client";
 
 export type SearchThreadWorkerReturn = {
   thumbnailUrl: string | null;
-  imdbId: string;
+  imdbId: Title["imdbId"];
   name: string;
 };
 export type SearchThreadWorker = (
@@ -45,7 +46,7 @@ async function evaluateResultEntry(
 
   const link = await linkElement.getProperty("href");
   const name = await linkElement.evaluate((el) => el.textContent);
-  const imdbId = extractImdbIdFromTitleLink(link.toString());
+  const imdbId = extractImdbIdFromTitleLink(await link.jsonValue());
 
   if (!imdbId || !name) return null;
 

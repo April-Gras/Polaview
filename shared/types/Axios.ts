@@ -8,21 +8,56 @@ import { AxiosRequestConfig, AxiosResponse } from "axios";
 import { AllRoutes as ServerRoutes } from "~/types/RouteLibraryServer";
 import { AllRoutes as ScrapImdbRoutes } from "~/types/RouteLibraryScrapImdb";
 
-type GetRoutes = ExtractRouteEntriesByVerb<"get", ServerRoutes>;
-type PostRoutes = ExtractRouteEntriesByVerb<"post", ServerRoutes>;
-type PatchRoutes = ExtractRouteEntriesByVerb<"patch", ServerRoutes>;
-type DeleteRoutes = ExtractRouteEntriesByVerb<"delete", ServerRoutes>;
-
 type Primitive = number | string;
 
 type TransformExpressUrl<URL extends string> =
-  URL extends `${infer START}/:${infer R}` ? `${START}/:${Primitive}` : URL;
+  URL extends `${infer START}/:${infer END}`
+    ? END extends `${string}/${infer SEND}`
+      ? `${START}/${Primitive}/${TransformExpressUrl<SEND>}`
+      : `${START}/${Primitive}`
+    : URL;
+
+type BuildSingleRouteEntryForClient<ENTRY extends RouteEntry> = [
+  ENTRY[0],
+  TransformExpressUrl<ENTRY[1]>,
+  ENTRY[2],
+  ENTRY[3]
+];
+
+type PrepExpressRoutesToLiveUrls<
+  COLLECTION extends RouteEntry[],
+  REST extends RouteEntry[] = []
+> = COLLECTION extends [infer ENTRY, ...infer END]
+  ? ENTRY extends RouteEntry
+    ? END extends RouteEntry[]
+      ? [
+          BuildSingleRouteEntryForClient<ENTRY>,
+          ...PrepExpressRoutesToLiveUrls<END, REST>
+        ]
+      : REST
+    : REST
+  : REST;
+
+type GetRoutes = PrepExpressRoutesToLiveUrls<
+  ExtractRouteEntriesByVerb<"get", ServerRoutes>
+>;
+type PostRoutes = PrepExpressRoutesToLiveUrls<
+  ExtractRouteEntriesByVerb<"post", ServerRoutes>
+>;
+type PatchRoutes = PrepExpressRoutesToLiveUrls<
+  ExtractRouteEntriesByVerb<"patch", ServerRoutes>
+>;
+type DeleteRoutes = PrepExpressRoutesToLiveUrls<
+  ExtractRouteEntriesByVerb<"delete", ServerRoutes>
+>;
 
 type BuildAxiosHandler<COLLECTION extends RouteEntry[]> = <
-  URL extends ExtractAvailableUrlsFromCollection<COLLECTION>,
+  URL extends TransformExpressUrl<
+    ExtractAvailableUrlsFromCollection<COLLECTION>
+  >,
   ENTRY extends RouteEntry = GetEntryInCollectionFromUrl<COLLECTION, URL>
 >(
-  url: TransformExpressUrl<URL>,
+  url: URL,
   ...args: ENTRY[3] extends undefined
     ? [payload?: undefined, config?: AxiosRequestConfig]
     : [payload: ENTRY[3], config?: AxiosRequestConfig]
@@ -33,9 +68,13 @@ export type AxiosPostRequest = BuildAxiosHandler<PostRoutes>;
 export type AxiosPatchRequest = BuildAxiosHandler<PatchRoutes>;
 export type AxiosDeleteRequest = BuildAxiosHandler<DeleteRoutes>;
 
-export type AxiosScrapperPostRequest = BuildAxiosHandler<
+type ScrapImdbPostRoutes = PrepExpressRoutesToLiveUrls<
   ExtractRouteEntriesByVerb<"post", ScrapImdbRoutes>
 >;
-export type AxiosScrapperGetRequest = BuildAxiosHandler<
+
+type ScrapImdbGetRoutes = PrepExpressRoutesToLiveUrls<
   ExtractRouteEntriesByVerb<"get", ScrapImdbRoutes>
 >;
+
+export type AxiosScrapperPostRequest = BuildAxiosHandler<ScrapImdbPostRoutes>;
+export type AxiosScrapperGetRequest = BuildAxiosHandler<ScrapImdbGetRoutes>;

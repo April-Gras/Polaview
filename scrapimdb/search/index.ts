@@ -30,6 +30,6 @@ export const searchPost: GetRouteDataHandlerFromUrlAndVerb<
   );
   const scrapResults = await searchThread(term);
 
-  saveSearchThread({ results: scrapResults, term });
+  await saveSearchThread({ results: scrapResults, term });
   return scrapResults;
 };

@@ -14,6 +14,26 @@ const app: Express = express();
 const port = process.env.PORT ?? "8081";
 
 const ROUTES: ScrapImdbRuntimeConfig = [
+  buildSingleRuntimeConfigEntry("get", "/latest-movie/", async () => {
+    const response = await prisma.file.findMany({
+      take: 10,
+      orderBy: {
+        title: {
+          createdOn: "asc",
+        },
+      },
+      where: {
+        title: {
+          seasonId: null,
+        },
+      },
+      select: {
+        title: true,
+      },
+    });
+
+    return response.map((e) => e.title);
+  }),
   buildSingleRuntimeConfigEntry(
     "get",
     "/serie/:imdbId",
@@ -22,7 +42,38 @@ const ROUTES: ScrapImdbRuntimeConfig = [
 
       return await prisma.serie.findFirstOrThrow({
         where: {
-          imdbId,
+          imdbId: imdbId,
+        },
+        select: {
+          imdbId: true,
+          name: true,
+          pictureUrl: true,
+          seasons: {
+            select: {
+              id: true,
+              serieImdbId: true,
+              episodes: true,
+            },
+          },
+        },
+      });
+    }
+  ),
+  buildSingleRuntimeConfigEntry(
+    "get",
+    "/serie/:imdbId/seasons",
+    async (prisma, req) => {
+      return await prisma.season.findMany({
+        where: {
+          serieImdbId: {
+            equals: req.params.imdbId,
+          },
+        },
+        select: {
+          episodes: true,
+          serie: true,
+          id: true,
+          serieImdbId: true,
         },
       });
     }
@@ -65,5 +116,5 @@ for (const index in ROUTES) {
 }
 
 app.listen(port, () => {
-  console.log(`ܡ main server is running at http://localhost:${port}`);
+  console.log(`ܡ scrapper is running at http://localhost:${port}`);
 });

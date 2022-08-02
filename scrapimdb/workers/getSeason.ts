@@ -1,28 +1,37 @@
 import { expose, Worker, spawn, Pool } from "threads";
-import { Title, Person, Serie } from "@prisma/client";
+import { Title, Person, Serie, Season } from "@prisma/client";
 import puppeteer from "puppeteer";
 import { getBrowserFromPuppeteer } from "#/utils/getBrowserFromPuppeteer";
 import { extractImdbIdFromTitleLink } from "#/utils/extractImdbIdsFromUrl";
-import { GetTitleFromEpisodesImdbIdThreadWorker } from "./getTitlesFromEpisodeImdbIds";
+import {
+  GetTitleFromEpisodesImdbIdThreadWorker,
+  GetTitleFromEpisodesImdbIdThreadWorkerReturn,
+} from "./getTitlesFromEpisodeImdbIds";
 
-export type GetTitlesFromEpisodeListThreadWorkerReturn = {
+export type GetSeasonWorkerThreadReturn = {
   serie: Serie;
+  seasonIndex: number;
   collection: {
     title: Title;
     casts: Person[];
+    seasonNumber: number;
   }[];
 };
-export type GetTitlesFromEpisodeListThreadWorker = (
-  imdbId: string
-) => Promise<GetTitlesFromEpisodeListThreadWorkerReturn>;
+export type GetSeasonWorkerThread = (
+  imdbId: Title["imdbId"],
+  seasonIndex: number
+) => Promise<GetSeasonWorkerThreadReturn>;
 
-const getTitlesFromEpisodeList: GetTitlesFromEpisodeListThreadWorker = async (
-  imdbId
-) => {
+const getSeason: GetSeasonWorkerThread = async (imdbId, seasonIndex) => {
   const browser = await getBrowserFromPuppeteer(puppeteer);
   const page = await browser.newPage();
+  const url = `https://www.imdb.com/title/${imdbId}/episodes/?season=${
+    seasonIndex + 1
+  }`;
 
-  await page.goto(`https://www.imdb.com/title/${imdbId}/episodes/`);
+  await page.goto(url, {
+    timeout: 0,
+  });
 
   const { serieImdbId, serieName } = await getSerieInfoFromPage(page);
   const linkElements = await page.$$(
@@ -49,19 +58,20 @@ const getTitlesFromEpisodeList: GetTitlesFromEpisodeListThreadWorker = async (
     },
     {
       maxQueuedJobs: imdbIds.length,
-      concurrency: 4,
     }
   );
 
   const tasks = imdbIds.map((imdbId) =>
     threadPool.queue((task) => task(imdbId))
   );
-  const results = await Promise.all(tasks);
+  const results: GetTitleFromEpisodesImdbIdThreadWorkerReturn[] =
+    await Promise.all(tasks);
 
   await threadPool.terminate();
 
   return {
     collection: results,
+    seasonIndex,
     serie: {
       imdbId: serieImdbId,
       name: serieName,
@@ -71,7 +81,7 @@ const getTitlesFromEpisodeList: GetTitlesFromEpisodeListThreadWorker = async (
 
 async function getSerieInfoFromPage(
   page: puppeteer.Page
-): Promise<{ serieName: string; serieImdbId: string }> {
+): Promise<{ serieName: Serie["name"]; serieImdbId: Serie["imdbId"] }> {
   const serieLinkElement = await page.$(
     ".subpage_title_block__right-column > div h3 > a"
   );
@@ -89,4 +99,4 @@ async function getSerieInfoFromPage(
   };
 }
 
-expose(getTitlesFromEpisodeList);
+expose(getSeason);

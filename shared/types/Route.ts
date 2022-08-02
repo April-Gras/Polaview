@@ -98,13 +98,21 @@ export type ExtractAvailableUrlsFromCollection<
     : never
   : never;
 
+export type Equals<X, Y> = (<T>() => T extends X ? 1 : 2) extends <
+  T
+>() => T extends Y ? 1 : 2
+  ? true
+  : false;
+
 export type GetEntryInCollectionFromUrl<
   COLLECTION extends RouteEntry[],
   URL = ExtractAvailableUrlsFromCollection<COLLECTION>
-> = COLLECTION[number] extends infer ENTRY
+> = COLLECTION extends [infer ENTRY, ...infer END]
   ? ENTRY extends RouteEntry
     ? ENTRY[1] extends URL
       ? ENTRY
+      : END extends RouteEntry[]
+      ? GetEntryInCollectionFromUrl<END, URL>
       : never
     : never
   : never;

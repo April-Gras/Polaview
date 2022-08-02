@@ -25,7 +25,7 @@ const app: Express = express();
 const port = process.env.PORT ?? "8080";
 
 startupCreateBaseUsers(prisma);
-startupProcessSources(prisma);
+startupProcessSources();
 
 const ROUTES: ServerRuntimeConfig = [
   buildSingleRuntimeConfigEntry("get", "/", async () => {

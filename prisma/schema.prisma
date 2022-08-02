@@ -32,27 +32,36 @@ model ImdbSearch {
   imdbSearchCacheTerm String
 }
 
-// TODO Change all imdbIds to int and prepend the url code when needed
 model ImdbSearchCache {
   term    String       @id @unique
   results ImdbSearch[]
 }
 
 model Title {
-  imdbId      String        @id @unique
-  name        String
-  releaseYear Int?
-  mediaType   String?
-  pictureUrl  String?
-  titleOnCast TitleOnCast[]
-  Serie       Serie?        @relation(fields: [serieImdbId], references: [imdbId])
-  serieImdbId String?
+  imdbId        String        @id @unique
+  name          String
+  releaseYear   Int?
+  pictureUrl    String?
+  titleOnCast   TitleOnCast[]
+  Season        Season?       @relation(fields: [seasonId], references: [id])
+  seasonId      String?
+  episodeNumber Int
+  createdOn     DateTime      @default(now())
+  File          File[]
 }
 
 model Serie {
-  imdbId   String  @id @unique
-  episodes Title[]
-  name     String
+  imdbId     String   @id @unique
+  seasons    Season[]
+  pictureUrl String?
+  name       String
+}
+
+model Season {
+  id          String  @id @unique
+  episodes    Title[]
+  serie       Serie   @relation(fields: [serieImdbId], references: [imdbId])
+  serieImdbId String
 }
 
 model Person {
@@ -69,4 +78,19 @@ model TitleOnCast {
   personId String
 
   @@id([titleId, personId])
+}
+
+model FileSource {
+  path      String   @id @unique
+  files     File[]
+  createdOn DateTime @default(now())
+  updatedOn DateTime @default(now())
+}
+
+model File {
+  path           String      @id @unique
+  fileSource     FileSource? @relation(fields: [fileSourcePath], references: [path])
+  fileSourcePath String?
+  title          Title       @relation(fields: [titleImdbId], references: [imdbId])
+  titleImdbId    String
 }

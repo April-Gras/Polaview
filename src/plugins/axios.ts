@@ -7,6 +7,7 @@ import {
   AxiosPatchRequest,
   AxiosPostRequest,
   AxiosScrapperPostRequest,
+  AxiosScrapperGetRequest,
 } from "~/types/Axios";
 import {
   serverApiTransporter,
@@ -22,6 +23,8 @@ export const axiosPlugin: Plugin = {
     app.config.globalProperties.$patchRequest = serverApiTransporter.patch;
     app.config.globalProperties.$postScrapImdbRequest =
       scrapIdmdbTransporter.post;
+    app.config.globalProperties.$getScrapImdbRequest =
+      scrapIdmdbTransporter.get;
   },
 };
 
@@ -32,6 +35,7 @@ declare module "vue" {
     $patchRequest: AxiosPatchRequest;
     $deleteRequest: AxiosDeleteRequest;
     $postScrapImdbRequest: AxiosScrapperPostRequest;
+    $getScrapImdbRequest: AxiosScrapperGetRequest;
   }
 }
 
@@ -47,6 +51,8 @@ export function axiosPiniaPlugin({ store }: PiniaPluginContext) {
   store.$deleteRequest = markRaw(serverApiTransporter.delete);
   // @ts-ignore
   store.$postScrapImdbRequest = markRaw(scrapIdmdbTransporter.post);
+  // @ts-ignore
+  store.$getScrapImdbRequest = markRaw(scrapIdmdbTransporter.get);
 }
 
 declare module "pinia" {
@@ -55,5 +61,7 @@ declare module "pinia" {
     $getRequest: AxiosGetRequest;
     $patchRequest: AxiosPatchRequest;
     $deleteRequest: AxiosDeleteRequest;
+    $postScrapImdbRequest: AxiosScrapperPostRequest;
+    $getScrapImdbRequest: AxiosScrapperGetRequest;
   }
 }
