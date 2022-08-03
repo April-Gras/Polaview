@@ -42,7 +42,7 @@ export default defineComponent({
   @apply w-full cursor-pointer;
 
   &:hover {
-    > div > .sheen {
+    a > div > .sheen {
       @apply bg-opacity-5;
 
       clip-path: polygon(0 0, 100% 0%, 100% 0%, 0 100%);

@@ -86,7 +86,6 @@ async function processSingleFileThreadWorker(
     if (err instanceof AxiosError && err.response?.data)
       console.info(err.response?.data);
     console.info(`Failed for ${filePath}`);
-    console.log(err);
     return;
   }
 }
