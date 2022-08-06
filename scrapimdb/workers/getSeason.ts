@@ -3,6 +3,7 @@ import { Title, Person, Serie, Season } from "@prisma/client";
 import puppeteer from "puppeteer";
 import { getBrowserFromPuppeteer } from "#/utils/getBrowserFromPuppeteer";
 import { extractImdbIdFromTitleLink } from "#/utils/extractImdbIdsFromUrl";
+import { removePictureCropDirectiveFromUrl } from "#/utils/removePictureCropDirectivesFromUrl";
 import {
   GetTitleFromEpisodesImdbIdThreadWorker,
   GetTitleFromEpisodesImdbIdThreadWorkerReturn,
@@ -33,7 +34,13 @@ const getSeason: GetSeasonWorkerThread = async (imdbId, seasonIndex) => {
     timeout: 0,
   });
 
-  const { serieImdbId, serieName } = await getSerieInfoFromPage(page);
+  const [{ serieImdbId, serieName }, storyline, pictureUrl] = await Promise.all(
+    [
+      getSerieBaseInfoFromPage(page),
+      getSeireStoryLineFromPage(page),
+      getPictureUrlFromPage(page),
+    ]
+  );
   const linkElements = await page.$$(
     ".list.detail.eplist .list_item > .image > a"
   );
@@ -75,11 +82,14 @@ const getSeason: GetSeasonWorkerThread = async (imdbId, seasonIndex) => {
     serie: {
       imdbId: serieImdbId,
       name: serieName,
+      pictureUrl,
+      storyline,
+      createdOn: new Date(),
     },
   };
 };
 
-async function getSerieInfoFromPage(
+async function getSerieBaseInfoFromPage(
   page: puppeteer.Page
 ): Promise<{ serieName: Serie["name"]; serieImdbId: Serie["imdbId"] }> {
   const serieLinkElement = await page.$(
@@ -97,6 +107,33 @@ async function getSerieInfoFromPage(
     ),
     serieName,
   };
+}
+
+async function getPictureUrlFromPage(
+  page: puppeteer.Page
+): Promise<null | string> {
+  const pictureElement = await page.$("img.poster");
+
+  if (!pictureElement) return null;
+
+  const pictureUrl = await (
+    await pictureElement.getProperty("src")
+  ).jsonValue();
+
+  return removePictureCropDirectiveFromUrl(pictureUrl);
+}
+
+async function getSeireStoryLineFromPage(
+  page: puppeteer.Page
+): Promise<null | string> {
+  const storylineElement = await page.$(
+    'div[data-testid="storyline-plot-summary"] .ipc-html-content-inner-div'
+  );
+
+  if (!storylineElement) return null;
+  const storylineText = await storylineElement.evaluate((e) => e.textContent);
+
+  return storylineText;
 }
 
 expose(getSeason);

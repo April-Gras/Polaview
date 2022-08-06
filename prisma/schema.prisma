@@ -52,8 +52,10 @@ model Title {
 
 model Serie {
   imdbId     String   @id @unique
+  createdOn  DateTime @default(now())
   seasons    Season[]
   pictureUrl String?
+  storyline  String?
   name       String
 }
 

@@ -19,6 +19,7 @@ import { startupProcessSources } from "#/startupUtils/processSources";
 import { getUser, userGetById, userPost, userPatchById } from "#/user";
 import { authLoginPost, authUserGet, authLogoutPost } from "#/auth";
 import { JsonCompliantData } from "~/types/Route";
+import { applyServiceColor } from "./utils/log";
 
 const prisma = new PrismaClient();
 const app: Express = express();
@@ -114,5 +115,5 @@ for (const index in MIDDLEWARES) {
 }
 
 app.listen(port, () => {
-  console.log(`ܡ main server is running at http://localhost:${port}`);
+  console.log(applyServiceColor(`running at http://localhost:${port}`));
 });

@@ -1,7 +1,7 @@
 import path from "node:path";
 import { readdirSync, lstatSync } from "node:fs";
 
-import { expose, Pool, Worker, spawn } from "threads";
+import { expose, Worker, spawn } from "threads";
 
 import { ProcessSingleFileThreadWorker } from "#/workers/processSingleFile";
 
@@ -42,24 +42,12 @@ const scanDirectoryForMovies: ScanDirectoryForMoviesThreadWorker =
       }
     );
 
-    // TODO open up thread Q for files
-    const threadPool = Pool(
-      () => {
-        return spawn<ProcessSingleFileThreadWorker>(
-          new Worker("./processSingleFile.ts")
-        );
-      },
-      {
-        maxQueuedJobs: toProcessFiles.length,
-      }
+    const processFileWorker: ProcessSingleFileThreadWorker = await spawn(
+      new Worker("./processSingleFile.ts")
     );
 
-    const tasks = toProcessFiles.map((filePath) => {
-      threadPool.queue((task) => task(source, filePath));
-    });
-
-    await Promise.all(tasks);
-    await threadPool.terminate();
+    for (let filePath of toProcessFiles)
+      await processFileWorker(source, filePath);
 
     for (directory of toProcessDirectories) {
       await scanDirectoryForMovies(source, path.resolve(source, directory));

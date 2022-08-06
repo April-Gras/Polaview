@@ -94,8 +94,8 @@ const saveTitleAndPerson: SaveTitleAndPersonsThreadWorker = async ({
     });
 
     // For every season upsert
-    const seasons = await prisma.$transaction(
-      seasonsDescriptors.map((season, index) => {
+    await prisma.$transaction(
+      seasonsDescriptors.map((_, index) => {
         const id = buildSeasonIdFromSerieImdbIdAndIndex(serie, index);
         return prisma.season.upsert({
           where: {

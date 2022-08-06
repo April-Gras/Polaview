@@ -1,10 +1,12 @@
 import path from "node:path";
 
-import { AxiosScrapperPostRequest } from "~/types/Axios";
+import { applyFailureColor, applySuccessColor } from "#/utils/log";
 
 import { expose } from "threads";
 import { AxiosError } from "axios";
 import { PrismaClient, Title, ImdbSearch } from "@prisma/client";
+
+import { compareTwoStrings } from "string-similarity";
 
 import {
   makeServersidePostScrapImdb,
@@ -39,7 +41,7 @@ async function processSingleFileThreadWorker(
     ).data;
 
     if (!searchDataResponse.length) {
-      console.info(`No matches for ${cleanTitleName}`);
+      console.info(applyFailureColor(`No matches for ${cleanTitleName}`));
       return;
     }
 
@@ -48,8 +50,6 @@ async function processSingleFileThreadWorker(
       cleanTitleName
     );
 
-    console.log(cleanTitleName, { matchingSearchElement });
-
     try {
       const titleData = (
         await makeServersideGetcrapImdb(
@@ -57,7 +57,7 @@ async function processSingleFileThreadWorker(
         )
       ).data;
 
-      console.log(`${cleanTitleName} got a title match`);
+      console.log(applySuccessColor(`${cleanTitleName} got a title match`));
 
       await saveFileAndConnectToTitle(sourcePath, filePath, titleData);
     } catch (_) {
@@ -77,15 +77,16 @@ async function processSingleFileThreadWorker(
         throw `Could not find episode with index ${episodeNumber - 1}`;
 
       console.log(
-        `${cleanTitleName} got a serie match for E${episodeNumber} and S${seasonNumber}`,
-        `title id should be ${targetEpisode.imdbId} ${targetEpisode.name}`
+        applySuccessColor(
+          `${cleanTitleName} got a serie match for E${episodeNumber} and S${seasonNumber} title id should be ${targetEpisode.imdbId} ${targetEpisode.name}`
+        )
       );
       await saveFileAndConnectToTitle(sourcePath, filePath, targetEpisode);
     }
   } catch (err) {
     if (err instanceof AxiosError && err.response?.data)
       console.info(err.response?.data);
-    console.info(`Failed for ${filePath}`);
+    console.info(applyFailureColor(`Failed for ${filePath}`));
     return;
   }
 }
@@ -174,13 +175,24 @@ function getSeasonAndEpisodeNumberFromFilePath(filePath: string): {
 function selectMostMatchingSearchData(
   searchData: Omit<ImdbSearch, "imdbSearchCacheTerm">[],
   searchTerm: string
-) {
-  const goldenMatch = searchData.find(({ name }) => searchTerm === name);
-  const nextBestMatch = searchData.find(
-    ({ name }) => searchTerm.includes(name) || name.includes(searchTerm)
-  );
+): Omit<ImdbSearch, "imdbSearchCacheTerm"> {
+  let mostSimilarMatch = {
+    score: 0,
+    element: null as Omit<ImdbSearch, "imdbSearchCacheTerm"> | null,
+  };
 
-  return goldenMatch || nextBestMatch || searchData[0];
+  for (const search of searchData) {
+    const { name } = search;
+    const currentScore = compareTwoStrings(searchTerm, name);
+
+    if (currentScore > mostSimilarMatch.score) {
+      mostSimilarMatch.score = currentScore;
+      mostSimilarMatch.element = search;
+    }
+  }
+
+  if (mostSimilarMatch.element) return mostSimilarMatch.element;
+  return searchData[0];
 }
 
 expose(processSingleFileThreadWorker);

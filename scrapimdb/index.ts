@@ -16,7 +16,7 @@ const port = process.env.PORT ?? "8081";
 const ROUTES: ScrapImdbRuntimeConfig = [
   buildSingleRuntimeConfigEntry("get", "/latest-movie/", async () => {
     const response = await prisma.file.findMany({
-      take: 10,
+      take: 50,
       orderBy: {
         title: {
           createdOn: "asc",
@@ -34,6 +34,37 @@ const ROUTES: ScrapImdbRuntimeConfig = [
 
     return response.map((e) => e.title);
   }),
+  buildSingleRuntimeConfigEntry("get", "/latest-serie/", async (prisma) => {
+    const results = await prisma.serie.findMany({
+      orderBy: {
+        createdOn: "asc",
+      },
+      take: 10,
+      select: {
+        createdOn: true,
+        imdbId: true,
+        name: true,
+        pictureUrl: true,
+        storyline: true,
+        _count: {
+          select: {
+            seasons: true,
+          },
+        },
+        seasons: {
+          select: {
+            _count: {
+              select: {
+                episodes: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return results;
+  }),
   buildSingleRuntimeConfigEntry(
     "get",
     "/serie/:imdbId",
@@ -45,9 +76,11 @@ const ROUTES: ScrapImdbRuntimeConfig = [
           imdbId: imdbId,
         },
         select: {
+          createdOn: true,
           imdbId: true,
           name: true,
           pictureUrl: true,
+          storyline: true,
           seasons: {
             select: {
               id: true,

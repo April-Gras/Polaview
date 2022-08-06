@@ -168,7 +168,7 @@ async function processSeasonFromEpisodeGuideElement(
 async function getSeasonCountFromPage(page: puppeteer.Page): Promise<number> {
   const seasonElement = await page.$("#browse-episodes-season");
 
-  if (!seasonElement) throw "Could not find season element";
+  if (!seasonElement) return 1;
   const seasonText = await seasonElement.evaluate((e) =>
     e.getAttribute("aria-label")
   );

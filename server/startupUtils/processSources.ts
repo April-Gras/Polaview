@@ -4,6 +4,7 @@ import { existsSync } from "node:fs";
 import { spawn, Pool, Worker } from "threads";
 
 import { ScanDirectoryForMoviesThreadWorker } from "#/workers/scanDirectoryForMovies";
+import { applyInfoColor } from "#/utils/log";
 
 if (!process.env.MEDIA_SOURCES) throw "Please set some MEDIA_SOURCES in .env";
 const MEDIA_SOURCES = process.env.MEDIA_SOURCES.split(",");
@@ -34,5 +35,5 @@ export async function startupProcessSources() {
   await Promise.all(tasks);
   await sourceThreadPool.terminate();
 
-  console.info("Done with all the startup processings");
+  console.info(applyInfoColor("Done with all the startup processings"));
 }
