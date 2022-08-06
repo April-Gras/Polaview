@@ -3,6 +3,7 @@
   "common.login": "Login",
   "common.name": "User name",
   "common.password": "Password",
+  "common.season": "No season :< | 1 season | {count} seasons",
   "common.signup": "Singup",
   "inputErrors.email": "Invalid email",
   "inputErrors.name": "At least two letters",

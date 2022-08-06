@@ -3,6 +3,7 @@
   "common.login": "Se connecter",
   "common.name": "Nom d'utilisateur",
   "common.password": "Mot de passe",
+  "common.season": "Aucune saison :< | 1 saison | {count} saisons",
   "common.signup": "S'inscrire",
   "inputErrors.email": "Courriel invalide",
   "inputErrors.name": "Au moins 2 lettres",

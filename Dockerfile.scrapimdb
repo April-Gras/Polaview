@@ -5,10 +5,6 @@ WORKDIR /scrapper
 
 ENV THREADS_WORKER_INIT_TIMEOUT=1000000
 
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \ 
-    && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list
-RUN apt-get update && apt-get -y install google-chrome-stable
-
 COPY tsconfig.node.json /scrapper/tsconfig.node.json
 COPY tsconfig.json /scrapper/tsconfig.json
 COPY package.json /scrapper/package.json

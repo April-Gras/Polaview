@@ -5,6 +5,7 @@ import Root from "@/views/Root.vue";
 import Signup from "@/views/Signup.vue";
 import SignupConfirmed from "@/views/SignupConfirmed.vue";
 import Admin from "@/views/Admin.vue";
+import TitleByImdbId from "@/views/TitleByImdbId.vue";
 
 export const routerPlugin = createRouter({
   history: createWebHistory(),
@@ -33,6 +34,11 @@ export const routerPlugin = createRouter({
       path: "/admin",
       name: "admin",
       component: Admin,
+    },
+    {
+      path: "/title/:imdbId",
+      name: "titleByImdbId",
+      component: TitleByImdbId,
     },
   ],
 });

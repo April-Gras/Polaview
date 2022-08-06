@@ -55,7 +55,7 @@
 }
 
 .page-layout {
-  @apply relative mx-4 w-full overflow-hidden py-10 sm:mx-6 md:mx-auto md:!max-w-3xl lg:!max-w-3xl xl:!max-w-6xl;
+  @apply relative mx-4 w-full py-10 sm:mx-6 md:mx-auto md:!max-w-3xl lg:!max-w-3xl xl:!max-w-6xl;
 
   max-width: calc(100vw - (theme("space.4") * 2));
 }

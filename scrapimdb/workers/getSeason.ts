@@ -1,13 +1,15 @@
 import { expose, Worker, spawn, Pool } from "threads";
-import { Title, Person, Serie, Season } from "@prisma/client";
-import puppeteer from "puppeteer";
-import { getBrowserFromPuppeteer } from "#/utils/getBrowserFromPuppeteer";
+import { Title, Person, Serie } from "@prisma/client";
+
 import { extractImdbIdFromTitleLink } from "#/utils/extractImdbIdsFromUrl";
 import { removePictureCropDirectiveFromUrl } from "#/utils/removePictureCropDirectivesFromUrl";
 import {
   GetTitleFromEpisodesImdbIdThreadWorker,
   GetTitleFromEpisodesImdbIdThreadWorkerReturn,
 } from "./getTitlesFromEpisodeImdbIds";
+
+import axios from "axios";
+import { JSDOM } from "jsdom";
 
 export type GetSeasonWorkerThreadReturn = {
   serie: Serie;
@@ -24,32 +26,23 @@ export type GetSeasonWorkerThread = (
 ) => Promise<GetSeasonWorkerThreadReturn>;
 
 const getSeason: GetSeasonWorkerThread = async (imdbId, seasonIndex) => {
-  const browser = await getBrowserFromPuppeteer(puppeteer);
-  const page = await browser.newPage();
   const url = `https://www.imdb.com/title/${imdbId}/episodes/?season=${
     seasonIndex + 1
   }`;
-
-  await page.goto(url, {
-    timeout: 0,
-  });
+  const { data } = await axios.get(url);
+  const { document } = new JSDOM(data).window;
 
   const [{ serieImdbId, serieName }, storyline, pictureUrl] = await Promise.all(
     [
-      getSerieBaseInfoFromPage(page),
-      getSeireStoryLineFromPage(page),
-      getPictureUrlFromPage(page),
+      getSerieBaseInfoFromDocucment(document),
+      getSeireStoryLineFromDocucment(document),
+      getPictureUrlFromDocucment(document),
     ]
   );
-  const linkElements = await page.$$(
-    ".list.detail.eplist .list_item > .image > a"
+  const linkElements = Array.from(
+    document.querySelectorAll(".list.detail.eplist .list_item > .image > a")
   );
-  const linkAttributeJsHandlers = await Promise.all(
-    linkElements.map((e) => e.getProperty("href"))
-  );
-  const links = await Promise.all(
-    linkAttributeJsHandlers.map((element) => element.jsonValue())
-  );
+  const links = linkElements.map((e) => e.getAttribute("href"));
   const imdbIds = links.reduce((accumulator: string[], link: unknown) => {
     const processedLink = extractImdbIdFromTitleLink(link);
     if (!processedLink) throw "Found some broken links, aborting";
@@ -89,49 +82,45 @@ const getSeason: GetSeasonWorkerThread = async (imdbId, seasonIndex) => {
   };
 };
 
-async function getSerieBaseInfoFromPage(
-  page: puppeteer.Page
+async function getSerieBaseInfoFromDocucment(
+  document: Document
 ): Promise<{ serieName: Serie["name"]; serieImdbId: Serie["imdbId"] }> {
-  const serieLinkElement = await page.$(
+  const serieLinkElement = document.querySelector(
     ".subpage_title_block__right-column > div h3 > a"
   );
 
   if (!serieLinkElement) throw "Serie link element missing";
-  const serieLinkHrefProp = await serieLinkElement.getProperty("href");
-  const serieName = await serieLinkElement.evaluate((e) => e.textContent);
+  const serieLink = serieLinkElement.getAttribute("href");
+  const serieName = serieLinkElement.textContent;
 
   if (!serieName) throw "Missing serie name";
   return {
-    serieImdbId: extractImdbIdFromTitleLink(
-      await serieLinkHrefProp.jsonValue()
-    ),
+    serieImdbId: extractImdbIdFromTitleLink(serieLink),
     serieName,
   };
 }
 
-async function getPictureUrlFromPage(
-  page: puppeteer.Page
+async function getPictureUrlFromDocucment(
+  document: Document
 ): Promise<null | string> {
-  const pictureElement = await page.$("img.poster");
+  const pictureElement = document.querySelector("img.poster");
 
   if (!pictureElement) return null;
 
-  const pictureUrl = await (
-    await pictureElement.getProperty("src")
-  ).jsonValue();
+  const pictureUrl = pictureElement.getAttribute("src");
 
   return removePictureCropDirectiveFromUrl(pictureUrl);
 }
 
-async function getSeireStoryLineFromPage(
-  page: puppeteer.Page
+async function getSeireStoryLineFromDocucment(
+  document: Document
 ): Promise<null | string> {
-  const storylineElement = await page.$(
+  const storylineElement = document.querySelector(
     'div[data-testid="storyline-plot-summary"] .ipc-html-content-inner-div'
   );
 
   if (!storylineElement) return null;
-  const storylineText = await storylineElement.evaluate((e) => e.textContent);
+  const storylineText = storylineElement.textContent;
 
   return storylineText;
 }

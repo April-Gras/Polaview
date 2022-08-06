@@ -1,9 +1,10 @@
 import { Title, Person } from "@prisma/client";
 import { expose } from "threads";
-import puppeteer from "puppeteer";
-import { getCastFromTitlePage } from "#/utils/getCastFromTitlePage";
-import { getBrowserFromPuppeteer } from "#/utils/getBrowserFromPuppeteer";
+import { getCastFromTitleDocument } from "#/utils/getCastFromTitlePage";
 import { removePictureCropDirectiveFromUrl } from "#/utils/removePictureCropDirectivesFromUrl";
+
+import { JSDOM } from "jsdom";
+import axios from "axios";
 
 export type GetTitleFromEpisodesImdbIdThreadWorkerReturn = {
   title: Title;
@@ -16,19 +17,16 @@ export type GetTitleFromEpisodesImdbIdThreadWorker = (
 
 const getTitleFromEdpisodesImdbId: GetTitleFromEpisodesImdbIdThreadWorker =
   async (imdbId) => {
-    const browser = await getBrowserFromPuppeteer(puppeteer);
-    const page = await browser.newPage();
     const url = `https://www.imdb.com/title/${imdbId}/`;
+    const { data } = await axios.get(url);
+    const { document } = new JSDOM(data).window;
 
-    await page.goto(url, {
-      timeout: 0,
-    });
     const [casts, name, pictureUrl, { episodeNumber, seasonNumber }] =
       await Promise.all([
-        getCastFromTitlePage(page),
-        getTitleNameFromPage(page),
-        getPictureUrlFromPage(page),
-        getEpisodeNumberAndSeasonNumberFromPage(page),
+        getCastFromTitleDocument(document),
+        getTitleNameFromdocument(document),
+        getPictureUrlFromDocument(document),
+        getEpisodeNumberAndSeasonNumberFromDocument(document),
       ]);
 
     return {
@@ -46,50 +44,50 @@ const getTitleFromEdpisodesImdbId: GetTitleFromEpisodesImdbIdThreadWorker =
     };
   };
 
-async function getTitleNameFromPage(page: puppeteer.Page): Promise<string> {
-  const nameElement = await page.$(".ipc-page-section h1");
+async function getTitleNameFromdocument(document: Document): Promise<string> {
+  const nameElement = document.querySelector(".ipc-page-section h1");
 
   if (!nameElement) throw "No title element";
-  const nameString = await nameElement.evaluate((e) => e.textContent);
+  const nameString = nameElement.textContent;
 
   if (!nameString) throw "Title result not a string";
   return nameString;
 }
 
-async function getPictureUrlFromPage(
-  page: puppeteer.Page
+async function getPictureUrlFromDocument(
+  document: Document
 ): Promise<string | null> {
-  const imageElement = await page.$(".ipc-page-section .ipc-media img");
+  const imageElement = document.querySelector(
+    ".ipc-page-section .ipc-media img"
+  );
 
   if (!imageElement) return null;
-  const imageProperty = await imageElement.getProperty("src");
-  const pictureUrl = await imageProperty.jsonValue();
+  const pictureUrl = await imageElement.getAttribute("src");
 
-  if (typeof pictureUrl !== "string") return null;
   return removePictureCropDirectiveFromUrl(pictureUrl);
 }
 
-async function getEpisodeNumberAndSeasonNumberFromPage(
-  page: puppeteer.Page
+async function getEpisodeNumberAndSeasonNumberFromDocument(
+  document: Document
 ): Promise<{
   episodeNumber: Title["episodeNumber"];
   seasonNumber: number;
 }> {
   const reg = new RegExp(
-    /S(?<seasonNumber>[0-9]).E(?<episodeNumber>[0-9])/,
+    /S(?<seasonNumber>[0-9]*).E(?<episodeNumber>[0-9]*)/,
     "gi"
   );
-  const textElement = await page.$(
+  const textElement = document.querySelector(
     'div[data-testid="hero-subnav-bar-season-episode-numbers-section-xs"]'
   );
 
   if (!textElement) throw "Could not get episode / season number element";
-  const textContent = await textElement.evaluate((e) => e.textContent);
+  const textContent = textElement.textContent;
 
   if (!textContent) throw "No episode marking string in element could be found";
   const matches = reg.exec(textContent);
 
-  if (!matches) throw "No matches on season episode regex";
+  if (!matches) throw new Error("No matches on season episode regex");
   const { groups } = matches;
 
   if (!groups || !groups.seasonNumber || !groups.episodeNumber)

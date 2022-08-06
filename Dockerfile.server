@@ -3,9 +3,6 @@ FROM node:lts
 RUN mkdir -p /api/
 RUN mkdir -p /openMedia/
 
-RUN apt update
-RUN apt install ffmpeg -y
-
 WORKDIR /api
 
 COPY tsconfig.node.json /api/tsconfig.node.json

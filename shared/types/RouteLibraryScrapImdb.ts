@@ -1,6 +1,8 @@
 import { ImdbSearch, Title, Person, Serie, Season } from "@prisma/client";
 import { BuildRouteEntry, RuntimeConfigBuilder } from "~/types/Route";
 
+import { SearchArguments } from "#/workers/search";
+
 export type SerieSummary = Serie & {
   seasons: {
     _count: {
@@ -42,7 +44,7 @@ export type AllRoutes = [
     "post",
     "/search",
     Omit<ImdbSearch, "imdbSearchCacheTerm">[],
-    { term: string }
+    SearchArguments
   >
   // PATCH
   // DELETE

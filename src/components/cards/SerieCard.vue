@@ -23,6 +23,11 @@ export default defineComponent({
     :link="`/serie/${serieSummary.imdbId}`"
     :picture-url="serieSummary.pictureUrl"
   >
-    <div class="base-text ellipsis p-4 !font-bold">{{ serieSummary.name }}</div>
+    <ul class="p-4">
+      <li class="base-text ellipsis !font-bold">{{ serieSummary.name }}</li>
+      <li class="base-text italic">
+        {{ $tc("common.season", serieSummary._count.seasons) }}
+      </li>
+    </ul>
   </CommonTemplateVue>
 </template>

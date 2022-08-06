@@ -9,7 +9,7 @@ export const searchPost: GetRouteDataHandlerFromUrlAndVerb<
   "post",
   AllRoutes,
   "/search"
-> = async (prisma, _, __, { term }) => {
+> = async (prisma, _, __, { term, typesToCheck, releaseYear }) => {
   if (!term || !term.length) return [];
   const searchCacheEntry = await prisma.imdbSearchCache.findFirst({
     where: {
@@ -28,7 +28,7 @@ export const searchPost: GetRouteDataHandlerFromUrlAndVerb<
   const saveSearchThread: SaveSearchThreadWorker = await spawn(
     new Worker("../workers/saveSearch.ts")
   );
-  const scrapResults = await searchThread(term);
+  const scrapResults = await searchThread({ term, typesToCheck, releaseYear });
 
   await saveSearchThread({ results: scrapResults, term });
   return scrapResults;

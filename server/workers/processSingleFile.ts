@@ -13,6 +13,8 @@ import {
   makeServersideGetcrapImdb,
 } from "~/axiosTransporters/index";
 
+import { SearchType } from "~/types/Search";
+
 const prisma = new PrismaClient();
 
 type ProcessSingleFileThreadWorkerReturn = void;
@@ -25,18 +27,27 @@ async function processSingleFileThreadWorker(
   sourcePath: string,
   filePath: string
 ) {
+  const fileBaseName = path.basename(filePath);
   const magicRegex =
     /^(.+?)[.( \t]*(?:(?:(19\d{2}|20(?:0\d|1[0-9]))).*|(?:(?=bluray|\d+p|brrip|WEBRip)..*)?[.](mkv|avi|mpe?g|mp4)$)/gim;
 
-  const regexReturn = magicRegex.exec(path.basename(filePath));
+  const regexReturn = magicRegex.exec(fileBaseName);
   if (!regexReturn) return;
-  const [, movieTitle] = regexReturn;
+  const [, movieTitle, releaseYear] = regexReturn;
   const cleanTitleName = cleanupTitleName(movieTitle);
+  const fileIsProbablyPartOfSerie = new RegExp(
+    /S(?<seasonNumber>[0-9]).E(?<episodeNumber>[0-9])/
+  ).test(fileBaseName);
 
   try {
+    console.log({ cleanTitleName, releaseYear });
     const searchDataResponse = (
       await makeServersidePostScrapImdb("/search", {
-        term: cleanTitleName,
+        term: releaseYear ? `${cleanTitleName} ${releaseYear}` : cleanTitleName,
+        typesToCheck: fileIsProbablyPartOfSerie
+          ? [SearchType.TV]
+          : [SearchType.movie, SearchType.TV],
+        releaseYear,
       })
     ).data;
 
@@ -143,6 +154,7 @@ function cleanupTitleName(name: string) {
       .replace(/\[|\]|\(|\)|\{|\}|\<|\>/g, "")
       // Remove Season shit
       .replace(/S(?<season>\d{1,2})E(?<episode>\d{1,2}).*/gi, "")
+      .replace(/\-|\_/gi, "")
       .trim()
   );
 }
@@ -180,10 +192,11 @@ function selectMostMatchingSearchData(
     score: 0,
     element: null as Omit<ImdbSearch, "imdbSearchCacheTerm"> | null,
   };
+  searchTerm = searchTerm.toLocaleLowerCase();
 
   for (const search of searchData) {
     const { name } = search;
-    const currentScore = compareTwoStrings(searchTerm, name);
+    const currentScore = compareTwoStrings(searchTerm, name.toLowerCase());
 
     if (currentScore > mostSimilarMatch.score) {
       mostSimilarMatch.score = currentScore;

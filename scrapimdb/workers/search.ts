@@ -1,39 +1,55 @@
 import { expose } from "threads/worker";
-import puppeteer from "puppeteer";
-import { getBrowserFromPuppeteer } from "#/utils/getBrowserFromPuppeteer";
 import { removePictureCropDirectiveFromUrl } from "#/utils/removePictureCropDirectivesFromUrl";
 import { extractImdbIdFromTitleLink } from "#/utils/extractImdbIdsFromUrl";
 import { Title } from "@prisma/client";
+
+import axios from "axios";
+import { JSDOM } from "jsdom";
 
 export type SearchThreadWorkerReturn = {
   thumbnailUrl: string | null;
   imdbId: Title["imdbId"];
   name: string;
 };
+
+import { SearchType } from "~/types/Search";
+
+export type SearchArguments = {
+  term: string;
+  releaseYear: string | null;
+  typesToCheck?: SearchType[];
+};
+
 export type SearchThreadWorker = (
-  searchTerm: string
+  context: SearchArguments
 ) => Promise<SearchThreadWorkerReturn[]>;
 
-enum SearchType {
-  movie = "ft",
-  TV = "tv",
-}
-
-const searchThreadWorker: SearchThreadWorker = async (searchTerm: string) => {
+const searchThreadWorker: SearchThreadWorker = async ({
+  term,
+  typesToCheck,
+  releaseYear,
+}) => {
+  if (!typesToCheck) typesToCheck = [SearchType.movie, SearchType.TV];
+  if (!releaseYear) releaseYear = null;
   try {
-    const browser = await getBrowserFromPuppeteer(puppeteer);
-    const processedSearchTerm = searchTerm.replace(/ /gi, "+");
-    const page = await browser.newPage();
+    const processedSearchTerm = term.replace(/ /gi, "+");
+    const resultFromExactSearch = (
+      await Promise.all(
+        typesToCheck.map((checkType) =>
+          findByTypeFromBrowser(checkType, processedSearchTerm, true)
+        )
+      )
+    ).flat();
 
-    await page.goto(`https://www.imdb.com/find?q=${processedSearchTerm}&s=tt`);
+    if (resultFromExactSearch.length) return resultFromExactSearch;
 
-    const [movieMatches, tvMatches] = await Promise.all([
-      findByTypeFromBrowser(browser, SearchType.movie, processedSearchTerm),
-      findByTypeFromBrowser(browser, SearchType.TV, processedSearchTerm),
-    ]);
+    const results = await Promise.all(
+      typesToCheck.map((checkType) =>
+        findByTypeFromBrowser(checkType, processedSearchTerm)
+      )
+    );
 
-    await browser.close();
-    return [...movieMatches, ...tvMatches];
+    return results.flat();
   } catch (err) {
     console.log(err);
     return [];
@@ -41,16 +57,17 @@ const searchThreadWorker: SearchThreadWorker = async (searchTerm: string) => {
 };
 
 async function findByTypeFromBrowser(
-  browser: puppeteer.Browser,
   searchType: SearchType,
-  processedSearchTerm: string
+  processedSearchTerm: string,
+  exact = false
 ) {
-  const page = await browser.newPage();
-  await page.goto(
-    `https://www.imdb.com/find?q=${processedSearchTerm}&s=tt&ttype=${searchType}`
-  );
+  const url =
+    `https://www.imdb.com/find?q=${processedSearchTerm}&s=tt&ttype=${searchType}` +
+    (exact ? "&exact=true" : "");
+  const { data } = await axios.get(url);
+  const { document } = new JSDOM(data).window;
 
-  const resultEntries = await page.$$(".findResult");
+  const resultEntries = Array.from(document.querySelectorAll(".findResult"));
 
   const results = (
     await Promise.all(resultEntries.map(evaluateResultEntry))
@@ -62,20 +79,18 @@ async function findByTypeFromBrowser(
 }
 
 async function evaluateResultEntry(
-  resultEntry: puppeteer.ElementHandle<Element>
+  resultEntry: Element
 ): Promise<SearchThreadWorkerReturn | null> {
-  const parentDiv = await resultEntry.$(".result_text");
+  const parentDiv = resultEntry.querySelector(".result_text");
   if (!parentDiv) return null;
-  const linkElement = await parentDiv.$("a");
+  const linkElement = parentDiv.querySelector("a");
 
   if (!linkElement) return null;
 
-  const link = await linkElement.getProperty("href");
-  const name = await linkElement.evaluate((el) => el.textContent);
-  const textCheckForLowQualityRersults = await parentDiv.evaluate(
-    (e) => e.textContent
-  );
-  const imdbId = extractImdbIdFromTitleLink(await link.jsonValue());
+  const link = linkElement.getAttribute("href");
+  const name = linkElement.textContent;
+  const textCheckForLowQualityRersults = parentDiv.textContent;
+  const imdbId = extractImdbIdFromTitleLink(link);
 
   if (
     !imdbId ||
@@ -86,7 +101,7 @@ async function evaluateResultEntry(
   )
     return null;
 
-  const pictureElement = await resultEntry.$(".primary_photo img");
+  const pictureElement = resultEntry.querySelector(".primary_photo img");
   const ret = {
     imdbId,
     name,
@@ -94,7 +109,7 @@ async function evaluateResultEntry(
   };
   if (pictureElement) {
     const thumbnailUrl = removePictureCropDirectiveFromUrl(
-      await pictureElement.getProperty("src")
+      pictureElement.getAttribute("src")
     );
     const placeholderThumbnail =
       "https://m.media-amazon.com/images/S/sash/85lhIiFCmSScRzu.png";

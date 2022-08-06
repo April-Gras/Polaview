@@ -6,14 +6,21 @@ import { TranslateResult } from "vue-i18n";
 
 type NavigationEntry = { route: string; text: TranslateResult; icon: string };
 
+// @ts-ignore
+import vClickOutside from "click-outside-vue3";
+
 export default defineComponent({
   setup() {
     return {
       USER_STORE: useUserStore(),
     };
   },
+  directives: {
+    clickOutside: vClickOutside.directive,
+  },
   data() {
     return {
+      displayLangMenu: false,
       appTheme:
         window.matchMedia &&
         window.matchMedia("(prefers-color-scheme: dark)").matches
@@ -59,7 +66,15 @@ export default defineComponent({
     },
   },
   methods: {
-    applyAppTheme() {
+    selectLang(lang: string): void {
+      this.closeLangMenu();
+      if (!this.$root?.$i18n.locale) return;
+      this.$root.$i18n.locale = lang;
+    },
+    closeLangMenu(): void {
+      this.displayLangMenu = false;
+    },
+    applyAppTheme(): void {
       const elem = document.getElementsByTagName("html");
 
       if (!elem || !elem[0]) return;
@@ -74,8 +89,26 @@ export default defineComponent({
 </script>
 
 <template>
-  <nav class="w-full shadow-md">
+  <nav class="sticky top-0 z-50 w-full shadow-md">
     <div class="page-layout !py-4">
+      <Transition name="fade" mode="out-in">
+        <ul
+          class="absolute top-20 right-0 grid w-full max-w-[128px] grid-cols-1 gap-2 rounded-sm bg-neutral-200 text-center shadow-lg dark:bg-slate-700"
+          v-if="displayLangMenu"
+          v-click-outside="closeLangMenu"
+        >
+          <h4 class="subtitle-text p-2">Lang</h4>
+          <hr class="mx-auto h-[2px] w-3/4 bg-neutral-400" />
+          <li
+            :key="lang"
+            v-for="lang in $i18n.availableLocales"
+            class="base-text z-40 cursor-pointer px-4 py-1 transition-colors duration-150 ease-in-out hover:bg-neutral-300 hover:dark:bg-slate-600"
+            @click="selectLang(lang)"
+          >
+            {{ $t(`lang.${lang}`) }}
+          </li>
+        </ul>
+      </Transition>
       <div
         class="flex items-center justify-between space-x-6 overflow-auto text-center"
       >
@@ -91,13 +124,12 @@ export default defineComponent({
             <span class="font-bold">{{ entry.text }}</span>
           </RouterLink>
         </div>
-        <div class="flex space-x-4">
+        <div class="icons flex space-x-4">
           <button
             @click="
               appTheme = appTheme === 'dark' ? 'light' : 'dark';
               applyAppTheme();
             "
-            class="flex items-center justify-center"
           >
             <span class="material-symbols-outlined">{{
               appTheme === "dark" ? "light_mode" : "dark_mode"
@@ -106,12 +138,23 @@ export default defineComponent({
           <button
             v-if="USER_STORE.CURRENT_USER_IS_LOGGED_IN"
             @click="handleLogout"
-            class="flex items-center justify-center"
           >
             <span class="material-symbols-outlined"> logout </span>
+          </button>
+          <button
+            class="relative"
+            @click.stop="displayLangMenu = !displayLangMenu"
+          >
+            <span class="material-symbols-outlined"> translate </span>
           </button>
         </div>
       </div>
     </div>
   </nav>
 </template>
+
+<style lang="scss" scoped>
+.icons > button {
+  @apply flex items-center justify-center;
+}
+</style>
