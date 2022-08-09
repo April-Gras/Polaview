@@ -47,21 +47,19 @@ export default defineComponent({
         <div
           class="sheen absolute top-0 left-0 h-1/3 w-full bg-white bg-opacity-10 transition-all duration-150 ease-in-out"
         />
-        <transition name="fade" mode="out-in">
-          <img
-            class="picture"
-            :src="pictureData"
-            v-if="pictureUrl && pictureData && pictureLoadStatus === 'loaded'"
-          />
-          <div
-            class="picture loadingPicture bg-gradient-to-b from-blue-500 via-slate-500 to-green-500"
-            v-else-if="pictureLoadStatus === 'not loaded'"
-          />
-          <div
-            class="picture bg-gradient-to-br from-slate-200 to-slate-600"
-            v-else
-          />
-        </transition>
+        <img
+          class="picture"
+          :src="pictureData"
+          v-if="pictureUrl && pictureData && pictureLoadStatus === 'loaded'"
+        />
+        <div
+          class="picture loadingPicture bg-gradient-to-b from-blue-500 via-slate-500 to-green-500"
+          v-else-if="pictureLoadStatus === 'not loaded'"
+        />
+        <div
+          class="picture bg-gradient-to-br from-slate-200 to-slate-600"
+          v-else
+        />
       </div>
       <slot />
     </RouterLink>

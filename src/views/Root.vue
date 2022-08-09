@@ -3,15 +3,17 @@ import { defineComponent } from "vue";
 
 import { Title } from "@prisma/client";
 
-import TitleCardVue from "@/components/cards/TitleCard.vue";
+import CardGridVue from "@/components/ui/CardGrid.vue";
 import SerieCardVue from "@/components/cards/SerieCard.vue";
+import TitleCardVue from "@/components/cards/TitleCard.vue";
 
 import type { SerieSummary } from "~/types/RouteLibraryScrapImdb";
 
 export default defineComponent({
   components: {
-    TitleCardVue,
+    CardGridVue,
     SerieCardVue,
+    TitleCardVue,
   },
   data() {
     return {
@@ -41,33 +43,29 @@ export default defineComponent({
 <template>
   <div class="mx-6 my-10 grid grid-cols-1 gap-4">
     <h1 class="title-text">{{ $t("pages.root.title") }}</h1>
-    <article class="grid grid-cols-1 gap-6">
-      <h2 class="subtitle-text">
+    <CardGridVue>
+      <template #title>
         {{ $t("pages.root.categorySubtitles.latestMovies") }}
-      </h2>
-      <ul
-        class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4"
-      >
+      </template>
+      <template #list>
         <TitleCardVue
           v-for="title in latestMovies"
           :key="title.imdbId"
           :title="title"
         />
-      </ul>
-    </article>
-    <article class="grid grid-cols-1 gap-6">
-      <h2 class="subtitle-text">
+      </template>
+    </CardGridVue>
+    <CardGridVue>
+      <template #title>
         {{ $t("pages.root.categorySubtitles.latestSeries") }}
-      </h2>
-      <ul
-        class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4"
-      >
+      </template>
+      <template #list>
         <SerieCardVue
           v-for="serieSummary in latestSeries"
           :key="serieSummary.imdbId"
           :serie-summary="serieSummary"
         />
-      </ul>
-    </article>
+      </template>
+    </CardGridVue>
   </div>
 </template>

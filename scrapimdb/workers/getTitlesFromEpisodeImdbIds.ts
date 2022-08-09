@@ -4,7 +4,8 @@ import { getCastFromTitleDocument } from "#/utils/getCastFromTitlePage";
 import { removePictureCropDirectiveFromUrl } from "#/utils/removePictureCropDirectivesFromUrl";
 
 import { JSDOM } from "jsdom";
-import axios from "axios";
+import { getImdbPageFromUrlAxiosTransporter } from "#/utils/provideAxiosGet";
+import { getStoryLineFromDocucment } from "#/utils/getStorylineFromTitlePage";
 
 export type GetTitleFromEpisodesImdbIdThreadWorkerReturn = {
   title: Title;
@@ -18,16 +19,22 @@ export type GetTitleFromEpisodesImdbIdThreadWorker = (
 const getTitleFromEdpisodesImdbId: GetTitleFromEpisodesImdbIdThreadWorker =
   async (imdbId) => {
     const url = `https://www.imdb.com/title/${imdbId}/`;
-    const { data } = await axios.get(url);
+    const { data } = await getImdbPageFromUrlAxiosTransporter.get(url);
     const { document } = new JSDOM(data).window;
 
-    const [casts, name, pictureUrl, { episodeNumber, seasonNumber }] =
-      await Promise.all([
-        getCastFromTitleDocument(document),
-        getTitleNameFromdocument(document),
-        getPictureUrlFromDocument(document),
-        getEpisodeNumberAndSeasonNumberFromDocument(document),
-      ]);
+    const [
+      casts,
+      name,
+      pictureUrl,
+      { episodeNumber, seasonNumber },
+      storyline,
+    ] = await Promise.all([
+      getCastFromTitleDocument(document),
+      getTitleNameFromdocument(document),
+      getPictureUrlFromDocument(document),
+      getEpisodeNumberAndSeasonNumberFromDocument(document),
+      getStoryLineFromDocucment(document),
+    ]);
 
     return {
       casts,
@@ -36,6 +43,7 @@ const getTitleFromEdpisodesImdbId: GetTitleFromEpisodesImdbIdThreadWorker =
         imdbId,
         name,
         pictureUrl,
+        storyline,
         releaseYear: null,
         seasonId: null,
         episodeNumber,
@@ -62,7 +70,7 @@ async function getPictureUrlFromDocument(
   );
 
   if (!imageElement) return null;
-  const pictureUrl = await imageElement.getAttribute("src");
+  const pictureUrl = imageElement.getAttribute("src");
 
   return removePictureCropDirectiveFromUrl(pictureUrl);
 }
@@ -74,12 +82,16 @@ async function getEpisodeNumberAndSeasonNumberFromDocument(
   seasonNumber: number;
 }> {
   const reg = new RegExp(
-    /S(?<seasonNumber>[0-9]*).E(?<episodeNumber>[0-9]*)/,
+    /S(?<seasonNumber>[0-9]*).?E?(?<episodeNumber>[0-9]*)?/,
     "gi"
   );
-  const textElement = document.querySelector(
-    'div[data-testid="hero-subnav-bar-season-episode-numbers-section-xs"]'
-  );
+  const textElement =
+    document.querySelector(
+      'div[data-testid="hero-subnav-bar-season-episode-numbers-section-xs"]'
+    ) ||
+    document.querySelector(
+      'div[data-testid="hero-subnav-bar-season-episode-numbers-section"]'
+    );
 
   if (!textElement) throw "Could not get episode / season number element";
   const textContent = textElement.textContent;
@@ -90,11 +102,12 @@ async function getEpisodeNumberAndSeasonNumberFromDocument(
   if (!matches) throw new Error("No matches on season episode regex");
   const { groups } = matches;
 
-  if (!groups || !groups.seasonNumber || !groups.episodeNumber)
+  if (!groups || !groups.seasonNumber)
     throw "regex had non regular group matches";
 
   const seasonNumber = Number(groups.seasonNumber);
-  const episodeNumber = Number(groups.episodeNumber);
+  // Pilots have episode 0 !
+  const episodeNumber = groups.episodeNumber ? Number(groups.episodeNumber) : 0;
 
   if (isNaN(episodeNumber) || isNaN(seasonNumber))
     throw "episode number or season number";

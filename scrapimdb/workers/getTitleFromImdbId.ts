@@ -5,9 +5,12 @@ import {
 } from "./getSeason";
 import { Title, Person, Serie } from "@prisma/client";
 
-import axios from "axios";
+import fs from "node:fs";
+
+import { getImdbPageFromUrlAxiosTransporter } from "#/utils/provideAxiosGet";
 import { JSDOM } from "jsdom";
 
+import { getStoryLineFromDocucment } from "#/utils/getStorylineFromTitlePage";
 import { getCastFromTitleDocument } from "#/utils/getCastFromTitlePage";
 import { removePictureCropDirectiveFromUrl } from "#/utils/removePictureCropDirectivesFromUrl";
 
@@ -27,8 +30,9 @@ const getTitleDataFromImdbIdWorker: GetTitleDataFromImdbIdThreadWorker = async (
   imdbId
 ) => {
   const url = `https://www.imdb.com/title/${imdbId}/`;
-  const { data } = await axios.get(url);
-  const { document } = new JSDOM(data).window;
+  const { data } = await getImdbPageFromUrlAxiosTransporter.get(url);
+  const dom = new JSDOM(data);
+  const { document } = dom.window;
 
   // If exist this means the title is part of a show with multiple episodes
   const episodeGuideElement =
@@ -52,6 +56,7 @@ const getTitleDataFromImdbIdWorker: GetTitleDataFromImdbIdThreadWorker = async (
           imdbId,
           releaseYear,
           name,
+          storyline: getStoryLineFromDocucment(document),
           pictureUrl: pictureUrl?.toString() ?? null,
           seasonId: null,
           episodeNumber: 0,
@@ -123,10 +128,9 @@ async function processSeasonFromEpisodeGuideElement(
   const seasonCount = await getSeasonCountFromPage(document);
   if (!episodeListingImdbId) throw "Missing link for episode listing";
   const threadPool = Pool(
-    () => {
-      return spawn<GetSeasonWorkerThread>(new Worker("./getSeason.ts"));
-    },
+    () => spawn<GetSeasonWorkerThread>(new Worker("./getSeason.ts")),
     {
+      concurrency: 4,
       maxQueuedJobs: seasonCount,
     }
   );
@@ -142,7 +146,10 @@ async function processSeasonFromEpisodeGuideElement(
 
   if (results.length !== seasonCount) throw "Missmatch season count";
   return {
-    serie: results[0].serie,
+    serie: {
+      ...results[0].serie,
+      storyline: getStoryLineFromDocucment(document),
+    },
     seasonsDescriptors: results.map(({ collection }) => {
       return collection.map((e) => e.title.imdbId);
     }),
@@ -153,7 +160,7 @@ async function processSeasonFromEpisodeGuideElement(
 }
 
 async function getSeasonCountFromPage(document: Document): Promise<number> {
-  const seasonElement = document.getElementById("#browse-episodes-season");
+  const seasonElement = document.getElementById("browse-episodes-season");
 
   if (!seasonElement) return 1;
   const seasonText = seasonElement.getAttribute("aria-label");

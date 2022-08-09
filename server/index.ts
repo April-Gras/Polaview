@@ -18,6 +18,8 @@ import { startupProcessSources } from "#/startupUtils/processSources";
 
 import { getUser, userGetById, userPost, userPatchById } from "#/user";
 import { authLoginPost, authUserGet, authLogoutPost } from "#/auth";
+import getVideoRoute from "#/video/index";
+
 import { JsonCompliantData } from "~/types/Route";
 import { applyServiceColor } from "./utils/log";
 
@@ -87,6 +89,8 @@ const MIDDLEWARES = [
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use("/", router);
+
+app.get("/video/:id", getVideoRoute);
 
 for (const index in ROUTES) {
   const [verb, url, handler] = ROUTES[index];

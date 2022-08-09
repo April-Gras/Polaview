@@ -1,8 +1,6 @@
 import { expose } from "threads/worker";
 import { PrismaClient, ImdbSearch } from "@prisma/client";
 
-const prisma = new PrismaClient();
-
 export type SaveSearchThreadWorkerReturn = void;
 export type SaveSearchThreadWorker = (context: {
   results: Omit<ImdbSearch, "imdbSearchCacheTerm">[];
@@ -13,6 +11,7 @@ const saveSearchThreadWorker: SaveSearchThreadWorker = async ({
   results,
   term,
 }) => {
+  const prisma = new PrismaClient();
   try {
     await prisma.imdbSearchCache.upsert({
       where: {
@@ -43,9 +42,11 @@ const saveSearchThreadWorker: SaveSearchThreadWorker = async ({
         },
       },
     });
+    await prisma.$disconnect();
     return;
   } catch (err) {
     console.log(err);
+    await prisma.$disconnect();
     return;
   }
 };

@@ -8,7 +8,7 @@ import {
   GetTitleFromEpisodesImdbIdThreadWorkerReturn,
 } from "./getTitlesFromEpisodeImdbIds";
 
-import axios from "axios";
+import { getImdbPageFromUrlAxiosTransporter } from "#/utils/provideAxiosGet";
 import { JSDOM } from "jsdom";
 
 export type GetSeasonWorkerThreadReturn = {
@@ -29,16 +29,13 @@ const getSeason: GetSeasonWorkerThread = async (imdbId, seasonIndex) => {
   const url = `https://www.imdb.com/title/${imdbId}/episodes/?season=${
     seasonIndex + 1
   }`;
-  const { data } = await axios.get(url);
+  const { data } = await getImdbPageFromUrlAxiosTransporter.get(url);
   const { document } = new JSDOM(data).window;
 
-  const [{ serieImdbId, serieName }, storyline, pictureUrl] = await Promise.all(
-    [
-      getSerieBaseInfoFromDocucment(document),
-      getSeireStoryLineFromDocucment(document),
-      getPictureUrlFromDocucment(document),
-    ]
-  );
+  const [{ serieImdbId, serieName }, pictureUrl] = await Promise.all([
+    getSerieBaseInfoFromDocucment(document),
+    getPictureUrlFromDocucment(document),
+  ]);
   const linkElements = Array.from(
     document.querySelectorAll(".list.detail.eplist .list_item > .image > a")
   );
@@ -76,7 +73,7 @@ const getSeason: GetSeasonWorkerThread = async (imdbId, seasonIndex) => {
       imdbId: serieImdbId,
       name: serieName,
       pictureUrl,
-      storyline,
+      storyline: "", // will be set by the parent,
       createdOn: new Date(),
     },
   };
@@ -110,19 +107,6 @@ async function getPictureUrlFromDocucment(
   const pictureUrl = pictureElement.getAttribute("src");
 
   return removePictureCropDirectiveFromUrl(pictureUrl);
-}
-
-async function getSeireStoryLineFromDocucment(
-  document: Document
-): Promise<null | string> {
-  const storylineElement = document.querySelector(
-    'div[data-testid="storyline-plot-summary"] .ipc-html-content-inner-div'
-  );
-
-  if (!storylineElement) return null;
-  const storylineText = storylineElement.textContent;
-
-  return storylineText;
 }
 
 expose(getSeason);

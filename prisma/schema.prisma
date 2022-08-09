@@ -43,6 +43,7 @@ model Title {
   releaseYear   Int?
   pictureUrl    String?
   titleOnCast   TitleOnCast[]
+  storyline     String?
   Season        Season?       @relation(fields: [seasonId], references: [id])
   seasonId      String?
   episodeNumber Int
@@ -90,7 +91,8 @@ model FileSource {
 }
 
 model File {
-  path           String      @id @unique
+  id             Int         @id @unique @default(autoincrement())
+  path           String      @unique
   fileSource     FileSource? @relation(fields: [fileSourcePath], references: [path])
   fileSourcePath String?
   title          Title       @relation(fields: [titleImdbId], references: [imdbId])

@@ -6,6 +6,8 @@ import Signup from "@/views/Signup.vue";
 import SignupConfirmed from "@/views/SignupConfirmed.vue";
 import Admin from "@/views/Admin.vue";
 import TitleByImdbId from "@/views/TitleByImdbId.vue";
+import SerieByImdbId from "@/views/SerieByImdbId.vue";
+import PersonByImdbId from "@/views/PersonByImdbId.vue";
 
 export const routerPlugin = createRouter({
   history: createWebHistory(),
@@ -39,6 +41,16 @@ export const routerPlugin = createRouter({
       path: "/title/:imdbId",
       name: "titleByImdbId",
       component: TitleByImdbId,
+    },
+    {
+      path: "/serie/:imdbId",
+      name: "serieByImdbId",
+      component: SerieByImdbId,
+    },
+    {
+      path: "/person/:imdbId",
+      name: "personByImdbId",
+      component: PersonByImdbId,
     },
   ],
 });

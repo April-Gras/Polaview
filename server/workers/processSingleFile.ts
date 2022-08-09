@@ -1,6 +1,10 @@
 import path from "node:path";
 
-import { applyFailureColor, applySuccessColor } from "#/utils/log";
+import {
+  applyFailureColor,
+  applySuccessColor,
+  applyInfoColor,
+} from "#/utils/log";
 
 import { expose } from "threads";
 import { AxiosError } from "axios";
@@ -20,87 +24,87 @@ const prisma = new PrismaClient();
 type ProcessSingleFileThreadWorkerReturn = void;
 export type ProcessSingleFileThreadWorker = (
   sourcePath: string,
-  filePath: string
+  filePath: string,
+  wholePath: string
 ) => Promise<ProcessSingleFileThreadWorkerReturn>;
 
-async function processSingleFileThreadWorker(
-  sourcePath: string,
-  filePath: string
-) {
-  const fileBaseName = path.basename(filePath);
-  const magicRegex =
-    /^(.+?)[.( \t]*(?:(?:(19\d{2}|20(?:0\d|1[0-9]))).*|(?:(?=bluray|\d+p|brrip|WEBRip)..*)?[.](mkv|avi|mpe?g|mp4)$)/gim;
+const processSingleFileThreadWorker: ProcessSingleFileThreadWorker =
+  async function (sourcePath, filePath, wholePath) {
+    const fileBaseName = path.basename(filePath);
+    const magicRegex =
+      /^(.+?)[.( \t]*(?:(?:(19\d{2}|20(?:0\d|1[0-9]))).*|(?:(?=bluray|\d+p|brrip|WEBRip)..*)?[.](mkv|avi|mpe?g|mp4)$)/gim;
 
-  const regexReturn = magicRegex.exec(fileBaseName);
-  if (!regexReturn) return;
-  const [, movieTitle, releaseYear] = regexReturn;
-  const cleanTitleName = cleanupTitleName(movieTitle);
-  const fileIsProbablyPartOfSerie = new RegExp(
-    /S(?<seasonNumber>[0-9]).E(?<episodeNumber>[0-9])/
-  ).test(fileBaseName);
-
-  try {
-    console.log({ cleanTitleName, releaseYear });
-    const searchDataResponse = (
-      await makeServersidePostScrapImdb("/search", {
-        term: releaseYear ? `${cleanTitleName} ${releaseYear}` : cleanTitleName,
-        typesToCheck: fileIsProbablyPartOfSerie
-          ? [SearchType.TV]
-          : [SearchType.movie, SearchType.TV],
-        releaseYear,
-      })
-    ).data;
-
-    if (!searchDataResponse.length) {
-      console.info(applyFailureColor(`No matches for ${cleanTitleName}`));
-      return;
-    }
-
-    const matchingSearchElement = selectMostMatchingSearchData(
-      searchDataResponse,
-      cleanTitleName
-    );
+    const regexReturn = magicRegex.exec(fileBaseName);
+    if (!regexReturn) return;
+    const [, movieTitle, releaseYear] = regexReturn;
+    const cleanTitleName = cleanupTitleName(movieTitle);
+    const fileIsProbablyPartOfSerie = new RegExp(
+      /S(?<seasonNumber>[0-9]).E(?<episodeNumber>[0-9])/
+    ).test(fileBaseName);
 
     try {
-      const titleData = (
-        await makeServersideGetcrapImdb(
-          `/title/${matchingSearchElement.imdbId}`
-        )
+      console.log(applyInfoColor(`Looking for ${cleanTitleName}`));
+      const searchDataResponse = (
+        await makeServersidePostScrapImdb("/search", {
+          term: cleanTitleName,
+          typesToCheck: fileIsProbablyPartOfSerie
+            ? [SearchType.TV]
+            : [SearchType.movie],
+          releaseYear,
+        })
       ).data;
 
-      console.log(applySuccessColor(`${cleanTitleName} got a title match`));
+      if (!searchDataResponse.length) {
+        console.info(applyFailureColor(`No matches for ${cleanTitleName}`));
+        return;
+      }
 
-      await saveFileAndConnectToTitle(sourcePath, filePath, titleData);
-    } catch (_) {
-      const serieData = (
-        await makeServersideGetcrapImdb(
-          `/serie/${matchingSearchElement.imdbId}`
-        )
-      ).data;
-      const { seasonNumber, episodeNumber } =
-        getSeasonAndEpisodeNumberFromFilePath(filePath);
-
-      const targetSeason = serieData.seasons[seasonNumber - 1];
-      if (!targetSeason)
-        throw `Could not find season with index ${seasonNumber - 1}`;
-      const targetEpisode = targetSeason.episodes[episodeNumber - 1];
-      if (!targetEpisode)
-        throw `Could not find episode with index ${episodeNumber - 1}`;
-
-      console.log(
-        applySuccessColor(
-          `${cleanTitleName} got a serie match for E${episodeNumber} and S${seasonNumber} title id should be ${targetEpisode.imdbId} ${targetEpisode.name}`
-        )
+      const matchingSearchElement = selectMostMatchingSearchData(
+        searchDataResponse,
+        cleanTitleName
       );
-      await saveFileAndConnectToTitle(sourcePath, filePath, targetEpisode);
+
+      try {
+        const titleData = (
+          await makeServersideGetcrapImdb(
+            `/title/${matchingSearchElement.imdbId}`
+          )
+        ).data;
+
+        console.log(applySuccessColor(`${cleanTitleName} got a title match`));
+
+        await saveFileAndConnectToTitle(sourcePath, wholePath, titleData);
+      } catch (_) {
+        const serieData = (
+          await makeServersideGetcrapImdb(
+            `/serie/${matchingSearchElement.imdbId}`
+          )
+        ).data;
+        const { seasonNumber, episodeNumber } =
+          getSeasonAndEpisodeNumberFromFilePath(filePath);
+
+        const targetSeason = serieData.seasons[seasonNumber - 1];
+        if (!targetSeason)
+          throw `Could not find season with index ${seasonNumber - 1}`;
+        const targetEpisode = targetSeason.episodes[episodeNumber - 1];
+        if (!targetEpisode)
+          throw `Could not find episode with index ${episodeNumber - 1}`;
+
+        console.log(
+          applySuccessColor(
+            `${cleanTitleName} got a serie match for E${episodeNumber} and S${seasonNumber} title id should be ${targetEpisode.imdbId} ${targetEpisode.name}`
+          )
+        );
+        await saveFileAndConnectToTitle(sourcePath, wholePath, targetEpisode);
+      }
+    } catch (err) {
+      if (err instanceof AxiosError && err.response?.data)
+        console.info(err.response?.data);
+      console.log(err);
+      console.info(applyFailureColor(`Failed for ${filePath}`));
+      return;
     }
-  } catch (err) {
-    if (err instanceof AxiosError && err.response?.data)
-      console.info(err.response?.data);
-    console.info(applyFailureColor(`Failed for ${filePath}`));
-    return;
-  }
-}
+  };
 
 async function saveFileAndConnectToTitle(
   sourcePath: string,
@@ -154,8 +158,10 @@ function cleanupTitleName(name: string) {
       .replace(/\[|\]|\(|\)|\{|\}|\<|\>/g, "")
       // Remove Season shit
       .replace(/S(?<season>\d{1,2})E(?<episode>\d{1,2}).*/gi, "")
-      .replace(/\-|\_/gi, "")
+      .replace(/\-|\_|/gi, "")
       .trim()
+      // Remove "Ext | Extended label on file name"
+      .replace(/Ext$|Extended$/gi, "")
   );
 }
 

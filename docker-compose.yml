@@ -14,10 +14,17 @@ services:
     command: npm run server-dev
     depends_on:
       - postgres
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
     volumes:
       - ./server:/api/server
       - ./shared:/api/shared
-      - /home/${USER}/Videos:/openMedia # TODO Could change later
+      - /home/${USER}/Videos:/openMedia
       - ./node_modules:/api/node_modules
 
   client:

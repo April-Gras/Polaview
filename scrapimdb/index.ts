@@ -67,6 +67,17 @@ const ROUTES: ScrapImdbRuntimeConfig = [
   }),
   buildSingleRuntimeConfigEntry(
     "get",
+    "/file/titleImdbId/:imdbId",
+    async (prisma, req) => {
+      return await prisma.file.findFirstOrThrow({
+        where: {
+          titleImdbId: req.params.imdbId,
+        },
+      });
+    }
+  ),
+  buildSingleRuntimeConfigEntry(
+    "get",
     "/serie/:imdbId",
     async (prisma, req) => {
       const { imdbId } = req.params;
@@ -96,19 +107,30 @@ const ROUTES: ScrapImdbRuntimeConfig = [
     "get",
     "/serie/:imdbId/seasons",
     async (prisma, req) => {
-      return await prisma.season.findMany({
+      const { imdbId } = req.params;
+      const serie = await prisma.serie.findUniqueOrThrow({
         where: {
-          serieImdbId: {
-            equals: req.params.imdbId,
+          imdbId,
+        },
+        include: {
+          seasons: {
+            include: {
+              episodes: true,
+            },
           },
         },
-        select: {
-          episodes: true,
-          serie: true,
-          id: true,
-          serieImdbId: true,
-        },
       });
+
+      return {
+        seasons: serie.seasons,
+        serie: {
+          createdOn: serie.createdOn,
+          imdbId: serie.imdbId,
+          name: serie.name,
+          pictureUrl: serie.pictureUrl,
+          storyline: serie.storyline,
+        },
+      };
     }
   ),
   buildSingleRuntimeConfigEntry("get", "/title/:imdbId", titleGetByImdbId),

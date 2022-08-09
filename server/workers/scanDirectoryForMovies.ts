@@ -1,9 +1,10 @@
 import path from "node:path";
 import { readdirSync, lstatSync } from "node:fs";
 
-import { expose, Worker, spawn } from "threads";
+import { expose, Worker, spawn, Pool } from "threads";
 
 import { ProcessSingleFileThreadWorker } from "#/workers/processSingleFile";
+import { ConvertFileToMp4ThreadWorker } from "#/workers/convertFileToMp4";
 
 type ScanDirectoryForMoviesThreadWorkerReturn = void;
 export type ScanDirectoryForMoviesThreadWorker = (
@@ -45,13 +46,36 @@ const scanDirectoryForMovies: ScanDirectoryForMoviesThreadWorker =
     const processFileWorker: ProcessSingleFileThreadWorker = await spawn(
       new Worker("./processSingleFile.ts")
     );
+    const wellFormatedFiles = await handleFilesFormat(toProcessFiles);
 
-    for (let filePath of toProcessFiles)
-      await processFileWorker(source, filePath);
+    for (const filePath of wellFormatedFiles)
+      await processFileWorker(
+        source,
+        filePath,
+        path.resolve(directory, filePath)
+      );
 
-    for (directory of toProcessDirectories) {
+    for (const directory of toProcessDirectories) {
       await scanDirectoryForMovies(source, path.resolve(source, directory));
     }
   };
+
+async function handleFilesFormat(files: string[]): Promise<string[]> {
+  const notMp4Files = files.filter(
+    (pathName) => path.extname(pathName) !== ".mp4"
+  );
+  const convertToMp4Worker = await spawn<ConvertFileToMp4ThreadWorker>(
+    new Worker("./convertFileToMp4")
+  );
+
+  for (const filePath of notMp4Files) await convertToMp4Worker(filePath);
+
+  return files
+    .map((filePath) => `${path.parse(filePath).name}.mp4`)
+    .reduce((accumulator, file) => {
+      if (!accumulator.includes(file)) accumulator.push(file);
+      return accumulator;
+    }, [] as string[]);
+}
 
 expose(scanDirectoryForMovies);

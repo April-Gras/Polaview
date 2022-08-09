@@ -8,8 +8,8 @@ COPY tsconfig.json /client/tsconfig.json
 COPY package.json /client/package.json
 COPY vite.config.ts /client/vite.config.ts
 COPY index.html /client/index.html
-COPY postcss.config.cjs /client/postcss.config.cjs
-COPY tailwind.config.cjs /client/tailwind.config.cjs
+COPY postcss.config.js /client/postcss.config.js
+COPY tailwind.config.js /client/tailwind.config.js
 
 COPY shared /client/shared
 COPY prisma /client/prisma

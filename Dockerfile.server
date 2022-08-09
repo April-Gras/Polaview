@@ -1,7 +1,25 @@
 FROM node:lts
 
+ENV NVIDIA_VISIBLE_DEVICES all
+ENV NVIDIA_DRIVER_CAPABILITIES video,compute,utility
+
 RUN mkdir -p /api/
 RUN mkdir -p /openMedia/
+
+RUN apt update
+RUN apt install build-essential yasm cmake nasm libtool libavcodec-extra libc6 libc6-dev unzip wget libnuma1 libnuma-dev sudo libavdevice-dev -y
+
+RUN mkdir ~/nvidia/ && cd ~/nvidia/ \
+ && git clone https://git.videolan.org/git/ffmpeg/nv-codec-headers.git
+
+RUN cd ~/nvidia/nv-codec-headers && sudo make install
+
+RUN git clone https://github.com/FFmpeg/FFmpeg.git ~/nvidia/ffmpeg/
+
+RUN cd ~/nvidia/ffmpeg/ \
+ && ./configure \
+ && make -j $(nproc)
+
 
 WORKDIR /api
 
@@ -16,9 +34,6 @@ COPY .env /api/.env
 COPY server /api/server
 
 COPY node_modules /api/node_modules
-
-# Install dependencies
-# RUN yarn install
 
 # Prisma routine
 RUN npx prisma generate

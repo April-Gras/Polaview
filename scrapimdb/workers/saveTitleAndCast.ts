@@ -12,13 +12,12 @@ export type SaveTitleAndPersonsThreadWorker = (constext: {
   seasonsDescriptors?: Title["imdbId"][][];
 }) => Promise<SaveTitleAndPersonsThreadWorkerResult>;
 
-const prisma = new PrismaClient();
-
 const saveTitleAndPerson: SaveTitleAndPersonsThreadWorker = async ({
   collection,
   serie,
   seasonsDescriptors,
 }) => {
+  const prisma = new PrismaClient();
   try {
     await prisma.$transaction([
       ...collection.map(({ title }) => {
@@ -136,7 +135,9 @@ const saveTitleAndPerson: SaveTitleAndPersonsThreadWorker = async ({
         });
       })
     );
+    await prisma.$disconnect();
   } catch (err) {
+    await prisma.$disconnect();
     console.log(err);
   }
 };

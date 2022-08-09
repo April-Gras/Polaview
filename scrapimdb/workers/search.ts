@@ -3,7 +3,7 @@ import { removePictureCropDirectiveFromUrl } from "#/utils/removePictureCropDire
 import { extractImdbIdFromTitleLink } from "#/utils/extractImdbIdsFromUrl";
 import { Title } from "@prisma/client";
 
-import axios from "axios";
+import { getImdbPageFromUrlAxiosTransporter } from "#/utils/provideAxiosGet";
 import { JSDOM } from "jsdom";
 
 export type SearchThreadWorkerReturn = {
@@ -64,7 +64,8 @@ async function findByTypeFromBrowser(
   const url =
     `https://www.imdb.com/find?q=${processedSearchTerm}&s=tt&ttype=${searchType}` +
     (exact ? "&exact=true" : "");
-  const { data } = await axios.get(url);
+
+  const { data } = await getImdbPageFromUrlAxiosTransporter.get(url);
   const { document } = new JSDOM(data).window;
 
   const resultEntries = Array.from(document.querySelectorAll(".findResult"));
