@@ -4,28 +4,39 @@ import {
 } from "~/types/Axios";
 import axios from "axios";
 
+/**
+ * Base axios transporter to reach the main server service
+ */
 export const serverApiTransporter = axios.create({
   baseURL: "/api",
   withCredentials: true,
 });
 
+/**
+ * Base axios transporter to reach the imdb scrapper service
+ */
 export const scrapIdmdbTransporter = axios.create({
   baseURL: "/scrapimdb",
   withCredentials: true,
 });
 
-export const makePostScrapImdb: AxiosScrapperPostRequest =
-  scrapIdmdbTransporter.post;
-// @ts-expect-error
-export const makeGetScrapImdb: AxiosScrapperGetRequest =
-  scrapIdmdbTransporter.get;
-
-const scrapImdbSsTransporter = axios.create({
+const scrapImdbTransporter = axios.create({
   baseURL: "http://scrapimdb:8081/",
 });
 
+/**
+ * Axios Post Request builder used to comunicate to the Scrapper
+ *
+ * This should only be used server side !
+ */
 export const makeServersidePostScrapImdb: AxiosScrapperPostRequest =
-  scrapImdbSsTransporter.post;
+  scrapImdbTransporter.post;
+
+/**
+ * Axios Get Request builder used to comunicate to the Scrapper
+ *
+ * This should only be used server side !
+ */
 // @ts-expect-error
 export const makeServersideGetcrapImdb: AxiosScrapperGetRequest =
-  scrapImdbSsTransporter.get;
+  scrapImdbTransporter.get;

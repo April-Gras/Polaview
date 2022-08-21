@@ -7,16 +7,22 @@ export type ConvertFileToMp4ThreadWorker = (
   filePath: string
 ) => Promise<ConvertFileToMp4ThreadWorkerReturn>;
 
-const convertFileToMp4ThreadWorker: ConvertFileToMp4ThreadWorker = (
+enum MachineHardwareType {
+  Nvidea,
+  Amd,
+  Cpu,
+}
+
+const convertFileToMp4ThreadWorker: ConvertFileToMp4ThreadWorker = async (
   filePath
 ) => {
+  const parsedPath = path.parse(filePath);
+  const newFileName = `${parsedPath.dir}/${parsedPath.name}.mp4`;
+  const removeCommand = `rm "${filePath}"`;
+  const command = await getFfmpegCommand(filePath, newFileName);
+
   return new Promise((resolve, reject) => {
     if (filePath.endsWith(".mp4")) return;
-    const parsedPath = path.parse(filePath);
-    const newFileName = `${parsedPath.dir}/${parsedPath.name}.mp4`;
-    const ffmpegCmdPath = "/root/nvidia/ffmpeg/ffmpeg";
-    const command = `${ffmpegCmdPath} -hwaccel cuda -i "${filePath}" -c:v h264_nvenc -pix_fmt yuv420p -y "${newFileName}"`;
-    const removeCommand = `rm "${filePath}"`;
     let NUMBER_OF_FRAMES: number | undefined;
 
     console.log(`Started conversion for ${path.basename(filePath)}`);
@@ -24,13 +30,10 @@ const convertFileToMp4ThreadWorker: ConvertFileToMp4ThreadWorker = (
       shell: true,
     });
 
-    child.stdout.on("data", (message) => {
-      console.log({ message });
-    });
-
     child.stderr.on("data", (err: Buffer) => {
       const message = err.toString("utf-8");
 
+      console.log(message);
       if (NUMBER_OF_FRAMES === undefined) {
         if (!message.includes("NUMBER_OF_FRAMES")) return;
         const regex = /NUMBER_OF_FRAMES(-\D*)?:(\s*)?(?<frame>\d*)/gi;
@@ -64,7 +67,7 @@ const convertFileToMp4ThreadWorker: ConvertFileToMp4ThreadWorker = (
 
     child.on("exit", () => {
       console.log("exit called");
-      execSync(removeCommand);
+      // execSync(removeCommand);
       resolve();
     });
 
@@ -74,5 +77,33 @@ const convertFileToMp4ThreadWorker: ConvertFileToMp4ThreadWorker = (
     });
   });
 };
+
+async function getFfmpegCommand(
+  filePath: string,
+  newFileName: string
+): Promise<string> {
+  const ffmpegCmdPath = "/root/nvidia/ffmpeg/ffmpeg";
+  const nVideaBaseArgs = `-hwaccel cuda"`;
+  const nvideoEncodingArgs = "-c:v h264_nvenc -pix_fmt yuv420p -y";
+  const cpuBaseArgs = ``;
+  const cpuEncodingArgs = `-c:v libx264 -pix_fmt yuv420p -y`;
+  const machineHardwareType = await getMachineHardwareType();
+
+  const baseArguments =
+    machineHardwareType === MachineHardwareType.Nvidea
+      ? nVideaBaseArgs
+      : cpuBaseArgs;
+  const encodingArgs =
+    machineHardwareType === MachineHardwareType.Nvidea
+      ? nvideoEncodingArgs
+      : cpuEncodingArgs;
+  const fullArgs = ` ${baseArguments} -i "${filePath}" ${encodingArgs} "${newFileName}"`;
+
+  return `${ffmpegCmdPath} ${fullArgs}`;
+}
+
+async function getMachineHardwareType(): Promise<MachineHardwareType> {
+  return MachineHardwareType.Cpu;
+}
 
 expose(convertFileToMp4ThreadWorker);
