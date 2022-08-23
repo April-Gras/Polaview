@@ -48,10 +48,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <div
-    v-if="file && title"
-    class="relative grid w-full grid-cols-1 gap-10 overflow-hidden"
-  >
+  <div v-if="file && title" class="relative grid w-full grid-cols-1 gap-10">
     <h1 class="title-text">
       <span>
         {{ title.name }}

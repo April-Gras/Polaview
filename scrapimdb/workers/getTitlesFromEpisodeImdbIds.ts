@@ -1,6 +1,10 @@
 import { Title, Person } from "@prisma/client";
 import { expose } from "threads";
-import { getCastFromTitleDocument } from "#/utils/getCastFromTitlePage";
+import {
+  getCastFromTitleDocument,
+  getFullCreditDocumentFromTitleImdbId,
+  getWritersFromFullCreditDocuement,
+} from "#/utils/getPersonsFromTitlePage";
 import { removePictureCropDirectiveFromUrl } from "#/utils/removePictureCropDirectivesFromUrl";
 
 import { JSDOM } from "jsdom";
@@ -10,6 +14,8 @@ import { getStoryLineFromDocucment } from "#/utils/getStorylineFromTitlePage";
 export type GetTitleFromEpisodesImdbIdThreadWorkerReturn = {
   title: Title;
   casts: Person[];
+  writers: Person[];
+  directors: Person[];
   seasonNumber: number;
 };
 export type GetTitleFromEpisodesImdbIdThreadWorker = (
@@ -21,6 +27,9 @@ const getTitleFromEdpisodesImdbId: GetTitleFromEpisodesImdbIdThreadWorker =
     const url = `https://www.imdb.com/title/${imdbId}/`;
     const { data } = await getImdbPageFromUrlAxiosTransporter.get(url);
     const { document } = new JSDOM(data).window;
+    const fullCreditDocument = await getFullCreditDocumentFromTitleImdbId(
+      imdbId
+    );
 
     const [
       casts,
@@ -39,6 +48,8 @@ const getTitleFromEdpisodesImdbId: GetTitleFromEpisodesImdbIdThreadWorker =
     return {
       casts,
       seasonNumber,
+      writers: await getWritersFromFullCreditDocuement(fullCreditDocument),
+      directors: [],
       title: {
         imdbId,
         name,

@@ -1,16 +1,40 @@
 import { expose } from "threads";
 import { Title, Person, PrismaClient, Serie } from "@prisma/client";
-import { buildSeasonIdFromSerieImdbIdAndIndex } from "~/serie";
+
+import { upsertCollectionOfTitle } from "#/transactions/upsertCollectionOfTitle";
+import { upsertCollectionOfPerson } from "#/transactions/upsertCollectionOfPerson";
+import { upsertCollectionOfTitleOnPersonObject } from "#/transactions/upsertCollectionOfTitleOnCast";
+import { upsertSingleSerie } from "#/transactions/upsertSingleSerie";
+import { upsertCollectionOfSeason } from "#/transactions/upsertCollectionOfSeason";
+import { updateCollectionOfTitleSeasonId } from "#/transactions/updateCollectionOfTitleSeasonId";
 
 export type SaveTitleAndPersonsThreadWorkerResult = void;
-export type SaveTitleAndPersonsThreadWorker = (constext: {
-  collection: {
-    title: Title;
-    casts: Person[];
-  }[];
+type Collection = {
+  title: Title;
+  casts: Person[];
+  writers: Person[];
+  directors: Person[];
+}[];
+export type SaveTitleAndPersonsThreadWorker = (context: {
+  collection: Collection;
   serie?: Serie;
   seasonsDescriptors?: Title["imdbId"][][];
 }) => Promise<SaveTitleAndPersonsThreadWorkerResult>;
+
+function getPersonsTypeInCollection(
+  collection: Collection,
+  personType: "casts" | "writers" | "directors",
+  baseAccumulator: Person[] = []
+) {
+  return collection.reduce((accumulator, entry) => {
+    accumulator.push(
+      ...entry[personType].filter((person) => {
+        return accumulator.every((e) => e.imdbId !== person.imdbId);
+      })
+    );
+    return accumulator;
+  }, baseAccumulator);
+}
 
 const saveTitleAndPerson: SaveTitleAndPersonsThreadWorker = async ({
   collection,
@@ -19,122 +43,63 @@ const saveTitleAndPerson: SaveTitleAndPersonsThreadWorker = async ({
 }) => {
   const prisma = new PrismaClient();
   try {
+    const allCastMembers = getPersonsTypeInCollection(collection, "casts");
+    const allWriters = getPersonsTypeInCollection(collection, "writers");
+    const allDirectors = getPersonsTypeInCollection(collection, "directors");
+
     await prisma.$transaction([
-      ...collection.map(({ title }) => {
-        return prisma.title.upsert({
-          where: {
-            imdbId: title.imdbId,
-          },
-          create: title,
-          update: {},
-        });
-      }),
+      ...upsertCollectionOfTitle(
+        prisma,
+        collection.map(({ title }) => title)
+      ),
+      ...upsertCollectionOfPerson(prisma, [
+        ...allWriters,
+        ...allDirectors,
+        ...allCastMembers,
+      ]),
+      ...collection
+        .map(({ title, casts, writers, directors }) => {
+          return upsertCollectionOfTitleOnPersonObject(
+            prisma,
+            title,
+            casts,
+            "titleOnCast"
+          );
+        })
+        .flat(),
+      ...collection
+        .map(({ title, writers }) => {
+          return upsertCollectionOfTitleOnPersonObject(
+            prisma,
+            title,
+            writers,
+            "titleOnWriter"
+          );
+        })
+        .flat(),
+      ...collection
+        .map(({ title, directors }) => {
+          return upsertCollectionOfTitleOnPersonObject(
+            prisma,
+            title,
+            directors,
+            "titleOnDirector"
+          );
+        })
+        .flat(),
+      // If we got a series add it to the transaction
+      ...(serie && seasonsDescriptors
+        ? [
+            upsertSingleSerie(prisma, serie),
+            ...upsertCollectionOfSeason(prisma, serie, seasonsDescriptors),
+            ...updateCollectionOfTitleSeasonId(
+              prisma,
+              serie,
+              seasonsDescriptors
+            ),
+          ]
+        : []),
     ]);
-    const allCastMembers = collection.reduce((accumulator, { casts }) => {
-      accumulator.push(
-        ...casts.filter((cast) => {
-          return accumulator.every((e) => e.imdbId !== cast.imdbId);
-        })
-      );
-      return accumulator;
-    }, [] as Person[]);
-
-    await prisma.$transaction(
-      allCastMembers.map((cast) => {
-        return prisma.person.upsert({
-          where: {
-            imdbId: cast.imdbId,
-          },
-          create: cast,
-          update: {},
-        });
-      })
-    );
-
-    for (const { title, casts } of collection) {
-      prisma.$transaction(
-        casts.map((cast) => {
-          return prisma.titleOnCast.upsert({
-            where: {
-              titleId_personId: {
-                personId: cast.imdbId,
-                titleId: title.imdbId,
-              },
-            },
-            create: {
-              person: {
-                connect: {
-                  imdbId: cast.imdbId,
-                },
-              },
-              title: {
-                connect: {
-                  imdbId: title.imdbId,
-                },
-              },
-            },
-            // Don't update shit since this connection already exists
-            update: {},
-          });
-        })
-      );
-    }
-
-    if (!serie) return;
-    if (!seasonsDescriptors) return;
-
-    // Upsert serie
-    await prisma.serie.upsert({
-      where: {
-        imdbId: serie.imdbId,
-      },
-      create: serie,
-      update: {},
-    });
-
-    // For every season upsert
-    await prisma.$transaction(
-      seasonsDescriptors.map((_, index) => {
-        const id = buildSeasonIdFromSerieImdbIdAndIndex(serie, index);
-        return prisma.season.upsert({
-          where: {
-            id,
-          },
-          create: {
-            id,
-            serie: {
-              connect: {
-                imdbId: serie.imdbId,
-              },
-            },
-          },
-          update: {
-            serie: {
-              connect: {
-                imdbId: serie.imdbId,
-              },
-            },
-          },
-        });
-      })
-    );
-
-    await prisma.$transaction(
-      seasonsDescriptors.map((titleImdbIds, seasonIndex) => {
-        return prisma.title.updateMany({
-          where: {
-            imdbId: {
-              in: titleImdbIds,
-            },
-          },
-          data: {
-            seasonId: {
-              set: buildSeasonIdFromSerieImdbIdAndIndex(serie, seasonIndex),
-            },
-          },
-        });
-      })
-    );
     await prisma.$disconnect();
   } catch (err) {
     await prisma.$disconnect();

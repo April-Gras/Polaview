@@ -39,6 +39,8 @@ export type AllRoutes = [
   >,
   BuildRouteEntry<"get", "/title/:imdbId", Title>,
   BuildRouteEntry<"get", "/title/:imdbId/cast", Person[]>,
+  // TODO Writer
+  // TODO Director
   BuildRouteEntry<"get", "/person/:imdbId", Person>,
   // POST
   BuildRouteEntry<
