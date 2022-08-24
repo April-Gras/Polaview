@@ -93,7 +93,7 @@ export default defineComponent({
     <div class="page-layout !py-4">
       <Transition name="fade" mode="out-in">
         <ul
-          class="absolute top-20 right-0 grid w-full max-w-[128px] grid-cols-1 gap-2 rounded-sm bg-neutral-200 text-center shadow-lg dark:bg-slate-700"
+          class="absolute top-20 right-0 grid w-full max-w-[128px] grid-cols-1 gap-2 rounded-sm bg-neutral-200 text-center shadow-lg dark:bg-gray-700"
           v-if="displayLangMenu"
           v-click-outside="closeLangMenu"
         >
@@ -102,7 +102,7 @@ export default defineComponent({
           <li
             :key="lang"
             v-for="lang in $i18n.availableLocales"
-            class="base-text z-40 cursor-pointer px-4 py-1 transition-colors duration-150 ease-in-out hover:bg-neutral-300 hover:dark:bg-slate-600"
+            class="base-text z-40 cursor-pointer px-4 py-1 transition-colors duration-150 ease-in-out hover:bg-neutral-300 hover:dark:bg-gray-600"
             @click="selectLang(lang)"
           >
             {{ $t(`lang.${lang}`) }}
@@ -116,7 +116,7 @@ export default defineComponent({
           <RouterLink
             v-for="entry in navigationEntries"
             :to="entry.route"
-            class="flex cursor-pointer items-center justify-center space-x-3 rounded-sm bg-neutral-100 px-4 py-2 text-center shadow-sm transition duration-150 ease-in-out hover:bg-slate-300 hover:bg-opacity-25 hover:shadow-lg dark:bg-slate-800 hover:dark:bg-slate-900"
+            class="flex cursor-pointer items-center justify-center space-x-3 rounded-sm bg-neutral-100 px-4 py-2 text-center shadow-sm transition duration-150 ease-in-out hover:bg-gray-300 hover:bg-opacity-25 hover:shadow-lg dark:bg-gray-800 hover:dark:bg-gray-900"
           >
             <span class="material-symbols-outlined overflow-hidden">{{
               entry.icon

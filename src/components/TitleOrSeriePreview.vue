@@ -21,11 +21,11 @@ export default defineComponent({
 
 <template>
   <li
-    class="listContainer grid cursor-pointer items-center justify-start gap-4 bg-slate-300 px-6 py-4 transition duration-150 ease-in-out dark:bg-slate-600 hover:dark:bg-slate-500"
+    class="listContainer grid cursor-pointer items-center justify-start gap-4 bg-gray-300 px-6 py-4 transition duration-150 ease-in-out dark:bg-gray-600 hover:dark:bg-gray-500"
   >
     <img class="picture" v-if="pictureUrl" :src="pictureUrl" />
     <div class="picture" v-else />
-    <b class="flex-shrink-0 text-base">{{ name }}</b>
+    <b class="base-text flex-shrink-0">{{ name }}</b>
     <i class="ellipsis text-opacity-80" v-if="storyline">{{ storyline }}</i>
   </li>
 </template>

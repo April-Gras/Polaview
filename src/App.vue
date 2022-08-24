@@ -56,8 +56,8 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="min-h-screen bg-neutral-100 dark:bg-slate-800">
-    <NavigationVue class="bg-neutral-200 dark:bg-slate-700" />
+  <div class="min-h-screen bg-neutral-100 dark:bg-gray-800">
+    <NavigationVue class="bg-neutral-200 dark:bg-gray-700" />
     <div class="page-layout">
       <RouterView v-slot="{ Component }">
         <transition name="fade" mode="out-in">

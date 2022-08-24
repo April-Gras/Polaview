@@ -61,7 +61,7 @@ export default defineComponent({
     <Transition name="fade">
       <ul
         v-if="(titles.length || series.length) && displayResults"
-        class="searchResults absolute z-50 grid max-h-80 w-full overflow-y-auto rounded bg-slate-300 py-6 shadow-lg dark:bg-slate-600"
+        class="searchResults absolute z-50 grid max-h-80 w-full overflow-y-auto rounded bg-gray-300 py-6 shadow-lg dark:bg-gray-600"
       >
         <RouterLink
           v-for="title in titles"
