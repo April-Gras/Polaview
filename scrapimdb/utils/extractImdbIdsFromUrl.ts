@@ -12,10 +12,10 @@ export function extractImdbIdFromTitleLink(link: unknown): Title["imdbId"] {
 
 export function getImdbIdFromCastLink(link: unknown): Person["imdbId"] {
   if (typeof link !== "string") throw "link was not a string";
-  const regex = /\/name\/(nm[0-9]*)\?/gi;
+  const regex = /\/name\/(nm[0-9]*)/gi;
   const matches = regex.exec(link);
 
-  if (!matches) throw "No regex link matches";
+  if (!matches) throw new Error("No regex link matches");
 
   if (!matches[1]) throw "No id match";
   return matches[1];

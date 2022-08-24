@@ -3,6 +3,8 @@ import { defineComponent, PropType } from "vue";
 
 import { RouteLocationRaw } from "vue-router";
 
+import { addAwsDirectivesToPictureUrl } from "@/utils/addAwsDirectiveToPictureUrl";
+
 type PictureLoadStatus = "not loaded" | "failed" | "loaded";
 
 export default defineComponent({
@@ -33,33 +35,42 @@ export default defineComponent({
       this.pictureData = image.src;
       this.pictureLoadStatus = "loaded";
     };
-    image.src = this.pictureUrl;
+    image.src = addAwsDirectivesToPictureUrl(this.pictureUrl, {
+      quality: 95,
+      scale: 375,
+    });
   },
 });
 </script>
 
 <template>
   <li
-    class="card relative w-full overflow-hidden rounded bg-slate-200 shadow-md transition duration-150 ease-in-out hover:scale-105 hover:shadow-xl dark:bg-neutral-800"
+    class="card relative w-full overflow-hidden rounded bg-gray-200 shadow-md transition duration-150 ease-in-out hover:scale-105 hover:shadow-xl dark:bg-neutral-800"
   >
     <RouterLink :to="link">
       <div class="relative overflow-hidden">
         <div
           class="sheen absolute top-0 left-0 h-1/3 w-full bg-white bg-opacity-10 transition-all duration-150 ease-in-out"
         />
-        <img
-          class="picture"
-          :src="pictureData"
-          v-if="pictureUrl && pictureData && pictureLoadStatus === 'loaded'"
-        />
-        <div
-          class="picture loadingPicture bg-gradient-to-b from-blue-500 via-slate-500 to-green-500"
-          v-else-if="pictureLoadStatus === 'not loaded'"
-        />
-        <div
-          class="picture bg-gradient-to-br from-slate-200 to-slate-600"
-          v-else
-        />
+        <Transition name="fade" mode="out-in">
+          <img
+            class="picture"
+            :src="pictureData"
+            key="done"
+            v-if="pictureUrl && pictureData && pictureLoadStatus === 'loaded'"
+          />
+          <!-- Additional div because of the 15s transition time -->
+          <div v-else-if="pictureLoadStatus === 'not loaded'" key="loading">
+            <div
+              class="picture loadingPicture bg-gradient-to-b from-blue-500 via-gray-500 to-green-500"
+            />
+          </div>
+          <div
+            key="failed"
+            class="picture bg-gradient-to-br from-gray-200 to-gray-600"
+            v-else
+          />
+        </Transition>
       </div>
       <slot />
     </RouterLink>

@@ -1,5 +1,7 @@
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
+  previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
@@ -28,7 +30,7 @@ model ImdbSearch {
   imdbId              String           @id @unique
   name                String
   thumbnailUrl        String?
-  ImdbSearchCache     ImdbSearchCache? @relation(fields: [imdbSearchCacheTerm], references: [term])
+  imdbSearchCache     ImdbSearchCache? @relation(fields: [imdbSearchCacheTerm], references: [term])
   imdbSearchCacheTerm String
 }
 
@@ -38,17 +40,82 @@ model ImdbSearchCache {
 }
 
 model Title {
-  imdbId        String        @id @unique
-  name          String
-  releaseYear   Int?
-  pictureUrl    String?
-  titleOnCast   TitleOnCast[]
-  storyline     String?
-  Season        Season?       @relation(fields: [seasonId], references: [id])
-  seasonId      String?
-  episodeNumber Int
-  createdOn     DateTime      @default(now())
-  File          File[]
+  imdbId          String            @id @unique
+  createdOn       DateTime          @default(now())
+  episodeNumber   Int
+  File            File[]
+  name            String
+  pictureUrl      String?
+  releaseYear     Int?
+  season          Season?           @relation(fields: [seasonId], references: [id])
+  seasonId        String?
+  storyline       String?
+  titleOnCast     TitleOnCast[]
+  titleOnDirector TitleOnDirector[]
+  titleOnRole     TitleOnRole[]
+  titleOnWriter   TitleOnWriter[]
+}
+
+model Role {
+  imdbId       String         @id @unique
+  name         String
+  titleOnRole  TitleOnRole[]
+  personOnRole PersonOnRole[]
+}
+
+model TitleOnRole {
+  title   Title  @relation(fields: [titleId], references: [imdbId])
+  titleId String
+  role    Role   @relation(fields: [roleId], references: [imdbId])
+  roleId  String
+
+  @@id([titleId, roleId])
+}
+
+model Person {
+  imdbId          String            @id @unique
+  name            String
+  pictureUrl      String?
+  titleOnCast     TitleOnCast[]
+  titleOnWriter   TitleOnWriter[]
+  titleOnDirector TitleOnDirector[]
+  personOnRole    PersonOnRole[]
+}
+
+model PersonOnRole {
+  person   Person @relation(fields: [personId], references: [imdbId])
+  personId String
+  role     Role   @relation(fields: [roleId], references: [imdbId])
+  roleId   String
+
+  @@id([personId, roleId])
+}
+
+model TitleOnWriter {
+  title    Title  @relation(fields: [titleId], references: [imdbId])
+  titleId  String
+  person   Person @relation(fields: [personId], references: [imdbId])
+  personId String
+
+  @@id([titleId, personId])
+}
+
+model TitleOnDirector {
+  title    Title  @relation(fields: [titleId], references: [imdbId])
+  titleId  String
+  person   Person @relation(fields: [personId], references: [imdbId])
+  personId String
+
+  @@id([titleId, personId])
+}
+
+model TitleOnCast {
+  title    Title  @relation(fields: [titleId], references: [imdbId])
+  titleId  String
+  person   Person @relation(fields: [personId], references: [imdbId])
+  personId String
+
+  @@id([titleId, personId])
 }
 
 model Serie {
@@ -65,22 +132,6 @@ model Season {
   episodes    Title[]
   serie       Serie   @relation(fields: [serieImdbId], references: [imdbId])
   serieImdbId String
-}
-
-model Person {
-  imdbId      String        @id @unique
-  name        String
-  pictureUrl  String?
-  titleOnCast TitleOnCast[]
-}
-
-model TitleOnCast {
-  title    Title  @relation(fields: [titleId], references: [imdbId])
-  titleId  String
-  person   Person @relation(fields: [personId], references: [imdbId])
-  personId String
-
-  @@id([titleId, personId])
 }
 
 model FileSource {

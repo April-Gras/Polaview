@@ -2,6 +2,8 @@
 defineEmits<{
   (e: "update:modelValue", value: string): void;
   (e: "update:validationArray", value: string[]): void;
+  (e: "focus", value: void): void;
+  (e: "blur", value: void): void;
 }>();
 </script>
 
@@ -70,11 +72,13 @@ export default defineComponent({
       <slot name="label" />
     </label>
     <input
-      class="rounded-sm bg-neutral-200 py-3 px-4 placeholder:text-neutral-500 dark:bg-slate-700 dark:placeholder:text-neutral-500"
+      class="rounded-sm bg-neutral-200 py-3 px-4 placeholder:text-neutral-500 dark:bg-gray-700 dark:placeholder:text-neutral-500"
       :type="inputType"
       :value="modelValue"
       :placeholder="placeholder"
       @input="handleInput"
+      @focus="$emit('focus')"
+      @blur="$emit('blur')"
     />
     <HeightExpandVue>
       <span

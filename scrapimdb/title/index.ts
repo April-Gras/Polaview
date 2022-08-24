@@ -69,18 +69,33 @@ export const getTitleCastsFromMovieImdbId: GetRouteDataHandlerFromUrlAndVerb<
     },
   });
 
-  if (cachedCasts.length) return cachedCasts.map((e) => e.person);
-
-  const { collection, serie, seasonsDescriptors } = await scrapTitleData(
-    imdbId
-  );
-  const saveTitleAndPersonsThread: SaveTitleAndPersonsThreadWorker =
-    await spawn(new Worker("../workers/saveTitleAndCast.ts"));
-
-  await saveTitleAndPersonsThread({ collection, serie, seasonsDescriptors });
-  const match = collection.find((e) => e.title.imdbId === imdbId);
-
-  if (!match)
-    throw "No match for this imdb title, probably part of an episode list";
-  return match.casts;
+  return cachedCasts.map((e) => e.person);
 };
+
+export const getTitleWritersFromMovieImdbId: GetRouteDataHandlerFromUrlAndVerb<'get', AllRoutes, '/title/:imdbId/writers'> = async (prisma, req) => {
+  const imdbId = req.params.imdbId;
+  const cachedWriters = await prisma.titleOnWriter.findMany({
+    where: {
+      titleId: imdbId,
+    },
+    select: {
+      person: true,
+    },
+  });
+
+  return cachedWriters.map((e) => e.person);
+}
+
+export const getTitleDirectorFromMovieImdbId: GetRouteDataHandlerFromUrlAndVerb<'get', AllRoutes, '/title/:imdbId/directors'> = async (prisma, req) => {
+  const imdbId = req.params.imdbId;
+  const cachedDirectors = await prisma.titleOnDirector.findMany({
+    where: {
+      titleId: imdbId,
+    },
+    select: {
+      person: true,
+    },
+  });
+
+  return cachedDirectors.map((e) => e.person);
+}

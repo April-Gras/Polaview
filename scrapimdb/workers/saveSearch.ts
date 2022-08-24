@@ -1,6 +1,8 @@
 import { expose } from "threads/worker";
 import { PrismaClient, ImdbSearch } from "@prisma/client";
 
+import { upsertSingleSearch } from "#/transactions/upsertSingleSearch";
+
 export type SaveSearchThreadWorkerReturn = void;
 export type SaveSearchThreadWorker = (context: {
   results: Omit<ImdbSearch, "imdbSearchCacheTerm">[];
@@ -12,36 +14,9 @@ const saveSearchThreadWorker: SaveSearchThreadWorker = async ({
   term,
 }) => {
   const prisma = new PrismaClient();
+
   try {
-    await prisma.imdbSearchCache.upsert({
-      where: {
-        term,
-      },
-      create: {
-        term,
-        results: {
-          connectOrCreate: results.map((result) => {
-            return {
-              create: result,
-              where: {
-                imdbId: result.imdbId,
-              },
-            };
-          }),
-        },
-      },
-      update: {
-        term,
-        results: {
-          connectOrCreate: results.map((result) => ({
-            create: result,
-            where: {
-              imdbId: result.imdbId,
-            },
-          })),
-        },
-      },
-    });
+    await upsertSingleSearch(prisma, { results, term });
     await prisma.$disconnect();
     return;
   } catch (err) {

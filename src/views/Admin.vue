@@ -98,7 +98,7 @@ export default defineComponent({
 }
 
 .tableGrid {
-  @apply grid w-full grid-cols-2 items-center gap-4 border border-solid border-slate-300 py-2 px-4 dark:border-slate-700 md:grid-cols-4;
+  @apply grid w-full grid-cols-2 items-center gap-4 border border-solid border-gray-300 py-2 px-4 dark:border-gray-700 md:grid-cols-4;
 
   @screen md {
     @apply grid-cols-5;

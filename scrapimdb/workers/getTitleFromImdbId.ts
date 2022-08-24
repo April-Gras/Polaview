@@ -5,13 +5,15 @@ import {
 } from "./getSeason";
 import { Title, Person, Serie } from "@prisma/client";
 
-import fs from "node:fs";
-
 import { getImdbPageFromUrlAxiosTransporter } from "#/utils/provideAxiosGet";
 import { JSDOM } from "jsdom";
 
 import { getStoryLineFromDocucment } from "#/utils/getStorylineFromTitlePage";
-import { getCastFromTitleDocument } from "#/utils/getCastFromTitlePage";
+import {
+  getCastFromTitleDocument,
+  getFullCreditDocumentFromTitleImdbId,
+  getStaffByTypeFromFullCreditDocument,
+} from "#/utils/getPersonsFromTitlePage";
 import { removePictureCropDirectiveFromUrl } from "#/utils/removePictureCropDirectivesFromUrl";
 
 export type GetTitleDataFromImdbIdThreadWorkerResult = {
@@ -20,6 +22,8 @@ export type GetTitleDataFromImdbIdThreadWorkerResult = {
   collection: {
     title: Title;
     casts: Person[];
+    writers: Person[];
+    directors: Person[];
   }[];
 };
 export type GetTitleDataFromImdbIdThreadWorker = (
@@ -31,8 +35,8 @@ const getTitleDataFromImdbIdWorker: GetTitleDataFromImdbIdThreadWorker = async (
 ) => {
   const url = `https://www.imdb.com/title/${imdbId}/`;
   const { data } = await getImdbPageFromUrlAxiosTransporter.get(url);
-  const dom = new JSDOM(data);
-  const { document } = dom.window;
+  const fullCreditDocument = await getFullCreditDocumentFromTitleImdbId(imdbId);
+  const { document } = new JSDOM(data).window;
 
   // If exist this means the title is part of a show with multiple episodes
   const episodeGuideElement =
@@ -43,10 +47,12 @@ const getTitleDataFromImdbIdWorker: GetTitleDataFromImdbIdThreadWorker = async (
     return processSeasonFromEpisodeGuideElement(document, imdbId);
 
   // Regular title
-  const [name, { releaseYear }, pictureUrl] = await Promise.all([
+  const [name, { releaseYear }, pictureUrl, writers, directors] = await Promise.all([
     getNameFromDocument(document),
     getMetadatasFromDocument(document),
     getPictureUrlFromDocument(document),
+    getStaffByTypeFromFullCreditDocument(fullCreditDocument, 'writer'),
+    getStaffByTypeFromFullCreditDocument(fullCreditDocument, 'director')
   ]);
 
   return {
@@ -62,7 +68,9 @@ const getTitleDataFromImdbIdWorker: GetTitleDataFromImdbIdThreadWorker = async (
           episodeNumber: 0,
           createdOn: new Date(),
         },
-        casts: await getCastFromTitleDocument(document),
+        casts: getCastFromTitleDocument(document),
+        writers,
+        directors,
       },
     ],
   };

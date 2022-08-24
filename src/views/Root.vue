@@ -6,6 +6,7 @@ import { Title } from "@prisma/client";
 import CardGridVue from "@/components/ui/CardGrid.vue";
 import SerieCardVue from "@/components/cards/SerieCard.vue";
 import TitleCardVue from "@/components/cards/TitleCard.vue";
+import VSearchInputVue from "@/components/ui/VSearchInput.vue";
 
 import type { SerieSummary } from "~/types/RouteLibraryScrapImdb";
 
@@ -14,6 +15,7 @@ export default defineComponent({
     CardGridVue,
     SerieCardVue,
     TitleCardVue,
+    VSearchInputVue,
   },
   data() {
     return {
@@ -41,8 +43,9 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="mx-6 my-10 grid grid-cols-1 gap-4">
+  <div class="my-10 grid grid-cols-1 gap-4">
     <h1 class="title-text">{{ $t("pages.root.title") }}</h1>
+    <VSearchInputVue />
     <CardGridVue>
       <template #title>
         {{ $t("pages.root.categorySubtitles.latestMovies") }}

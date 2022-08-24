@@ -22,9 +22,16 @@ export default defineComponent({
   <CommonTemplateVue
     :link="`/person/${person.imdbId}`"
     :picture-url="person.pictureUrl"
+    class="person"
   >
     <ul class="p-4">
       <li class="base-text ellipsis !font-bold">{{ person.name }}</li>
     </ul>
   </CommonTemplateVue>
 </template>
+
+<style scoped lang="scss">
+.person:deep(.picture) {
+  @apply h-52;
+}
+</style>
