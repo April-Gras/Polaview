@@ -47,6 +47,8 @@ const saveTitleAndPerson: SaveTitleAndPersonsThreadWorker = async ({
     const allWriters = getPersonsTypeInCollection(collection, "writers");
     const allDirectors = getPersonsTypeInCollection(collection, "directors");
 
+    console.log(allDirectors, allWriters)
+
     await prisma.$transaction([
       ...upsertCollectionOfTitle(
         prisma,
@@ -90,14 +92,14 @@ const saveTitleAndPerson: SaveTitleAndPersonsThreadWorker = async ({
       // If we got a series add it to the transaction
       ...(serie && seasonsDescriptors
         ? [
-            upsertSingleSerie(prisma, serie),
-            ...upsertCollectionOfSeason(prisma, serie, seasonsDescriptors),
-            ...updateCollectionOfTitleSeasonId(
-              prisma,
-              serie,
-              seasonsDescriptors
-            ),
-          ]
+          upsertSingleSerie(prisma, serie),
+          ...upsertCollectionOfSeason(prisma, serie, seasonsDescriptors),
+          ...updateCollectionOfTitleSeasonId(
+            prisma,
+            serie,
+            seasonsDescriptors
+          ),
+        ]
         : []),
     ]);
     await prisma.$disconnect();

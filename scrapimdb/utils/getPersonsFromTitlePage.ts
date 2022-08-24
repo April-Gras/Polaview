@@ -41,26 +41,26 @@ export async function getFullCreditDocumentFromTitleImdbId(imdbId: string) {
   return new JSDOM(data).window.document;
 }
 
-export async function getWritersFromFullCreditDocuement(document: Document) {
-  const writerElements = Array.from(
+export async function getStaffByTypeFromFullCreditDocument(document: Document, personType: 'writer' | 'director') {
+  const peopleElements = Array.from(
     document.querySelectorAll(
-      "#writer + table.simpleTable.simpleCreditsTable > tbody > tr > td.name > a"
+      `#${personType} + table.simpleTable.simpleCreditsTable > tbody > tr > td.name > a`
     )
   );
-  const writers = [] as Person[];
+  const peoples = [] as Person[];
 
-  for (const element of writerElements) {
+  for (const element of peopleElements) {
     const link = element.getAttribute("href");
     const imdbId = getImdbIdFromCastLink(link);
 
-    if (writers.some((person) => person.imdbId === imdbId)) continue;
+    if (peoples.some((person) => person.imdbId === imdbId)) continue;
     try {
-      writers.push(await getPersonFromPersonImdbId(imdbId));
+      peoples.push(await getPersonFromPersonImdbId(imdbId));
     } catch (_) {
       continue;
     }
   }
-  return writers;
+  return peoples;
 }
 
 async function getPersonFromPersonImdbId(imdbId: string): Promise<Person> {
@@ -71,7 +71,7 @@ async function getPersonFromPersonImdbId(imdbId: string): Promise<Person> {
   const pictureElement = document.querySelector("#name-poster");
   const nameElement = document.querySelector(
     "#overview-top h1 > span.itemprop"
-  );
+  ) || document.querySelector(".name-overview-widget__section > h1 > span.itemprop");
 
   if (!nameElement) throw "No name element for person";
   const name = nameElement.textContent;

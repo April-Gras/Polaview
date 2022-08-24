@@ -25,6 +25,8 @@ export default defineComponent({
       title: null as null | Title,
       file: null as null | File,
       cast: [] as Person[],
+      writers: [] as Person[],
+      directors: [] as Person[]
     };
   },
   created() {
@@ -42,6 +44,12 @@ export default defineComponent({
             this.cast = data;
           }
         );
+        this.$getScrapImdbRequest(`/title/${this.imdbId}/writers`).then(({ data }) => {
+          this.writers = data
+        })
+        this.$getScrapImdbRequest(`/title/${this.imdbId}/directors`).then(({ data }) => {
+          this.directors = data
+        })
       });
   },
 });
@@ -57,18 +65,24 @@ export default defineComponent({
     </h1>
     <VVideoVue :source="`/api/video/${file.id}`" />
     <CardGridVue class="relative hidden md:grid">
+      <template #title>{{ $t("common.directors") }}</template>
+      <template #list>
+        <PersonCardVue class="hidden xl:grid" :person="person" v-for="person in directors.slice(0, 4)" />
+        <PersonCardVue class="xl:hidden" :person="person" v-for="person in directors.slice(0, 3)" />
+      </template>
+    </CardGridVue>
+    <CardGridVue class="relative hidden md:grid">
+      <template #title>{{ $t("common.writers") }}</template>
+      <template #list>
+        <PersonCardVue class="hidden xl:grid" :person="person" v-for="person in writers.slice(0, 4)" />
+        <PersonCardVue class="xl:hidden" :person="person" v-for="person in writers.slice(0, 3)" />
+      </template>
+    </CardGridVue>
+    <CardGridVue class="relative hidden md:grid">
       <template #title>{{ $t("common.cast") }}</template>
       <template #list>
-        <PersonCardVue
-          class="hidden xl:grid"
-          :person="person"
-          v-for="person in cast.slice(0, 4)"
-        />
-        <PersonCardVue
-          class="xl:hidden"
-          :person="person"
-          v-for="person in cast.slice(0, 3)"
-        />
+        <PersonCardVue class="hidden xl:grid" :person="person" v-for="person in cast.slice(0, 4)" />
+        <PersonCardVue class="xl:hidden" :person="person" v-for="person in cast.slice(0, 3)" />
       </template>
     </CardGridVue>
   </div>

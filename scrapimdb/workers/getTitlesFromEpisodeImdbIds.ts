@@ -3,7 +3,7 @@ import { expose } from "threads";
 import {
   getCastFromTitleDocument,
   getFullCreditDocumentFromTitleImdbId,
-  getWritersFromFullCreditDocuement,
+  getStaffByTypeFromFullCreditDocument,
 } from "#/utils/getPersonsFromTitlePage";
 import { removePictureCropDirectiveFromUrl } from "#/utils/removePictureCropDirectivesFromUrl";
 
@@ -37,19 +37,23 @@ const getTitleFromEdpisodesImdbId: GetTitleFromEpisodesImdbIdThreadWorker =
       pictureUrl,
       { episodeNumber, seasonNumber },
       storyline,
+      writers,
+      directors
     ] = await Promise.all([
       getCastFromTitleDocument(document),
       getTitleNameFromdocument(document),
       getPictureUrlFromDocument(document),
       getEpisodeNumberAndSeasonNumberFromDocument(document),
       getStoryLineFromDocucment(document),
+      getStaffByTypeFromFullCreditDocument(fullCreditDocument, 'writer'),
+      getStaffByTypeFromFullCreditDocument(fullCreditDocument, 'director'),
     ]);
 
     return {
       casts,
       seasonNumber,
-      writers: await getWritersFromFullCreditDocuement(fullCreditDocument),
-      directors: [],
+      writers,
+      directors,
       title: {
         imdbId,
         name,

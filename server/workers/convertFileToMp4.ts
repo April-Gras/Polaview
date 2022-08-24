@@ -20,6 +20,7 @@ const convertFileToMp4ThreadWorker: ConvertFileToMp4ThreadWorker = async (
   const newFileName = `${parsedPath.dir}/${parsedPath.name}.mp4`;
   const removeCommand = `rm "${filePath}"`;
   const command = await getFfmpegCommand(filePath, newFileName);
+  let fileIsMostProbablyGoodToGo = false
 
   return new Promise((resolve, reject) => {
     if (filePath.endsWith(".mp4")) return;
@@ -33,7 +34,6 @@ const convertFileToMp4ThreadWorker: ConvertFileToMp4ThreadWorker = async (
     child.stderr.on("data", (err: Buffer) => {
       const message = err.toString("utf-8");
 
-      console.log(message);
       if (NUMBER_OF_FRAMES === undefined) {
         if (!message.includes("NUMBER_OF_FRAMES")) return;
         const regex = /NUMBER_OF_FRAMES(-\D*)?:(\s*)?(?<frame>\d*)/gi;
@@ -43,6 +43,8 @@ const convertFileToMp4ThreadWorker: ConvertFileToMp4ThreadWorker = async (
         NUMBER_OF_FRAMES = Number(matches.groups.frame);
       } else {
         if (!message.includes("frame=")) return;
+        // At this point it's pretty sure that the conversion is going well, so we can flag the source file as good to be deleted
+        fileIsMostProbablyGoodToGo = true
         const regex = /frame=(\s*)?(?<frame>\d*)/gi;
         const matches = regex.exec(message);
 
@@ -66,8 +68,8 @@ const convertFileToMp4ThreadWorker: ConvertFileToMp4ThreadWorker = async (
     });
 
     child.on("exit", () => {
-      console.log("exit called");
-      // execSync(removeCommand);
+      if (fileIsMostProbablyGoodToGo)
+        execSync(removeCommand);
       resolve();
     });
 
@@ -83,7 +85,7 @@ async function getFfmpegCommand(
   newFileName: string
 ): Promise<string> {
   const ffmpegCmdPath = "/root/nvidia/ffmpeg/ffmpeg";
-  const nVideaBaseArgs = `-hwaccel cuda"`;
+  const nVideaBaseArgs = "-hwaccel cuda";
   const nvideoEncodingArgs = "-c:v h264_nvenc -pix_fmt yuv420p -y";
   const cpuBaseArgs = ``;
   const cpuEncodingArgs = `-c:v libx264 -pix_fmt yuv420p -y`;
@@ -97,13 +99,13 @@ async function getFfmpegCommand(
     machineHardwareType === MachineHardwareType.Nvidea
       ? nvideoEncodingArgs
       : cpuEncodingArgs;
-  const fullArgs = ` ${baseArguments} -i "${filePath}" ${encodingArgs} "${newFileName}"`;
+  const fullArgs = `${baseArguments} -i "${filePath}" ${encodingArgs} "${newFileName}"`;
 
   return `${ffmpegCmdPath} ${fullArgs}`;
 }
 
 async function getMachineHardwareType(): Promise<MachineHardwareType> {
-  return MachineHardwareType.Cpu;
+  return MachineHardwareType.Nvidea;
 }
 
 expose(convertFileToMp4ThreadWorker);

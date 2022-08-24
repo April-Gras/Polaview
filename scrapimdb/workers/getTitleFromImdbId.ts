@@ -12,7 +12,7 @@ import { getStoryLineFromDocucment } from "#/utils/getStorylineFromTitlePage";
 import {
   getCastFromTitleDocument,
   getFullCreditDocumentFromTitleImdbId,
-  getWritersFromFullCreditDocuement,
+  getStaffByTypeFromFullCreditDocument,
 } from "#/utils/getPersonsFromTitlePage";
 import { removePictureCropDirectiveFromUrl } from "#/utils/removePictureCropDirectivesFromUrl";
 
@@ -47,10 +47,12 @@ const getTitleDataFromImdbIdWorker: GetTitleDataFromImdbIdThreadWorker = async (
     return processSeasonFromEpisodeGuideElement(document, imdbId);
 
   // Regular title
-  const [name, { releaseYear }, pictureUrl] = await Promise.all([
+  const [name, { releaseYear }, pictureUrl, writers, directors] = await Promise.all([
     getNameFromDocument(document),
     getMetadatasFromDocument(document),
     getPictureUrlFromDocument(document),
+    getStaffByTypeFromFullCreditDocument(fullCreditDocument, 'writer'),
+    getStaffByTypeFromFullCreditDocument(fullCreditDocument, 'director')
   ]);
 
   return {
@@ -67,8 +69,8 @@ const getTitleDataFromImdbIdWorker: GetTitleDataFromImdbIdThreadWorker = async (
           createdOn: new Date(),
         },
         casts: getCastFromTitleDocument(document),
-        writers: await getWritersFromFullCreditDocuement(fullCreditDocument),
-        directors: [],
+        writers,
+        directors,
       },
     ],
   };

@@ -7,7 +7,13 @@ import { buildSingleRuntimeConfigEntry } from "~/expressUtils";
 import { ScrapImdbRuntimeConfig } from "~/types/RouteLibraryScrapImdb";
 
 import { searchPost } from "#/search/index";
-import { titleGetByImdbId, getTitleCastsFromMovieImdbId } from "#/title/index";
+import {
+  titleGetByImdbId,
+  getTitleCastsFromMovieImdbId,
+  getTitleDirectorFromMovieImdbId,
+  getTitleWritersFromMovieImdbId,
+} from "#/title/index";
+import { titleGetSearch } from "#/title/search";
 
 const prisma = new PrismaClient();
 const app: Express = express();
@@ -133,11 +139,26 @@ const ROUTES: ScrapImdbRuntimeConfig = [
       };
     }
   ),
+  buildSingleRuntimeConfigEntry(
+    "get",
+    "/title/search/:searchTerm",
+    titleGetSearch
+  ),
   buildSingleRuntimeConfigEntry("get", "/title/:imdbId", titleGetByImdbId),
   buildSingleRuntimeConfigEntry(
     "get",
     "/title/:imdbId/cast",
     getTitleCastsFromMovieImdbId
+  ),
+  buildSingleRuntimeConfigEntry(
+    "get",
+    "/title/:imdbId/writers",
+    getTitleWritersFromMovieImdbId
+  ),
+  buildSingleRuntimeConfigEntry(
+    "get",
+    "/title/:imdbId/directors",
+    getTitleDirectorFromMovieImdbId
   ),
   buildSingleRuntimeConfigEntry("get", "/person/:imdbId", async () => {
     return {

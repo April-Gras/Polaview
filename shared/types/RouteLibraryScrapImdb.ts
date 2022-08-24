@@ -37,8 +37,15 @@ export type AllRoutes = [
     "/serie/:imdbId/seasons",
     { serie: Serie; seasons: SeasonSummary[] }
   >,
+  BuildRouteEntry<
+    "get",
+    "/title/search/:searchTerm",
+    { series: Serie[]; titles: Title[] }
+  >,
   BuildRouteEntry<"get", "/title/:imdbId", Title>,
   BuildRouteEntry<"get", "/title/:imdbId/cast", Person[]>,
+  BuildRouteEntry<"get", "/title/:imdbId/writers", Person[]>,
+  BuildRouteEntry<"get", "/title/:imdbId/directors", Person[]>,
   // TODO Writer
   // TODO Director
   BuildRouteEntry<"get", "/person/:imdbId", Person>,

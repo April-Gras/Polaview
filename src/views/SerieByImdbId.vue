@@ -37,8 +37,8 @@ export default defineComponent({
         v-if="summary.serie.pictureUrl"
       />
       <div class="picture" v-else />
-      <div class="grid grid-cols-1 gap-4">
-        <h1 class="title-text">{{ summary.serie.name }}</h1>
+      <div>
+        <h1 class="title-text mb-4">{{ summary.serie.name }}</h1>
         <div class="base-text">{{ summary.serie.storyline }}</div>
       </div>
     </div>

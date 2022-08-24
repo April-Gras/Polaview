@@ -19,6 +19,13 @@ services:
       - ./shared:/api/shared
       - /home/${USER}/Videos:/openMedia
       - ./node_modules:/api/node_modules
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
   client:
     build:

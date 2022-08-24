@@ -17,6 +17,8 @@ export type GetSeasonWorkerThreadReturn = {
   collection: {
     title: Title;
     casts: Person[];
+    writers: Person[];
+    directors: Person[];
     seasonNumber: number;
   }[];
 };
@@ -26,9 +28,8 @@ export type GetSeasonWorkerThread = (
 ) => Promise<GetSeasonWorkerThreadReturn>;
 
 const getSeason: GetSeasonWorkerThread = async (imdbId, seasonIndex) => {
-  const url = `https://www.imdb.com/title/${imdbId}/episodes/?season=${
-    seasonIndex + 1
-  }`;
+  const url = `https://www.imdb.com/title/${imdbId}/episodes/?season=${seasonIndex + 1
+    }`;
   const { data } = await getImdbPageFromUrlAxiosTransporter.get(url);
   const { document } = new JSDOM(data).window;
 
