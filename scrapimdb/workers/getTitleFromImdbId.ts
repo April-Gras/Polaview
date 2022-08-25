@@ -3,7 +3,7 @@ import {
   GetSeasonWorkerThread,
   GetSeasonWorkerThreadReturn,
 } from "./getSeason";
-import { Title, Person, Serie } from "@prisma/client";
+import { Title, Person, Serie, Role } from "@prisma/client";
 
 import { getImdbPageFromUrlAxiosTransporter } from "#/utils/provideAxiosGet";
 import { JSDOM } from "jsdom";
@@ -24,6 +24,7 @@ export type GetTitleDataFromImdbIdThreadWorkerResult = {
     casts: Person[];
     writers: Person[];
     directors: Person[];
+    roleToCastRelation: Role[];
   }[];
 };
 export type GetTitleDataFromImdbIdThreadWorker = (
@@ -46,14 +47,16 @@ const getTitleDataFromImdbIdWorker: GetTitleDataFromImdbIdThreadWorker = async (
   if (episodeGuideElement)
     return processSeasonFromEpisodeGuideElement(document, imdbId);
 
+  const casts = getCastFromTitleDocument(document);
   // Regular title
-  const [name, { releaseYear }, pictureUrl, writers, directors] = await Promise.all([
-    getNameFromDocument(document),
-    getMetadatasFromDocument(document),
-    getPictureUrlFromDocument(document),
-    getStaffByTypeFromFullCreditDocument(fullCreditDocument, 'writer'),
-    getStaffByTypeFromFullCreditDocument(fullCreditDocument, 'director')
-  ]);
+  const [name, { releaseYear }, pictureUrl, writers, directors] =
+    await Promise.all([
+      getNameFromDocument(document),
+      getMetadatasFromDocument(document),
+      getPictureUrlFromDocument(document),
+      getStaffByTypeFromFullCreditDocument(fullCreditDocument, "writer"),
+      getStaffByTypeFromFullCreditDocument(fullCreditDocument, "director"),
+    ]);
 
   return {
     collection: [
@@ -67,8 +70,9 @@ const getTitleDataFromImdbIdWorker: GetTitleDataFromImdbIdThreadWorker = async (
           seasonId: null,
           episodeNumber: 0,
           createdOn: new Date(),
+          roleToCastRelation: [],
         },
-        casts: getCastFromTitleDocument(document),
+        casts,
         writers,
         directors,
       },

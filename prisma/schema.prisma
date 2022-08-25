@@ -1,7 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-1.1.x"]
-  previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
@@ -59,6 +58,7 @@ model Title {
 model Role {
   imdbId       String         @id @unique
   name         String
+  pictureUrl   String?
   titleOnRole  TitleOnRole[]
   personOnRole PersonOnRole[]
 }

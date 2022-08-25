@@ -3,7 +3,7 @@ import { getImdbPageFromUrlAxiosTransporter } from "#/utils/provideAxiosGet";
 
 import { getImdbIdFromCastLink } from "#/utils/extractImdbIdsFromUrl";
 import { removePictureCropDirectiveFromUrl } from "./removePictureCropDirectivesFromUrl";
-import { Person } from "@prisma/client";
+import { Person, Role } from "@prisma/client";
 
 export function getCastFromTitleDocument(document: Document) {
   const persons = [] as Person[];
@@ -41,7 +41,10 @@ export async function getFullCreditDocumentFromTitleImdbId(imdbId: string) {
   return new JSDOM(data).window.document;
 }
 
-export async function getStaffByTypeFromFullCreditDocument(document: Document, personType: 'writer' | 'director') {
+export async function getStaffByTypeFromFullCreditDocument(
+  document: Document,
+  personType: "writer" | "director"
+) {
   const peopleElements = Array.from(
     document.querySelectorAll(
       `#${personType} + table.simpleTable.simpleCreditsTable > tbody > tr > td.name > a`
@@ -63,15 +66,34 @@ export async function getStaffByTypeFromFullCreditDocument(document: Document, p
   return peoples;
 }
 
+async function getRolesIdFromFullCreditDocumentAndTitleImdb(
+  document: Document,
+  titleImdbId: string
+): Promise<Role[]> {
+  const roleElements = document.querySelectorAll(
+    `.cast_list > tbody > tr > .character`
+  );
+  // TODO
+}
+
+async function getTitleRoleByImdbIds(
+  titleImdbId: string,
+  personImdbId: string
+): Promise<Role> {
+  // TODO
+}
+
 async function getPersonFromPersonImdbId(imdbId: string): Promise<Person> {
   const url = `https://www.imdb.com/name/${imdbId}/`;
   const { data } = await getImdbPageFromUrlAxiosTransporter.get(url);
   const { document } = new JSDOM(data).window;
 
   const pictureElement = document.querySelector("#name-poster");
-  const nameElement = document.querySelector(
-    "#overview-top h1 > span.itemprop"
-  ) || document.querySelector(".name-overview-widget__section > h1 > span.itemprop");
+  const nameElement =
+    document.querySelector("#overview-top h1 > span.itemprop") ||
+    document.querySelector(
+      ".name-overview-widget__section > h1 > span.itemprop"
+    );
 
   if (!nameElement) throw "No name element for person";
   const name = nameElement.textContent;
