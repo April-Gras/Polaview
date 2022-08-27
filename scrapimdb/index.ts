@@ -12,6 +12,7 @@ import {
   getTitleCastsFromMovieImdbId,
   getTitleDirectorFromMovieImdbId,
   getTitleWritersFromMovieImdbId,
+  getTitleRolesFromMovieImdbId,
 } from "#/title/index";
 import { titleGetSearch } from "#/title/search";
 
@@ -139,11 +140,6 @@ const ROUTES: ScrapImdbRuntimeConfig = [
       };
     }
   ),
-  buildSingleRuntimeConfigEntry(
-    "get",
-    "/title/search/:searchTerm",
-    titleGetSearch
-  ),
   buildSingleRuntimeConfigEntry("get", "/title/:imdbId", titleGetByImdbId),
   buildSingleRuntimeConfigEntry(
     "get",
@@ -160,6 +156,11 @@ const ROUTES: ScrapImdbRuntimeConfig = [
     "/title/:imdbId/directors",
     getTitleDirectorFromMovieImdbId
   ),
+  buildSingleRuntimeConfigEntry(
+    "get",
+    "/title/:imdbId/roles",
+    getTitleRolesFromMovieImdbId
+  ),
   buildSingleRuntimeConfigEntry("get", "/person/:imdbId", async () => {
     return {
       imdbId: "",
@@ -167,6 +168,11 @@ const ROUTES: ScrapImdbRuntimeConfig = [
       pictureUrl: "",
     };
   }),
+  buildSingleRuntimeConfigEntry(
+    "get",
+    "/title/search/:searchTerm",
+    titleGetSearch
+  ),
   buildSingleRuntimeConfigEntry("post", "/search", searchPost),
 ];
 

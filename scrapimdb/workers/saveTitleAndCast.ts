@@ -1,19 +1,21 @@
 import { expose } from "threads";
-import { Title, Person, PrismaClient, Serie } from "@prisma/client";
+import { Title, Person, PrismaClient, Serie, Role } from "@prisma/client";
 
-import { upsertCollectionOfTitle } from "#/transactions/upsertCollectionOfTitle";
+import { updateCollectionOfTitleSeasonId } from "#/transactions/updateCollectionOfTitleSeasonId";
 import { upsertCollectionOfPerson } from "#/transactions/upsertCollectionOfPerson";
+import { upsertCollectionOfRole } from "#/transactions/upsertCollectionOfRole";
+import { upsertCollectionOfSeason } from "#/transactions/upsertCollectionOfSeason";
+import { upsertCollectionOfTitle } from "#/transactions/upsertCollectionOfTitle";
 import { upsertCollectionOfTitleOnPersonObject } from "#/transactions/upsertCollectionOfTitleOnCast";
 import { upsertSingleSerie } from "#/transactions/upsertSingleSerie";
-import { upsertCollectionOfSeason } from "#/transactions/upsertCollectionOfSeason";
-import { updateCollectionOfTitleSeasonId } from "#/transactions/updateCollectionOfTitleSeasonId";
 
 export type SaveTitleAndPersonsThreadWorkerResult = void;
-type Collection = {
+export type Collection = {
   title: Title;
   casts: Person[];
   writers: Person[];
   directors: Person[];
+  roleToCastRelation: Role[];
 }[];
 export type SaveTitleAndPersonsThreadWorker = (context: {
   collection: Collection;
@@ -47,8 +49,6 @@ const saveTitleAndPerson: SaveTitleAndPersonsThreadWorker = async ({
     const allWriters = getPersonsTypeInCollection(collection, "writers");
     const allDirectors = getPersonsTypeInCollection(collection, "directors");
 
-    console.log(allDirectors, allWriters)
-
     await prisma.$transaction([
       ...upsertCollectionOfTitle(
         prisma,
@@ -59,47 +59,42 @@ const saveTitleAndPerson: SaveTitleAndPersonsThreadWorker = async ({
         ...allDirectors,
         ...allCastMembers,
       ]),
-      ...collection
-        .map(({ title, casts, writers, directors }) => {
-          return upsertCollectionOfTitleOnPersonObject(
-            prisma,
-            title,
-            casts,
-            "titleOnCast"
-          );
-        })
-        .flat(),
-      ...collection
-        .map(({ title, writers }) => {
-          return upsertCollectionOfTitleOnPersonObject(
-            prisma,
-            title,
-            writers,
-            "titleOnWriter"
-          );
-        })
-        .flat(),
-      ...collection
-        .map(({ title, directors }) => {
-          return upsertCollectionOfTitleOnPersonObject(
-            prisma,
-            title,
-            directors,
-            "titleOnDirector"
-          );
-        })
-        .flat(),
+      ...collection.flatMap(({ title, casts, writers, directors }) => {
+        return upsertCollectionOfTitleOnPersonObject(
+          prisma,
+          title,
+          casts,
+          "titleOnCast"
+        );
+      }),
+      ...collection.flatMap(({ title, writers }) => {
+        return upsertCollectionOfTitleOnPersonObject(
+          prisma,
+          title,
+          writers,
+          "titleOnWriter"
+        );
+      }),
+      ...collection.flatMap(({ title, directors }) => {
+        return upsertCollectionOfTitleOnPersonObject(
+          prisma,
+          title,
+          directors,
+          "titleOnDirector"
+        );
+      }),
+      ...upsertCollectionOfRole(prisma, collection),
       // If we got a series add it to the transaction
       ...(serie && seasonsDescriptors
         ? [
-          upsertSingleSerie(prisma, serie),
-          ...upsertCollectionOfSeason(prisma, serie, seasonsDescriptors),
-          ...updateCollectionOfTitleSeasonId(
-            prisma,
-            serie,
-            seasonsDescriptors
-          ),
-        ]
+            upsertSingleSerie(prisma, serie),
+            ...upsertCollectionOfSeason(prisma, serie, seasonsDescriptors),
+            ...updateCollectionOfTitleSeasonId(
+              prisma,
+              serie,
+              seasonsDescriptors
+            ),
+          ]
         : []),
     ]);
     await prisma.$disconnect();

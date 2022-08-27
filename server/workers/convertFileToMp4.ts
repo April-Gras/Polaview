@@ -1,6 +1,7 @@
 import path from "node:path";
 import { expose } from "threads";
 import { spawn, execSync } from "node:child_process";
+import { graphics } from "systeminformation";
 
 export type ConvertFileToMp4ThreadWorkerReturn = void;
 export type ConvertFileToMp4ThreadWorker = (
@@ -20,7 +21,7 @@ const convertFileToMp4ThreadWorker: ConvertFileToMp4ThreadWorker = async (
   const newFileName = `${parsedPath.dir}/${parsedPath.name}.mp4`;
   const removeCommand = `rm "${filePath}"`;
   const command = await getFfmpegCommand(filePath, newFileName);
-  let fileIsMostProbablyGoodToGo = false
+  let fileIsMostProbablyGoodToGo = false;
 
   return new Promise((resolve, reject) => {
     if (filePath.endsWith(".mp4")) return;
@@ -44,7 +45,7 @@ const convertFileToMp4ThreadWorker: ConvertFileToMp4ThreadWorker = async (
       } else {
         if (!message.includes("frame=")) return;
         // At this point it's pretty sure that the conversion is going well, so we can flag the source file as good to be deleted
-        fileIsMostProbablyGoodToGo = true
+        fileIsMostProbablyGoodToGo = true;
         const regex = /frame=(\s*)?(?<frame>\d*)/gi;
         const matches = regex.exec(message);
 
@@ -68,8 +69,7 @@ const convertFileToMp4ThreadWorker: ConvertFileToMp4ThreadWorker = async (
     });
 
     child.on("exit", () => {
-      if (fileIsMostProbablyGoodToGo)
-        execSync(removeCommand);
+      if (fileIsMostProbablyGoodToGo) execSync(removeCommand);
       resolve();
     });
 
@@ -105,7 +105,14 @@ async function getFfmpegCommand(
 }
 
 async function getMachineHardwareType(): Promise<MachineHardwareType> {
-  return MachineHardwareType.Nvidea;
+  const gpuInfo = await graphics();
+  const firstControlerInfo = gpuInfo.controllers[0];
+
+  if (!firstControlerInfo) return MachineHardwareType.Cpu;
+  if (firstControlerInfo.vendor.includes("AMD")) return MachineHardwareType.Amd;
+  if (firstControlerInfo.vendor.includes("Nvidea"))
+    return MachineHardwareType.Nvidea;
+  return MachineHardwareType.Cpu;
 }
 
 expose(convertFileToMp4ThreadWorker);

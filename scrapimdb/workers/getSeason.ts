@@ -1,5 +1,5 @@
 import { expose, Worker, spawn, Pool } from "threads";
-import { Title, Person, Serie } from "@prisma/client";
+import { Title, Person, Serie, Role } from "@prisma/client";
 
 import { extractImdbIdFromTitleLink } from "#/utils/extractImdbIdsFromUrl";
 import { removePictureCropDirectiveFromUrl } from "#/utils/removePictureCropDirectivesFromUrl";
@@ -19,6 +19,7 @@ export type GetSeasonWorkerThreadReturn = {
     casts: Person[];
     writers: Person[];
     directors: Person[];
+    roleToCastRelation: Role[];
     seasonNumber: number;
   }[];
 };
@@ -28,8 +29,9 @@ export type GetSeasonWorkerThread = (
 ) => Promise<GetSeasonWorkerThreadReturn>;
 
 const getSeason: GetSeasonWorkerThread = async (imdbId, seasonIndex) => {
-  const url = `https://www.imdb.com/title/${imdbId}/episodes/?season=${seasonIndex + 1
-    }`;
+  const url = `https://www.imdb.com/title/${imdbId}/episodes/?season=${
+    seasonIndex + 1
+  }`;
   const { data } = await getImdbPageFromUrlAxiosTransporter.get(url);
   const { document } = new JSDOM(data).window;
 

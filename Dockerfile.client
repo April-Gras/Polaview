@@ -18,6 +18,7 @@ COPY .env /client/.env
 COPY node_modules /client/node_modules 
 
 COPY src /client/src
+COPY static /client/static
 
 # Install dependencies
 # RUN yarn install

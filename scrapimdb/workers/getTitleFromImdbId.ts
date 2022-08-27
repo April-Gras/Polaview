@@ -3,7 +3,7 @@ import {
   GetSeasonWorkerThread,
   GetSeasonWorkerThreadReturn,
 } from "./getSeason";
-import { Title, Person, Serie } from "@prisma/client";
+import { Title, Person, Serie, Role } from "@prisma/client";
 
 import { getImdbPageFromUrlAxiosTransporter } from "#/utils/provideAxiosGet";
 import { JSDOM } from "jsdom";
@@ -13,6 +13,7 @@ import {
   getCastFromTitleDocument,
   getFullCreditDocumentFromTitleImdbId,
   getStaffByTypeFromFullCreditDocument,
+  getRolesIdFromFullCreditDocumentAndTitleImdb,
 } from "#/utils/getPersonsFromTitlePage";
 import { removePictureCropDirectiveFromUrl } from "#/utils/removePictureCropDirectivesFromUrl";
 
@@ -24,6 +25,7 @@ export type GetTitleDataFromImdbIdThreadWorkerResult = {
     casts: Person[];
     writers: Person[];
     directors: Person[];
+    roleToCastRelation: Role[];
   }[];
 };
 export type GetTitleDataFromImdbIdThreadWorker = (
@@ -46,13 +48,22 @@ const getTitleDataFromImdbIdWorker: GetTitleDataFromImdbIdThreadWorker = async (
   if (episodeGuideElement)
     return processSeasonFromEpisodeGuideElement(document, imdbId);
 
+  const casts = getCastFromTitleDocument(document);
   // Regular title
-  const [name, { releaseYear }, pictureUrl, writers, directors] = await Promise.all([
+  const [
+    name,
+    { releaseYear },
+    pictureUrl,
+    writers,
+    directors,
+    roleToCastRelation,
+  ] = await Promise.all([
     getNameFromDocument(document),
     getMetadatasFromDocument(document),
     getPictureUrlFromDocument(document),
-    getStaffByTypeFromFullCreditDocument(fullCreditDocument, 'writer'),
-    getStaffByTypeFromFullCreditDocument(fullCreditDocument, 'director')
+    getStaffByTypeFromFullCreditDocument(fullCreditDocument, "writer"),
+    getStaffByTypeFromFullCreditDocument(fullCreditDocument, "director"),
+    getRolesIdFromFullCreditDocumentAndTitleImdb(fullCreditDocument, imdbId),
   ]);
 
   return {
@@ -68,7 +79,8 @@ const getTitleDataFromImdbIdWorker: GetTitleDataFromImdbIdThreadWorker = async (
           episodeNumber: 0,
           createdOn: new Date(),
         },
-        casts: getCastFromTitleDocument(document),
+        roleToCastRelation,
+        casts,
         writers,
         directors,
       },

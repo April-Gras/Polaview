@@ -19,13 +19,13 @@ services:
       - ./shared:/api/shared
       - /home/${USER}/Videos:/openMedia
       - ./node_modules:/api/node_modules
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - count: 1
+    #           capabilities: [gpu]
+    #           # driver: nvidia
 
   client:
     build:
@@ -38,11 +38,13 @@ services:
       - 3010:3010
     restart: unless-stopped
     tty: true
+    # command: npm run client-build
     command: npm run client-dev
     volumes:
       - ./src:/client/src
       - ./shared:/client/shared
       - ./node_modules:/client/node_modules
+      - ./dist:/client/dist
 
   nginx:
     image: nginx

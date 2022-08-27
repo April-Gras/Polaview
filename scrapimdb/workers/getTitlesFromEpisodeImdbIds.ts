@@ -1,9 +1,10 @@
-import { Title, Person } from "@prisma/client";
+import { Title, Person, Role } from "@prisma/client";
 import { expose } from "threads";
 import {
   getCastFromTitleDocument,
   getFullCreditDocumentFromTitleImdbId,
   getStaffByTypeFromFullCreditDocument,
+  getRolesIdFromFullCreditDocumentAndTitleImdb,
 } from "#/utils/getPersonsFromTitlePage";
 import { removePictureCropDirectiveFromUrl } from "#/utils/removePictureCropDirectivesFromUrl";
 
@@ -16,6 +17,7 @@ export type GetTitleFromEpisodesImdbIdThreadWorkerReturn = {
   casts: Person[];
   writers: Person[];
   directors: Person[];
+  roleToCastRelation: Role[];
   seasonNumber: number;
 };
 export type GetTitleFromEpisodesImdbIdThreadWorker = (
@@ -38,21 +40,24 @@ const getTitleFromEdpisodesImdbId: GetTitleFromEpisodesImdbIdThreadWorker =
       { episodeNumber, seasonNumber },
       storyline,
       writers,
-      directors
+      directors,
+      roleToCastRelation,
     ] = await Promise.all([
       getCastFromTitleDocument(document),
       getTitleNameFromdocument(document),
       getPictureUrlFromDocument(document),
       getEpisodeNumberAndSeasonNumberFromDocument(document),
       getStoryLineFromDocucment(document),
-      getStaffByTypeFromFullCreditDocument(fullCreditDocument, 'writer'),
-      getStaffByTypeFromFullCreditDocument(fullCreditDocument, 'director'),
+      getStaffByTypeFromFullCreditDocument(fullCreditDocument, "writer"),
+      getStaffByTypeFromFullCreditDocument(fullCreditDocument, "director"),
+      getRolesIdFromFullCreditDocumentAndTitleImdb(fullCreditDocument, imdbId),
     ]);
 
     return {
       casts,
       seasonNumber,
       writers,
+      roleToCastRelation,
       directors,
       title: {
         imdbId,

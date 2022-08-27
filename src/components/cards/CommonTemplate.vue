@@ -14,7 +14,11 @@ export default defineComponent({
       required: true,
     },
     pictureUrl: {
-      type: String as PropType<string | null>,
+      type: String as PropType<string | null | undefined>,
+      required: false,
+    },
+    pictureAlt: {
+      type: String,
       required: true,
     },
   },
@@ -24,7 +28,7 @@ export default defineComponent({
       pictureLoadStatus: "not loaded" as PictureLoadStatus,
     };
   },
-  created() {
+  mounted() {
     if (!this.pictureUrl) return;
     const image = new Image();
 
@@ -57,6 +61,9 @@ export default defineComponent({
             class="picture"
             :src="pictureData"
             key="done"
+            rel="preload"
+            as="image"
+            :alt="pictureAlt"
             v-if="pictureUrl && pictureData && pictureLoadStatus === 'loaded'"
           />
           <!-- Additional div because of the 15s transition time -->

@@ -72,7 +72,11 @@ export const getTitleCastsFromMovieImdbId: GetRouteDataHandlerFromUrlAndVerb<
   return cachedCasts.map((e) => e.person);
 };
 
-export const getTitleWritersFromMovieImdbId: GetRouteDataHandlerFromUrlAndVerb<'get', AllRoutes, '/title/:imdbId/writers'> = async (prisma, req) => {
+export const getTitleWritersFromMovieImdbId: GetRouteDataHandlerFromUrlAndVerb<
+  "get",
+  AllRoutes,
+  "/title/:imdbId/writers"
+> = async (prisma, req) => {
   const imdbId = req.params.imdbId;
   const cachedWriters = await prisma.titleOnWriter.findMany({
     where: {
@@ -84,9 +88,13 @@ export const getTitleWritersFromMovieImdbId: GetRouteDataHandlerFromUrlAndVerb<'
   });
 
   return cachedWriters.map((e) => e.person);
-}
+};
 
-export const getTitleDirectorFromMovieImdbId: GetRouteDataHandlerFromUrlAndVerb<'get', AllRoutes, '/title/:imdbId/directors'> = async (prisma, req) => {
+export const getTitleDirectorFromMovieImdbId: GetRouteDataHandlerFromUrlAndVerb<
+  "get",
+  AllRoutes,
+  "/title/:imdbId/directors"
+> = async (prisma, req) => {
   const imdbId = req.params.imdbId;
   const cachedDirectors = await prisma.titleOnDirector.findMany({
     where: {
@@ -98,4 +106,19 @@ export const getTitleDirectorFromMovieImdbId: GetRouteDataHandlerFromUrlAndVerb<
   });
 
   return cachedDirectors.map((e) => e.person);
-}
+};
+
+export const getTitleRolesFromMovieImdbId: GetRouteDataHandlerFromUrlAndVerb<
+  "get",
+  AllRoutes,
+  "/title/:imdbId/roles"
+> = async (prisma, req) => {
+  const imdbId = req.params.imdbId;
+  const roles = await prisma.role.findMany({
+    where: {
+      titleImdbId: imdbId,
+    },
+  });
+
+  return roles;
+};

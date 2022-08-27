@@ -7,6 +7,5 @@ export function getStoryLineFromDocucment(document: Document): null | string {
   if (!storylineElement) return null;
   const storylineText = storylineElement.textContent;
 
-  console.log({ storylineText });
   return storylineText;
 }

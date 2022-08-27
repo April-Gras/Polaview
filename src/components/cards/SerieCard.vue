@@ -22,6 +22,7 @@ export default defineComponent({
   <CommonTemplateVue
     :link="`/serie/${serieSummary.imdbId}`"
     :picture-url="serieSummary.pictureUrl"
+    :picture-alt="serieSummary.name"
   >
     <ul class="p-4">
       <li class="base-text ellipsis !font-bold">{{ serieSummary.name }}</li>

@@ -22,10 +22,12 @@ export default defineComponent({
       this.$refs.videoPlayer as Element,
       {
         fluid: true,
-        'sources': [{
-          'src': this.source,
-          'type': 'video/mp4'
-        }],
+        sources: [
+          {
+            src: this.source,
+            type: "video/mp4",
+          },
+        ],
       },
       () => {
         if (!this.player) return;
@@ -42,11 +44,18 @@ export default defineComponent({
 </script>
 
 <template>
-  <video ref="videoPlayer" class="video-js vjs-theme-sea" controls preload="auto">
+  <video
+    ref="videoPlayer"
+    class="video-js vjs-theme-sea"
+    controls
+    preload="auto"
+  >
     <p class="vjs-no-js">
       To view this video please enable JavaScript, and consider upgrading to a
       web browser that
-      <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+      <a href="https://videojs.com/html5-video-support/" target="_blank"
+        >supports HTML5 video</a
+      >
     </p>
   </video>
 </template>
