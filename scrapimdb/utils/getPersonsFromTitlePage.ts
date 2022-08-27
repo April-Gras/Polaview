@@ -66,21 +66,73 @@ export async function getStaffByTypeFromFullCreditDocument(
   return peoples;
 }
 
-async function getRolesIdFromFullCreditDocumentAndTitleImdb(
+export async function getRolesIdFromFullCreditDocumentAndTitleImdb(
   document: Document,
   titleImdbId: string
 ): Promise<Role[]> {
-  const roleElements = document.querySelectorAll(
-    `.cast_list > tbody > tr > .character`
+  const roleElements = Array.from(
+    document.querySelectorAll(`.cast_list > tbody > tr > .character > a`)
   );
-  // TODO
+  const roles = [] as Role[];
+
+  for (const element of roleElements) {
+    const regex = new RegExp("(?<imdbId>nm[0-9]*)", "gim");
+    const link = element.getAttribute("href");
+    if (!link) continue;
+
+    const matches = regex.exec(link);
+    if (!matches || !matches.groups || !matches.groups.imdbId) continue;
+    try {
+      roles.push(
+        await getTitleRoleByImdbIds(titleImdbId, matches.groups.imdbId)
+      );
+    } catch (_) {
+      console.log(_);
+      continue;
+    }
+  }
+  return roles;
 }
 
 async function getTitleRoleByImdbIds(
   titleImdbId: string,
   personImdbId: string
 ): Promise<Role> {
-  // TODO
+  const url = `https://www.imdb.com/title/${titleImdbId}/characters/${personImdbId}/`;
+  const { data } = await getImdbPageFromUrlAxiosTransporter.get(url);
+  const { document } = new JSDOM(data).window;
+  const nameCaptureRegex = /.*: (?<name>.*)/gi;
+
+  const nameElement = document.querySelector(".header");
+
+  if (!nameElement || !nameElement.textContent)
+    throw new Error(
+      `No name element for ${personImdbId} in title ${titleImdbId}`
+    );
+  const matches = nameCaptureRegex.exec(nameElement.textContent);
+  if (!matches || !matches.groups || !matches.groups.name)
+    throw new Error(
+      `No regex matches for ${personImdbId} in title ${titleImdbId}`
+    );
+
+  return {
+    name: matches.groups.name,
+    pictureUrl: getPicturesFromRolePageDocument(document),
+    imdbId: personImdbId,
+    personImdbId,
+    titleImdbId,
+  };
+}
+
+function getPicturesFromRolePageDocument(document: Document): string | null {
+  const pictureElement = document.querySelector(
+    ".titlecharacters-image-grid > a > img"
+  );
+
+  if (!pictureElement) return null;
+  const pictureLink = pictureElement.getAttribute("src");
+  if (!pictureLink) return null;
+  return removePictureCropDirectiveFromUrl(pictureLink);
 }
 
 async function getPersonFromPersonImdbId(imdbId: string): Promise<Person> {

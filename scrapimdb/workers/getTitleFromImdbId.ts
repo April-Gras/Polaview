@@ -13,6 +13,7 @@ import {
   getCastFromTitleDocument,
   getFullCreditDocumentFromTitleImdbId,
   getStaffByTypeFromFullCreditDocument,
+  getRolesIdFromFullCreditDocumentAndTitleImdb,
 } from "#/utils/getPersonsFromTitlePage";
 import { removePictureCropDirectiveFromUrl } from "#/utils/removePictureCropDirectivesFromUrl";
 
@@ -49,14 +50,21 @@ const getTitleDataFromImdbIdWorker: GetTitleDataFromImdbIdThreadWorker = async (
 
   const casts = getCastFromTitleDocument(document);
   // Regular title
-  const [name, { releaseYear }, pictureUrl, writers, directors] =
-    await Promise.all([
-      getNameFromDocument(document),
-      getMetadatasFromDocument(document),
-      getPictureUrlFromDocument(document),
-      getStaffByTypeFromFullCreditDocument(fullCreditDocument, "writer"),
-      getStaffByTypeFromFullCreditDocument(fullCreditDocument, "director"),
-    ]);
+  const [
+    name,
+    { releaseYear },
+    pictureUrl,
+    writers,
+    directors,
+    roleToCastRelation,
+  ] = await Promise.all([
+    getNameFromDocument(document),
+    getMetadatasFromDocument(document),
+    getPictureUrlFromDocument(document),
+    getStaffByTypeFromFullCreditDocument(fullCreditDocument, "writer"),
+    getStaffByTypeFromFullCreditDocument(fullCreditDocument, "director"),
+    getRolesIdFromFullCreditDocumentAndTitleImdb(fullCreditDocument, imdbId),
+  ]);
 
   return {
     collection: [
@@ -70,8 +78,8 @@ const getTitleDataFromImdbIdWorker: GetTitleDataFromImdbIdThreadWorker = async (
           seasonId: null,
           episodeNumber: 0,
           createdOn: new Date(),
-          roleToCastRelation: [],
         },
+        roleToCastRelation,
         casts,
         writers,
         directors,

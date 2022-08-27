@@ -1,24 +1,38 @@
-import { PrismaClient, Role, Serie } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
+import { Collection } from "#/workers/saveTitleAndCast";
 
 export function upsertCollectionOfRole(
   prisma: PrismaClient,
-  roleToCastRelationCollection: Role[]
+  collection: Collection
 ) {
-  return roleToCastRelationCollection.map(({ name, imdbId, pictureUrl }) => {
-    return prisma.role.upsert({
-      where: {
-        imdbId,
-      },
-      create: {
-        imdbId,
-        name,
-        pictureUrl,
-      },
-      update: {
-        imdbId,
-        name,
-        pictureUrl,
-      },
-    });
+  return collection.flatMap((entry) => {
+    return entry.roleToCastRelation.reduce((accumulator, role) => {
+      if (!entry.casts.some((cast) => role.imdbId === cast.imdbId))
+        return accumulator;
+      accumulator.push(
+        prisma.role.upsert({
+          where: {
+            imdbId: role.imdbId,
+          },
+          create: {
+            imdbId: role.imdbId,
+            name: role.name,
+            pictureUrl: role.pictureUrl,
+            person: {
+              connect: {
+                imdbId: role.personImdbId,
+              },
+            },
+            title: {
+              connect: {
+                imdbId: role.titleImdbId,
+              },
+            },
+          },
+          update: {},
+        })
+      );
+      return accumulator;
+    }, [] as ReturnType<typeof prisma.role.update>[]);
   });
 }

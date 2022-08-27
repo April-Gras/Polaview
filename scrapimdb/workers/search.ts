@@ -12,13 +12,7 @@ export type SearchThreadWorkerReturn = {
   name: string;
 };
 
-import { SearchType } from "~/types/Search";
-
-export type SearchArguments = {
-  term: string;
-  releaseYear: string | null;
-  typesToCheck?: SearchType[];
-};
+import { SearchArguments, SearchType } from "~/types/Search";
 
 export type SearchThreadWorker = (
   context: SearchArguments

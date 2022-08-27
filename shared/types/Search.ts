@@ -7,3 +7,9 @@ export enum SearchType {
   movie = "ft",
   TV = "tv",
 }
+
+export type SearchArguments = {
+  term: string;
+  releaseYear: string | null;
+  typesToCheck?: SearchType[];
+};

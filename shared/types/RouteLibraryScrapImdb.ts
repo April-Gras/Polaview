@@ -1,7 +1,15 @@
-import { ImdbSearch, Title, Person, Serie, Season, File } from "@prisma/client";
+import {
+  ImdbSearch,
+  Title,
+  Person,
+  Serie,
+  Season,
+  File,
+  Role,
+} from "@prisma/client";
 import { BuildRouteEntry, RuntimeConfigBuilder } from "~/types/Route";
 
-import { SearchArguments } from "#/workers/search";
+import { SearchArguments } from "~/types/Search";
 
 export type SeasonSummary = Season & { episodes: Title[] };
 
@@ -37,16 +45,17 @@ export type AllRoutes = [
     "/serie/:imdbId/seasons",
     { serie: Serie; seasons: SeasonSummary[] }
   >,
+  BuildRouteEntry<"get", "/title/:imdbId", Title>,
+  BuildRouteEntry<"get", "/title/:imdbId/cast", Person[]>,
+  BuildRouteEntry<"get", "/title/:imdbId/writers", Person[]>,
+  BuildRouteEntry<"get", "/title/:imdbId/directors", Person[]>,
+  BuildRouteEntry<"get", "/title/:imdbId/roles", Role[]>,
+  BuildRouteEntry<"get", "/person/:imdbId", Person>,
   BuildRouteEntry<
     "get",
     "/title/search/:searchTerm",
     { series: Serie[]; titles: Title[] }
   >,
-  BuildRouteEntry<"get", "/title/:imdbId", Title>,
-  BuildRouteEntry<"get", "/title/:imdbId/cast", Person[]>,
-  BuildRouteEntry<"get", "/title/:imdbId/writers", Person[]>,
-  BuildRouteEntry<"get", "/title/:imdbId/directors", Person[]>,
-  BuildRouteEntry<"get", "/person/:imdbId", Person>,
   // POST
   BuildRouteEntry<
     "post",

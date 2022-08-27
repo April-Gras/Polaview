@@ -1,15 +1,17 @@
 <script lang="ts">
-import { Title, File, Person } from ".prisma/client";
+import { Title, File, Person, Role } from ".prisma/client";
 import { defineComponent } from "vue";
 import { useRoute } from "vue-router";
 
-import CardGridVue from "@/components/ui/CardGrid.vue";
+import FoldCardGridVue from "@/components/ui/FoldCardGrid.vue";
 import PersonCardVue from "@/components/cards/PersonCard.vue";
+import RoleCardVue from "@/components/cards/RoleCard.vue";
 import VVideoVue from "@/components/VVideo.vue";
 
 export default defineComponent({
   components: {
-    CardGridVue,
+    FoldCardGridVue,
+    RoleCardVue,
     PersonCardVue,
     VVideoVue,
   },
@@ -26,7 +28,8 @@ export default defineComponent({
       file: null as null | File,
       cast: [] as Person[],
       writers: [] as Person[],
-      directors: [] as Person[]
+      directors: [] as Person[],
+      roles: [] as Role[],
     };
   },
   created() {
@@ -44,12 +47,21 @@ export default defineComponent({
             this.cast = data;
           }
         );
-        this.$getScrapImdbRequest(`/title/${this.imdbId}/writers`).then(({ data }) => {
-          this.writers = data
-        })
-        this.$getScrapImdbRequest(`/title/${this.imdbId}/directors`).then(({ data }) => {
-          this.directors = data
-        })
+        this.$getScrapImdbRequest(`/title/${this.imdbId}/writers`).then(
+          ({ data }) => {
+            this.writers = data;
+          }
+        );
+        this.$getScrapImdbRequest(`/title/${this.imdbId}/directors`).then(
+          ({ data }) => {
+            this.directors = data;
+          }
+        );
+        this.$getScrapImdbRequest(`/title/${this.imdbId}/roles`).then(
+          ({ data }) => {
+            this.roles = data;
+          }
+        );
       });
   },
 });
@@ -64,26 +76,39 @@ export default defineComponent({
       <span v-if="title.releaseYear">({{ title.releaseYear }})</span>
     </h1>
     <VVideoVue :source="`/api/video/${file.id}`" />
-    <CardGridVue class="relative hidden md:grid">
-      <template #title>{{ $t("common.directors") }}</template>
-      <template #list>
-        <PersonCardVue class="hidden xl:grid" :person="person" v-for="person in directors.slice(0, 4)" />
-        <PersonCardVue class="xl:hidden" :person="person" v-for="person in directors.slice(0, 3)" />
-      </template>
-    </CardGridVue>
-    <CardGridVue class="relative hidden md:grid">
-      <template #title>{{ $t("common.writers") }}</template>
-      <template #list>
-        <PersonCardVue class="hidden xl:grid" :person="person" v-for="person in writers.slice(0, 4)" />
-        <PersonCardVue class="xl:hidden" :person="person" v-for="person in writers.slice(0, 3)" />
-      </template>
-    </CardGridVue>
-    <CardGridVue class="relative hidden md:grid">
+    <FoldCardGridVue>
       <template #title>{{ $t("common.cast") }}</template>
       <template #list>
-        <PersonCardVue class="hidden xl:grid" :person="person" v-for="person in cast.slice(0, 4)" />
-        <PersonCardVue class="xl:hidden" :person="person" v-for="person in cast.slice(0, 3)" />
+        <PersonCardVue v-once :person="person" v-for="person in cast" />
       </template>
-    </CardGridVue>
+    </FoldCardGridVue>
+    <FoldCardGridVue>
+      <template #title>
+        {{ $t("common.roles") }}
+      </template>
+      <template #list>
+        <RoleCardVue
+          v-for="role in roles"
+          :role="role"
+          :person-collection="cast"
+          :key="role.imdbId + role.titleImdbId"
+          v-once
+        />
+      </template>
+    </FoldCardGridVue>
+    <FoldCardGridVue>
+      <template #title>{{
+        $tc("common.directors", directors.length)
+      }}</template>
+      <template #list>
+        <PersonCardVue v-once :person="person" v-for="person in directors" />
+      </template>
+    </FoldCardGridVue>
+    <FoldCardGridVue>
+      <template #title>{{ $tc("common.writers", writers.length) }}</template>
+      <template #list>
+        <PersonCardVue v-once :person="person" v-for="person in writers" />
+      </template>
+    </FoldCardGridVue>
   </div>
 </template>

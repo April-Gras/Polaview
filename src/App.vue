@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent } from "vue";
 import { useUserStore } from "@/stores/user";
 
 import NavigationVue from "./components/Navigation.vue";

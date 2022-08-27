@@ -21,6 +21,11 @@ export default defineComponent({
       type: String,
       required: true,
     },
+    labelIsScreenReaderOnly: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
     inputType: {
       type: String as PropType<"text" | "password">,
       default: "text",
@@ -68,7 +73,11 @@ export default defineComponent({
 
 <template>
   <div class="relative grid w-full gap-1">
-    <label :for="labelForUid" class="label-text">
+    <label
+      :for="labelForUid"
+      class="label-text"
+      :class="{ 'sr-only': labelIsScreenReaderOnly }"
+    >
       <slot name="label" />
     </label>
     <input

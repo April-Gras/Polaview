@@ -10,7 +10,7 @@ import { upsertCollectionOfTitleOnPersonObject } from "#/transactions/upsertColl
 import { upsertSingleSerie } from "#/transactions/upsertSingleSerie";
 
 export type SaveTitleAndPersonsThreadWorkerResult = void;
-type Collection = {
+export type Collection = {
   title: Title;
   casts: Person[];
   writers: Person[];
@@ -49,8 +49,6 @@ const saveTitleAndPerson: SaveTitleAndPersonsThreadWorker = async ({
     const allWriters = getPersonsTypeInCollection(collection, "writers");
     const allDirectors = getPersonsTypeInCollection(collection, "directors");
 
-    console.log(allDirectors, allWriters);
-
     await prisma.$transaction([
       ...upsertCollectionOfTitle(
         prisma,
@@ -85,9 +83,7 @@ const saveTitleAndPerson: SaveTitleAndPersonsThreadWorker = async ({
           "titleOnDirector"
         );
       }),
-      ...collection.flatMap((entry) =>
-        upsertCollectionOfRole(prisma, entry.roleToCastRelation)
-      ),
+      ...upsertCollectionOfRole(prisma, collection),
       // If we got a series add it to the transaction
       ...(serie && seasonsDescriptors
         ? [

@@ -51,25 +51,18 @@ model Title {
   storyline       String?
   titleOnCast     TitleOnCast[]
   titleOnDirector TitleOnDirector[]
-  titleOnRole     TitleOnRole[]
   titleOnWriter   TitleOnWriter[]
+  roles           Role[]
 }
 
 model Role {
-  imdbId       String         @id @unique
+  imdbId       String  @id @unique
   name         String
   pictureUrl   String?
-  titleOnRole  TitleOnRole[]
-  personOnRole PersonOnRole[]
-}
-
-model TitleOnRole {
-  title   Title  @relation(fields: [titleId], references: [imdbId])
-  titleId String
-  role    Role   @relation(fields: [roleId], references: [imdbId])
-  roleId  String
-
-  @@id([titleId, roleId])
+  title        Title   @relation(fields: [titleImdbId], references: [imdbId])
+  person       Person  @relation(fields: [personImdbId], references: [imdbId])
+  titleImdbId  String
+  personImdbId String
 }
 
 model Person {
@@ -79,16 +72,7 @@ model Person {
   titleOnCast     TitleOnCast[]
   titleOnWriter   TitleOnWriter[]
   titleOnDirector TitleOnDirector[]
-  personOnRole    PersonOnRole[]
-}
-
-model PersonOnRole {
-  person   Person @relation(fields: [personId], references: [imdbId])
-  personId String
-  role     Role   @relation(fields: [roleId], references: [imdbId])
-  roleId   String
-
-  @@id([personId, roleId])
+  roles           Role[]
 }
 
 model TitleOnWriter {

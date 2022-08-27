@@ -22,6 +22,7 @@ export default defineComponent({
   <CommonTemplateVue
     :link="`/person/${person.imdbId}`"
     :picture-url="person.pictureUrl"
+    :picture-alt="person.name"
     class="person"
   >
     <ul class="p-4">

@@ -55,9 +55,13 @@ export default defineComponent({
       v-model="search"
       label-for-uid="search"
       class="searchBar shadow-lg"
+      :placeholder="$t('common.search')"
+      labelIsScreenReaderOnly
       @focus="displayResults = true"
       @blur="displayResults = false"
-    />
+    >
+      <template #label>{{ $t("common.search") }}</template>
+    </VTextInputVue>
     <Transition name="fade">
       <ul
         v-if="(titles.length || series.length) && displayResults"

@@ -1,56 +1,47 @@
 import { createRouter, createWebHistory } from "vue-router";
 
-import Login from "@/views/Login.vue";
-import Root from "@/views/Root.vue";
-import Signup from "@/views/Signup.vue";
-import SignupConfirmed from "@/views/SignupConfirmed.vue";
-import Admin from "@/views/Admin.vue";
-import TitleByImdbId from "@/views/TitleByImdbId.vue";
-import SerieByImdbId from "@/views/SerieByImdbId.vue";
-import PersonByImdbId from "@/views/PersonByImdbId.vue";
-
 export const routerPlugin = createRouter({
   history: createWebHistory(),
   routes: [
     {
       path: "/",
       name: "root",
-      component: Root,
+      component: () => import("@/views/Root.vue"),
     },
     {
       path: "/login",
       name: "login",
-      component: Login,
+      component: () => import("@/views/Login.vue"),
     },
     {
       path: "/signup",
       name: "signup",
-      component: Signup,
+      component: () => import("@/views/Signup.vue"),
     },
     {
       path: "/signup/confirmed",
       name: "signupConfirmed",
-      component: SignupConfirmed,
+      component: () => import("@/views/SignupConfirmed.vue"),
     },
     {
       path: "/admin",
       name: "admin",
-      component: Admin,
+      component: () => import("@/views/Admin.vue"),
     },
     {
       path: "/title/:imdbId",
       name: "titleByImdbId",
-      component: TitleByImdbId,
+      component: () => import("@/views/TitleByImdbId.vue"),
     },
     {
       path: "/serie/:imdbId",
       name: "serieByImdbId",
-      component: SerieByImdbId,
+      component: () => import("@/views/SerieByImdbId.vue"),
     },
     {
       path: "/person/:imdbId",
       name: "personByImdbId",
-      component: PersonByImdbId,
+      component: () => import("@/views/PersonByImdbId.vue"),
     },
   ],
 });
