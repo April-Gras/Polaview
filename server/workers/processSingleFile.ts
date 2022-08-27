@@ -1,5 +1,4 @@
 import path from "node:path";
-
 import {
   applyFailureColor,
   applySuccessColor,
@@ -13,9 +12,9 @@ import { PrismaClient, Title, ImdbSearch } from "@prisma/client";
 import { compareTwoStrings } from "string-similarity";
 
 import {
+  makeServersideGetScrapImdb,
   makeServersidePostScrapImdb,
-  makeServersideGetcrapImdb,
-} from "~/axiosTransporters/index";
+} from "#/axiosTransporter";
 
 import { SearchType } from "~/types/Search";
 
@@ -66,7 +65,7 @@ const processSingleFileThreadWorker: ProcessSingleFileThreadWorker =
 
       try {
         const titleData = (
-          await makeServersideGetcrapImdb(
+          await makeServersideGetScrapImdb(
             `/title/${matchingSearchElement.imdbId}`
           )
         ).data;
@@ -76,7 +75,7 @@ const processSingleFileThreadWorker: ProcessSingleFileThreadWorker =
         await saveFileAndConnectToTitle(sourcePath, wholePath, titleData);
       } catch (_) {
         const serieData = (
-          await makeServersideGetcrapImdb(
+          await makeServersideGetScrapImdb(
             `/serie/${matchingSearchElement.imdbId}`
           )
         ).data;

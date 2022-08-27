@@ -11,7 +11,7 @@ import {
 } from "~/types/Axios";
 import {
   serverApiTransporter,
-  scrapIdmdbTransporter,
+  scrapImdbTransporter,
 } from "~/axiosTransporters/index";
 
 // Vue3 Plugin
@@ -22,9 +22,8 @@ export const axiosPlugin: Plugin = {
     app.config.globalProperties.$deleteRequest = serverApiTransporter.delete;
     app.config.globalProperties.$patchRequest = serverApiTransporter.patch;
     app.config.globalProperties.$postScrapImdbRequest =
-      scrapIdmdbTransporter.post;
-    app.config.globalProperties.$getScrapImdbRequest =
-      scrapIdmdbTransporter.get;
+      scrapImdbTransporter.post;
+    app.config.globalProperties.$getScrapImdbRequest = scrapImdbTransporter.get;
   },
 };
 
@@ -50,9 +49,9 @@ export function axiosPiniaPlugin({ store }: PiniaPluginContext) {
   // @ts-ignore
   store.$deleteRequest = markRaw(serverApiTransporter.delete);
   // @ts-ignore
-  store.$postScrapImdbRequest = markRaw(scrapIdmdbTransporter.post);
+  store.$postScrapImdbRequest = markRaw(scrapImdbTransporter.post);
   // @ts-ignore
-  store.$getScrapImdbRequest = markRaw(scrapIdmdbTransporter.get);
+  store.$getScrapImdbRequest = markRaw(scrapImdbTransporter.get);
 }
 
 declare module "pinia" {

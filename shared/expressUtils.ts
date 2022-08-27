@@ -31,7 +31,7 @@ export function buildSingleMiddleware<
 }
 
 export function getSessionIdFromRequest(req: Request): string | null {
-  const { sessionid } = req.cookies;
+  const sessionid = req.cookies.sessionid || req.headers.sessionid;
 
   if (!sessionid || !sessionid.length) return null;
   return sessionid;

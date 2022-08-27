@@ -1,10 +1,15 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import { userHasValidSession } from "~/middlewares/userHasSession";
+import { getSessionIdFromRequest } from "~/expressUtils";
 import fs from "node:fs";
 
 const prisma = new PrismaClient();
 
 export default async (req: Request, res: Response) => {
+  const sessionid = getSessionIdFromRequest(req);
+  if (!(await userHasValidSession(prisma, sessionid)))
+    return res.status(403).json("Not allowed");
   const { id } = req.params;
   // Check if file exists
   const file = await prisma.file.findUniqueOrThrow({

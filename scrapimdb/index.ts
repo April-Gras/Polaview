@@ -5,8 +5,10 @@ import cookieParser from "cookie-parser";
 
 import { buildSingleRuntimeConfigEntry } from "~/expressUtils";
 import { ScrapImdbRuntimeConfig } from "~/types/RouteLibraryScrapImdb";
+import { userHasSessionMiddleware } from "~/middlewares/userHasSession";
 
 import { searchPost } from "#/search/index";
+import { latestSerieGet, latestTitleGet } from "./latest";
 import {
   titleGetByImdbId,
   getTitleCastsFromMovieImdbId,
@@ -14,6 +16,7 @@ import {
   getTitleWritersFromMovieImdbId,
   getTitleRolesFromMovieImdbId,
 } from "#/title/index";
+import { serieGet, serieGetSeaons } from "./serie";
 import { titleGetSearch } from "#/title/search";
 
 const prisma = new PrismaClient();
@@ -21,57 +24,8 @@ const app: Express = express();
 const port = process.env.PORT ?? "8081";
 
 const ROUTES: ScrapImdbRuntimeConfig = [
-  buildSingleRuntimeConfigEntry("get", "/latest-movie/", async () => {
-    const response = await prisma.file.findMany({
-      take: 50,
-      orderBy: {
-        title: {
-          createdOn: "asc",
-        },
-      },
-      where: {
-        title: {
-          seasonId: null,
-        },
-      },
-      select: {
-        title: true,
-      },
-    });
-
-    return response.map((e) => e.title);
-  }),
-  buildSingleRuntimeConfigEntry("get", "/latest-serie/", async (prisma) => {
-    const results = await prisma.serie.findMany({
-      orderBy: {
-        createdOn: "asc",
-      },
-      take: 10,
-      select: {
-        createdOn: true,
-        imdbId: true,
-        name: true,
-        pictureUrl: true,
-        storyline: true,
-        _count: {
-          select: {
-            seasons: true,
-          },
-        },
-        seasons: {
-          select: {
-            _count: {
-              select: {
-                episodes: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    return results;
-  }),
+  buildSingleRuntimeConfigEntry("get", "/latest-movie/", latestTitleGet),
+  buildSingleRuntimeConfigEntry("get", "/latest-serie/", latestSerieGet),
   buildSingleRuntimeConfigEntry(
     "get",
     "/file/titleImdbId/:imdbId",
@@ -83,62 +37,11 @@ const ROUTES: ScrapImdbRuntimeConfig = [
       });
     }
   ),
-  buildSingleRuntimeConfigEntry(
-    "get",
-    "/serie/:imdbId",
-    async (prisma, req) => {
-      const { imdbId } = req.params;
-
-      return await prisma.serie.findFirstOrThrow({
-        where: {
-          imdbId: imdbId,
-        },
-        select: {
-          createdOn: true,
-          imdbId: true,
-          name: true,
-          pictureUrl: true,
-          storyline: true,
-          seasons: {
-            select: {
-              id: true,
-              serieImdbId: true,
-              episodes: true,
-            },
-          },
-        },
-      });
-    }
-  ),
+  buildSingleRuntimeConfigEntry("get", "/serie/:imdbId", serieGet),
   buildSingleRuntimeConfigEntry(
     "get",
     "/serie/:imdbId/seasons",
-    async (prisma, req) => {
-      const { imdbId } = req.params;
-      const serie = await prisma.serie.findUniqueOrThrow({
-        where: {
-          imdbId,
-        },
-        include: {
-          seasons: {
-            include: {
-              episodes: true,
-            },
-          },
-        },
-      });
-
-      return {
-        seasons: serie.seasons,
-        serie: {
-          createdOn: serie.createdOn,
-          imdbId: serie.imdbId,
-          name: serie.name,
-          pictureUrl: serie.pictureUrl,
-          storyline: serie.storyline,
-        },
-      };
-    }
+    serieGetSeaons
   ),
   buildSingleRuntimeConfigEntry("get", "/title/:imdbId", titleGetByImdbId),
   buildSingleRuntimeConfigEntry(
@@ -178,6 +81,9 @@ const ROUTES: ScrapImdbRuntimeConfig = [
 
 app.use(bodyParser.json());
 app.use(cookieParser());
+app.use((req, res, next) => {
+  userHasSessionMiddleware.bind({ prisma })(req, res, next);
+});
 
 for (const index in ROUTES) {
   const [verb, url, handler] = ROUTES[index];
