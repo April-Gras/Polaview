@@ -2,7 +2,7 @@
 import { defineComponent } from "vue";
 import { useRoute } from "vue-router";
 
-import { SeasonSummary } from "~/types/RouteLibraryScrapImdb";
+import { SeasonSummary } from "~/types/RouteLibraryScraper";
 import { Serie } from ".prisma/client";
 
 import { addAwsDirectivesToPictureUrl } from "@/utils/addAwsDirectiveToPictureUrl";
@@ -24,7 +24,7 @@ export default defineComponent({
     addAwsDirectivesToPictureUrl,
   },
   created() {
-    this.$getScrapImdbRequest(`/serie/${this.imdbId}/seasons`).then(
+    this.$getScraperRequest(`/serie/${this.imdbId}/seasons`).then(
       ({ data }) => {
         this.summary = data;
       }

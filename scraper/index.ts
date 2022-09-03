@@ -4,10 +4,10 @@ import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 
 import { buildSingleRuntimeConfigEntry } from "~/expressUtils";
-import { ScrapImdbRuntimeConfig } from "~/types/RouteLibraryScrapImdb";
+import { ScraperRuntimeConfig } from "~/types/RouteLibraryScraper";
 import { userHasSessionMiddleware } from "~/middlewares/userHasSession";
 
-import { searchPost } from "#/search/index";
+import { searchPost } from "scraper/search/index";
 import { latestSerieGet, latestTitleGet } from "./latest";
 import {
   titleGetByImdbId,
@@ -15,15 +15,15 @@ import {
   getTitleDirectorFromMovieImdbId,
   getTitleWritersFromMovieImdbId,
   getTitleRolesFromMovieImdbId,
-} from "#/title/index";
+} from "scraper/title/index";
 import { serieGet, serieGetSeaons } from "./serie";
-import { titleGetSearch } from "#/title/search";
+import { titleGetSearch } from "scraper/title/search";
 
 const prisma = new PrismaClient();
 const app: Express = express();
 const port = process.env.PORT ?? "8081";
 
-const ROUTES: ScrapImdbRuntimeConfig = [
+const ROUTES: ScraperRuntimeConfig = [
   buildSingleRuntimeConfigEntry("get", "/latest-movie/", latestTitleGet),
   buildSingleRuntimeConfigEntry("get", "/latest-serie/", latestSerieGet),
   buildSingleRuntimeConfigEntry(
@@ -104,5 +104,5 @@ for (const index in ROUTES) {
 }
 
 app.listen(port, () => {
-  console.log(`ܡ scrapper is running at http://localhost:${port}`);
+  console.log(`ܡ scraper is running at http://localhost:${port}`);
 });

@@ -1,5 +1,5 @@
 import { GetRouteDataHandlerFromUrlAndVerb } from "~/types/Route";
-import { AllRoutes } from "~/types/RouteLibraryScrapImdb";
+import { AllRoutes } from "~/types/RouteLibraryScraper";
 
 export const serieGet: GetRouteDataHandlerFromUrlAndVerb<
   "get",

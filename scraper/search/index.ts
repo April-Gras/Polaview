@@ -1,9 +1,9 @@
 import { spawn, Worker } from "threads";
-import { SearchThreadWorker } from "#/workers/search";
-import { SaveSearchThreadWorker } from "#/workers/saveSearch";
+import { SearchThreadWorker } from "scraper/workers/search";
+import { SaveSearchThreadWorker } from "scraper/workers/saveSearch";
 
 import { GetRouteDataHandlerFromUrlAndVerb } from "~/types/Route";
-import { AllRoutes } from "~/types/RouteLibraryScrapImdb";
+import { AllRoutes } from "~/types/RouteLibraryScraper";
 
 export const searchPost: GetRouteDataHandlerFromUrlAndVerb<
   "post",

@@ -1,0 +1,26 @@
+FROM node:lts
+
+RUN mkdir -p /scraper/
+WORKDIR /scraper
+
+ENV THREADS_WORKER_INIT_TIMEOUT=1000000
+
+COPY tsconfig.node.json /scraper/tsconfig.node.json
+COPY tsconfig.json /scraper/tsconfig.json
+COPY package.json /scraper/package.json
+COPY nodemon.config.json /scraper/nodemon.config.json
+
+COPY shared /scraper/shared
+COPY prisma /scraper/prisma
+COPY .env /scraper/.env
+COPY scraper /scraper/scraper
+
+COPY node_modules /scraper/node_modules/
+
+# Install dependencies
+# RUN yarn install
+
+# Prisma routine
+RUN npx prisma generate
+
+EXPOSE 8081

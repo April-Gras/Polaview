@@ -1,7 +1,7 @@
 import { expose } from "threads/worker";
 import { PrismaClient, ImdbSearch } from "@prisma/client";
 
-import { upsertSingleSearch } from "#/transactions/upsertSingleSearch";
+import { upsertSingleSearch } from "scraper/transactions/upsertSingleSearch";
 
 export type SaveSearchThreadWorkerReturn = void;
 export type SaveSearchThreadWorker = (context: {

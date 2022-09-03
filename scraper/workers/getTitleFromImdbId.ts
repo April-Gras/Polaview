@@ -5,17 +5,17 @@ import {
 } from "./getSeason";
 import { Title, Person, Serie, Role } from "@prisma/client";
 
-import { getImdbPageFromUrlAxiosTransporter } from "#/utils/provideAxiosGet";
+import { getImdbPageFromUrlAxiosTransporter } from "scraper/utils/provideAxiosGet";
 import { JSDOM } from "jsdom";
 
-import { getStoryLineFromDocucment } from "#/utils/getStorylineFromTitlePage";
+import { getStoryLineFromDocucment } from "scraper/utils/getStorylineFromTitlePage";
 import {
   getCastFromTitleDocument,
   getFullCreditDocumentFromTitleImdbId,
   getStaffByTypeFromFullCreditDocument,
   getRolesIdFromFullCreditDocumentAndTitleImdb,
-} from "#/utils/getPersonsFromTitlePage";
-import { removePictureCropDirectiveFromUrl } from "#/utils/removePictureCropDirectivesFromUrl";
+} from "scraper/utils/getPersonsFromTitlePage";
+import { removePictureCropDirectiveFromUrl } from "scraper/utils/removePictureCropDirectivesFromUrl";
 
 export type GetTitleDataFromImdbIdThreadWorkerResult = {
   serie?: Serie;

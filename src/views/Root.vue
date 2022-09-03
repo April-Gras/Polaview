@@ -8,7 +8,7 @@ import SerieCardVue from "@/components/cards/SerieCard.vue";
 import TitleCardVue from "@/components/cards/TitleCard.vue";
 import VSearchInputVue from "@/components/ui/VSearchInput.vue";
 
-import type { SerieSummary } from "~/types/RouteLibraryScrapImdb";
+import type { SerieSummary } from "~/types/RouteLibraryScraper";
 
 import { useUserStore } from "@/stores/user";
 
@@ -37,12 +37,12 @@ export default defineComponent({
   },
   methods: {
     async fetchLatestMovies() {
-      const { data } = await this.$getScrapImdbRequest("/latest-movie/");
+      const { data } = await this.$getScraperRequest("/latest-movie/");
 
       this.latestMovies = data;
     },
     async fetchSerieSummarys() {
-      const { data } = await this.$getScrapImdbRequest("/latest-serie/");
+      const { data } = await this.$getScraperRequest("/latest-serie/");
 
       this.latestSeries = data;
     },

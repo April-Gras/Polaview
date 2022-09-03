@@ -1,13 +1,13 @@
 import { expose } from "threads";
 import { Title, Person, PrismaClient, Serie, Role } from "@prisma/client";
 
-import { updateCollectionOfTitleSeasonId } from "#/transactions/updateCollectionOfTitleSeasonId";
-import { upsertCollectionOfPerson } from "#/transactions/upsertCollectionOfPerson";
-import { upsertCollectionOfRole } from "#/transactions/upsertCollectionOfRole";
-import { upsertCollectionOfSeason } from "#/transactions/upsertCollectionOfSeason";
-import { upsertCollectionOfTitle } from "#/transactions/upsertCollectionOfTitle";
-import { upsertCollectionOfTitleOnPersonObject } from "#/transactions/upsertCollectionOfTitleOnCast";
-import { upsertSingleSerie } from "#/transactions/upsertSingleSerie";
+import { updateCollectionOfTitleSeasonId } from "scraper/transactions/updateCollectionOfTitleSeasonId";
+import { upsertCollectionOfPerson } from "scraper/transactions/upsertCollectionOfPerson";
+import { upsertCollectionOfRole } from "scraper/transactions/upsertCollectionOfRole";
+import { upsertCollectionOfSeason } from "scraper/transactions/upsertCollectionOfSeason";
+import { upsertCollectionOfTitle } from "scraper/transactions/upsertCollectionOfTitle";
+import { upsertCollectionOfTitleOnPersonObject } from "scraper/transactions/upsertCollectionOfTitleOnCast";
+import { upsertSingleSerie } from "scraper/transactions/upsertSingleSerie";
 
 export type SaveTitleAndPersonsThreadWorkerResult = void;
 export type Collection = {

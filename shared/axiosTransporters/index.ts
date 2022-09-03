@@ -9,9 +9,9 @@ export const serverApiTransporter = axios.create({
 });
 
 /**
- * Base axios transporter to reach the imdb scrapper service
+ * Base axios transporter to reach the imdb scraper service
  */
-export const scrapImdbTransporter = axios.create({
-  baseURL: "/scrapimdb",
+export const scraperTransporter = axios.create({
+  baseURL: "/scraper",
   withCredentials: true,
 });

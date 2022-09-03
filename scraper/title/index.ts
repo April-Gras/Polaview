@@ -1,8 +1,8 @@
 import { GetRouteDataHandlerFromUrlAndVerb } from "~/types/Route";
-import { AllRoutes } from "~/types/RouteLibraryScrapImdb";
+import { AllRoutes } from "~/types/RouteLibraryScraper";
 
-import { GetTitleDataFromImdbIdThreadWorker } from "#/workers/getTitleFromImdbId";
-import { SaveTitleAndPersonsThreadWorker } from "#/workers/saveTitleAndCast";
+import { GetTitleDataFromImdbIdThreadWorker } from "scraper/workers/getTitleFromImdbId";
+import { SaveTitleAndPersonsThreadWorker } from "scraper/workers/saveTitleAndCast";
 
 import { Worker, spawn } from "threads";
 import { Title } from "@prisma/client";

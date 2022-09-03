@@ -1,9 +1,9 @@
 import { expose } from "threads/worker";
-import { removePictureCropDirectiveFromUrl } from "#/utils/removePictureCropDirectivesFromUrl";
-import { extractImdbIdFromTitleLink } from "#/utils/extractImdbIdsFromUrl";
+import { removePictureCropDirectiveFromUrl } from "scraper/utils/removePictureCropDirectivesFromUrl";
+import { extractImdbIdFromTitleLink } from "scraper/utils/extractImdbIdsFromUrl";
 import { Title } from "@prisma/client";
 
-import { getImdbPageFromUrlAxiosTransporter } from "#/utils/provideAxiosGet";
+import { getImdbPageFromUrlAxiosTransporter } from "scraper/utils/provideAxiosGet";
 import { JSDOM } from "jsdom";
 
 export type SearchThreadWorkerReturn = {

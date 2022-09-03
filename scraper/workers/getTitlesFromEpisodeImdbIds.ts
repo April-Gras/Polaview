@@ -5,12 +5,12 @@ import {
   getFullCreditDocumentFromTitleImdbId,
   getStaffByTypeFromFullCreditDocument,
   getRolesIdFromFullCreditDocumentAndTitleImdb,
-} from "#/utils/getPersonsFromTitlePage";
-import { removePictureCropDirectiveFromUrl } from "#/utils/removePictureCropDirectivesFromUrl";
+} from "scraper/utils/getPersonsFromTitlePage";
+import { removePictureCropDirectiveFromUrl } from "scraper/utils/removePictureCropDirectivesFromUrl";
 
 import { JSDOM } from "jsdom";
-import { getImdbPageFromUrlAxiosTransporter } from "#/utils/provideAxiosGet";
-import { getStoryLineFromDocucment } from "#/utils/getStorylineFromTitlePage";
+import { getImdbPageFromUrlAxiosTransporter } from "scraper/utils/provideAxiosGet";
+import { getStoryLineFromDocucment } from "scraper/utils/getStorylineFromTitlePage";
 
 export type GetTitleFromEpisodesImdbIdThreadWorkerReturn = {
   title: Title;

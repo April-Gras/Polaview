@@ -1,5 +1,5 @@
 import { Prisma, PrismaClient } from "@prisma/client";
-import { Collection } from "#/workers/saveTitleAndCast";
+import { Collection } from "scraper/workers/saveTitleAndCast";
 
 export function upsertCollectionOfRole(
   prisma: PrismaClient,

@@ -1,7 +1,7 @@
 import { JSDOM } from "jsdom";
-import { getImdbPageFromUrlAxiosTransporter } from "#/utils/provideAxiosGet";
+import { getImdbPageFromUrlAxiosTransporter } from "scraper/utils/provideAxiosGet";
 
-import { getImdbIdFromCastLink } from "#/utils/extractImdbIdsFromUrl";
+import { getImdbIdFromCastLink } from "scraper/utils/extractImdbIdsFromUrl";
 import { removePictureCropDirectiveFromUrl } from "./removePictureCropDirectivesFromUrl";
 import { Person, Role } from "@prisma/client";
 

@@ -7,7 +7,7 @@
     "client-build": "vite build --watch",
     "client-preview": "vite preview",
     "server-dev": "nodemon ./server/index.ts",
-    "scrapimdb-dev": "nodemon ./scrapimdb/index.ts",
+    "scraper-dev": "nodemon ./scraper/index.ts",
     "lint:check": "eslint \"**/*.{ts,js,vue}\"",
     "lint:fix": "eslint --fix \"**/*.{ts,js,vue}\"",
     "format:check": "prettier --check .",

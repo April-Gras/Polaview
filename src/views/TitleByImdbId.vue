@@ -33,31 +33,31 @@ export default defineComponent({
     };
   },
   created() {
-    this.$getScrapImdbRequest(`/title/${this.imdbId as string}`)
+    this.$getScraperRequest(`/title/${this.imdbId as string}`)
       .then(({ data }) => (this.title = data))
       .then(() => {
         if (!this.title) return;
-        this.$getScrapImdbRequest(
-          `/file/titleImdbId/${this.title.imdbId}`
-        ).then(({ data }) => {
-          this.file = data;
-        });
-        this.$getScrapImdbRequest(`/title/${this.imdbId}/cast`).then(
+        this.$getScraperRequest(`/file/titleImdbId/${this.title.imdbId}`).then(
+          ({ data }) => {
+            this.file = data;
+          }
+        );
+        this.$getScraperRequest(`/title/${this.imdbId}/cast`).then(
           ({ data }) => {
             this.cast = data;
           }
         );
-        this.$getScrapImdbRequest(`/title/${this.imdbId}/writers`).then(
+        this.$getScraperRequest(`/title/${this.imdbId}/writers`).then(
           ({ data }) => {
             this.writers = data;
           }
         );
-        this.$getScrapImdbRequest(`/title/${this.imdbId}/directors`).then(
+        this.$getScraperRequest(`/title/${this.imdbId}/directors`).then(
           ({ data }) => {
             this.directors = data;
           }
         );
-        this.$getScrapImdbRequest(`/title/${this.imdbId}/roles`).then(
+        this.$getScraperRequest(`/title/${this.imdbId}/roles`).then(
           ({ data }) => {
             this.roles = data;
           }

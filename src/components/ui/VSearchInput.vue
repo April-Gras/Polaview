@@ -24,7 +24,7 @@ export default defineComponent({
       const searchTerm = this.search.trim();
 
       if (!searchTerm.length) return this.resetResults();
-      const { data } = await this.$getScrapImdbRequest(
+      const { data } = await this.$getScraperRequest(
         `/title/search/${this.search}`
       );
 

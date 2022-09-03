@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
 
-import type { SerieSummary } from "~/types/RouteLibraryScrapImdb";
+import type { SerieSummary } from "~/types/RouteLibraryScraper";
 
 import CommonTemplateVue from "./CommonTemplate.vue";
 

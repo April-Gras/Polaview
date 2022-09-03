@@ -58,25 +58,25 @@ services:
     networks:
       - polaview.network
     depends_on:
-      - scrapimdb
+      - scraper
       - client
       - server
 
-  scrapimdb:
-    image: scrapimdb
+  scraper:
+    image: scraper
     build:
       context: .
-      dockerfile: Dockerfile.scrapimdb
+      dockerfile: Dockerfile.scraper
     networks:
       - polaview.network
     ports:
       - 8081:8081
     restart: unless-stopped
-    command: npm run scrapimdb-dev
+    command: npm run scraper-dev
     volumes:
-      - ./scrapimdb:/scrapper/scrapimdb
-      - ./shared:/scrapper/shared
-      - ./node_modules:/scrapper/node_modules
+      - ./scraper:/scraper/scraper
+      - ./shared:/scraper/shared
+      - ./node_modules:/scraper/node_modules
 
   postgres:
     container_name: pg_container

@@ -6,12 +6,12 @@ import {
   AxiosDeleteRequest,
   AxiosPatchRequest,
   AxiosPostRequest,
-  AxiosScrapperPostRequest,
-  AxiosScrapperGetRequest,
+  AxiosScraperPostRequest,
+  AxiosScraperGetRequest,
 } from "~/types/Axios";
 import {
   serverApiTransporter,
-  scrapImdbTransporter,
+  scraperTransporter,
 } from "~/axiosTransporters/index";
 
 // Vue3 Plugin
@@ -21,9 +21,8 @@ export const axiosPlugin: Plugin = {
     app.config.globalProperties.$getRequest = serverApiTransporter.get;
     app.config.globalProperties.$deleteRequest = serverApiTransporter.delete;
     app.config.globalProperties.$patchRequest = serverApiTransporter.patch;
-    app.config.globalProperties.$postScrapImdbRequest =
-      scrapImdbTransporter.post;
-    app.config.globalProperties.$getScrapImdbRequest = scrapImdbTransporter.get;
+    app.config.globalProperties.$postScraperRequest = scraperTransporter.post;
+    app.config.globalProperties.$getScraperRequest = scraperTransporter.get;
   },
 };
 
@@ -33,8 +32,8 @@ declare module "vue" {
     $getRequest: AxiosGetRequest;
     $patchRequest: AxiosPatchRequest;
     $deleteRequest: AxiosDeleteRequest;
-    $postScrapImdbRequest: AxiosScrapperPostRequest;
-    $getScrapImdbRequest: AxiosScrapperGetRequest;
+    $postScraperRequest: AxiosScraperPostRequest;
+    $getScraperRequest: AxiosScraperGetRequest;
   }
 }
 
@@ -49,9 +48,9 @@ export function axiosPiniaPlugin({ store }: PiniaPluginContext) {
   // @ts-ignore
   store.$deleteRequest = markRaw(serverApiTransporter.delete);
   // @ts-ignore
-  store.$postScrapImdbRequest = markRaw(scrapImdbTransporter.post);
+  store.$postScraperRequest = markRaw(scraperTransporter.post);
   // @ts-ignore
-  store.$getScrapImdbRequest = markRaw(scrapImdbTransporter.get);
+  store.$getScraperRequest = markRaw(scraperTransporter.get);
 }
 
 declare module "pinia" {
@@ -60,7 +59,7 @@ declare module "pinia" {
     $getRequest: AxiosGetRequest;
     $patchRequest: AxiosPatchRequest;
     $deleteRequest: AxiosDeleteRequest;
-    $postScrapImdbRequest: AxiosScrapperPostRequest;
-    $getScrapImdbRequest: AxiosScrapperGetRequest;
+    $postScraperRequest: AxiosScraperPostRequest;
+    $getScraperRequest: AxiosScraperGetRequest;
   }
 }

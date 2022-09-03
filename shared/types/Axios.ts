@@ -6,7 +6,7 @@ import {
 } from "~/types/Route";
 import { AxiosRequestConfig, AxiosResponse } from "axios";
 import { AllRoutes as ServerRoutes } from "~/types/RouteLibraryServer";
-import { AllRoutes as ScrapImdbRoutes } from "~/types/RouteLibraryScrapImdb";
+import { AllRoutes as ScraperRoutes } from "~/types/RouteLibraryScraper";
 
 type Primitive = number | string;
 
@@ -82,13 +82,13 @@ export type AxiosPostRequest = BuildAxiosHandler<PostRoutes>;
 export type AxiosPatchRequest = BuildAxiosHandler<PatchRoutes>;
 export type AxiosDeleteRequest = BuildAxiosHandler<DeleteRoutes>;
 
-type ScrapImdbPostRoutes = PrepExpressRoutesToLiveUrls<
-  ExtractRouteEntriesByVerb<"post", ScrapImdbRoutes>
+type ScraperPostRoutes = PrepExpressRoutesToLiveUrls<
+  ExtractRouteEntriesByVerb<"post", ScraperRoutes>
 >;
 
-type ScrapImdbGetRoutes = PrepExpressRoutesToLiveUrls<
-  ExtractRouteEntriesByVerb<"get", ScrapImdbRoutes>
+type ScraperGetRoutes = PrepExpressRoutesToLiveUrls<
+  ExtractRouteEntriesByVerb<"get", ScraperRoutes>
 >;
 
-export type AxiosScrapperPostRequest = BuildAxiosHandler<ScrapImdbPostRoutes>;
-export type AxiosScrapperGetRequest = BuildAxiosHandler<ScrapImdbGetRoutes>;
+export type AxiosScraperPostRequest = BuildAxiosHandler<ScraperPostRoutes>;
+export type AxiosScraperGetRequest = BuildAxiosHandler<ScraperGetRoutes>;

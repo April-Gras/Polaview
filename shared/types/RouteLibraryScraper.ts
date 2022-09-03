@@ -67,4 +67,4 @@ export type AllRoutes = [
   // DELETE
 ];
 
-export type ScrapImdbRuntimeConfig = RuntimeConfigBuilder<AllRoutes>;
+export type ScraperRuntimeConfig = RuntimeConfigBuilder<AllRoutes>;

@@ -1,14 +1,14 @@
 import { expose, Worker, spawn, Pool } from "threads";
 import { Title, Person, Serie, Role } from "@prisma/client";
 
-import { extractImdbIdFromTitleLink } from "#/utils/extractImdbIdsFromUrl";
-import { removePictureCropDirectiveFromUrl } from "#/utils/removePictureCropDirectivesFromUrl";
+import { extractImdbIdFromTitleLink } from "scraper/utils/extractImdbIdsFromUrl";
+import { removePictureCropDirectiveFromUrl } from "scraper/utils/removePictureCropDirectivesFromUrl";
 import {
   GetTitleFromEpisodesImdbIdThreadWorker,
   GetTitleFromEpisodesImdbIdThreadWorkerReturn,
 } from "./getTitlesFromEpisodeImdbIds";
 
-import { getImdbPageFromUrlAxiosTransporter } from "#/utils/provideAxiosGet";
+import { getImdbPageFromUrlAxiosTransporter } from "scraper/utils/provideAxiosGet";
 import { JSDOM } from "jsdom";
 
 export type GetSeasonWorkerThreadReturn = {

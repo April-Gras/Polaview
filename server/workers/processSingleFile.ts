@@ -12,8 +12,8 @@ import { PrismaClient, Title, ImdbSearch } from "@prisma/client";
 import { compareTwoStrings } from "string-similarity";
 
 import {
-  makeServersideGetScrapImdb,
-  makeServersidePostScrapImdb,
+  makeServersideGetScraper,
+  makeServersidePostScraper,
 } from "#/axiosTransporter";
 
 import { SearchType } from "~/types/Search";
@@ -44,7 +44,7 @@ const processSingleFileThreadWorker: ProcessSingleFileThreadWorker =
     try {
       console.log(applyInfoColor(`Looking for ${cleanTitleName}`));
       const searchDataResponse = (
-        await makeServersidePostScrapImdb("/search", {
+        await makeServersidePostScraper("/search", {
           term: cleanTitleName,
           typesToCheck: fileIsProbablyPartOfSerie
             ? [SearchType.TV]
@@ -65,7 +65,7 @@ const processSingleFileThreadWorker: ProcessSingleFileThreadWorker =
 
       try {
         const titleData = (
-          await makeServersideGetScrapImdb(
+          await makeServersideGetScraper(
             `/title/${matchingSearchElement.imdbId}`
           )
         ).data;
@@ -75,7 +75,7 @@ const processSingleFileThreadWorker: ProcessSingleFileThreadWorker =
         await saveFileAndConnectToTitle(sourcePath, wholePath, titleData);
       } catch (_) {
         const serieData = (
-          await makeServersideGetScrapImdb(
+          await makeServersideGetScraper(
             `/serie/${matchingSearchElement.imdbId}`
           )
         ).data;

@@ -6,7 +6,7 @@
     "paths": {
       "~/*": ["./shared/*"],
       "@/*": ["./src/*"],
-      "#/*": ["./server/*", "./scrapimdb/*"]
+      "#/*": ["./server/*", "scraper/*"]
     },
     "sourceMap": true,
     "moduleResolution": "Node",
