@@ -12,7 +12,6 @@ import { buildSingleRuntimeConfigEntry } from "~/expressUtils";
 import { AllRoutes } from "~/types/RouteLibraryServer";
 
 import { userIsAdminMiddleware } from "~/middlewares/userIsAdmin";
-import { userHasSessionMiddleware } from "~/middlewares/userHasSession";
 
 import { startupCreateBaseUsers } from "#/startupUtils/createBaseUser";
 import { startupProcessSources } from "#/startupUtils/processSources";

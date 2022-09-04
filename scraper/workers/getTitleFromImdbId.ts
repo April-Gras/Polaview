@@ -74,7 +74,7 @@ const getTitleDataFromImdbIdWorker: GetTitleDataFromImdbIdThreadWorker = async (
           releaseYear,
           name,
           storyline: getStoryLineFromDocucment(document),
-          pictureUrl: pictureUrl?.toString() ?? null,
+          pictureUrl: pictureUrl || null,
           seasonId: null,
           episodeNumber: 0,
           createdOn: new Date(),

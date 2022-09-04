@@ -1,9 +1,14 @@
 import { JSDOM } from "jsdom";
+import { Person, Role } from "@prisma/client";
+import { Pool, spawn, Worker } from "threads";
 import { getImdbPageFromUrlAxiosTransporter } from "scraper/utils/provideAxiosGet";
 
-import { getImdbIdFromCastLink } from "scraper/utils/extractImdbIdsFromUrl";
+import { getImdbIdFromCastLink } from "#/utils/extractImdbIdsFromUrl";
 import { removePictureCropDirectiveFromUrl } from "./removePictureCropDirectivesFromUrl";
-import { Person, Role } from "@prisma/client";
+import {
+  GetTitleRoleByImdbIdsThreadWorker,
+  GetTitleRoleByImdbIdsThreadWorkerReturn,
+} from "#/workers/getTitleRoleByImdbIds";
 
 export function getCastFromTitleDocument(document: Document) {
   const persons = [] as Person[];
@@ -45,18 +50,19 @@ export async function getStaffByTypeFromFullCreditDocument(
   document: Document,
   personType: "writer" | "director"
 ) {
-  const peopleElements = Array.from(
+  const peopleImdbIds = Array.from(
     document.querySelectorAll(
       `#${personType} + table.simpleTable.simpleCreditsTable > tbody > tr > td.name > a`
     )
-  );
+  ).reduce((accumulator, element) => {
+    const id = getImdbIdFromCastLink(element.getAttribute("href"));
+
+    if (!accumulator.includes(id)) accumulator.push(id);
+    return accumulator;
+  }, [] as string[]);
   const peoples = [] as Person[];
 
-  for (const element of peopleElements) {
-    const link = element.getAttribute("href");
-    const imdbId = getImdbIdFromCastLink(link);
-
-    if (peoples.some((person) => person.imdbId === imdbId)) continue;
+  for (const imdbId of peopleImdbIds) {
     try {
       peoples.push(await getPersonFromPersonImdbId(imdbId));
     } catch (_) {
@@ -64,75 +70,6 @@ export async function getStaffByTypeFromFullCreditDocument(
     }
   }
   return peoples;
-}
-
-export async function getRolesIdFromFullCreditDocumentAndTitleImdb(
-  document: Document,
-  titleImdbId: string
-): Promise<Role[]> {
-  const roleElements = Array.from(
-    document.querySelectorAll(`.cast_list > tbody > tr > .character > a`)
-  );
-  const roles = [] as Role[];
-
-  for (const element of roleElements) {
-    const regex = new RegExp("(?<imdbId>nm[0-9]*)", "gim");
-    const link = element.getAttribute("href");
-    if (!link) continue;
-
-    const matches = regex.exec(link);
-    if (!matches || !matches.groups || !matches.groups.imdbId) continue;
-    try {
-      roles.push(
-        await getTitleRoleByImdbIds(titleImdbId, matches.groups.imdbId)
-      );
-    } catch (_) {
-      console.log(_);
-      continue;
-    }
-  }
-  return roles;
-}
-
-async function getTitleRoleByImdbIds(
-  titleImdbId: string,
-  personImdbId: string
-): Promise<Role> {
-  const url = `https://www.imdb.com/title/${titleImdbId}/characters/${personImdbId}/`;
-  const { data } = await getImdbPageFromUrlAxiosTransporter.get(url);
-  const { document } = new JSDOM(data).window;
-  const nameCaptureRegex = /.*: (?<name>.*)/gi;
-
-  const nameElement = document.querySelector(".header");
-
-  if (!nameElement || !nameElement.textContent)
-    throw new Error(
-      `No name element for ${personImdbId} in title ${titleImdbId}`
-    );
-  const matches = nameCaptureRegex.exec(nameElement.textContent);
-  if (!matches || !matches.groups || !matches.groups.name)
-    throw new Error(
-      `No regex matches for ${personImdbId} in title ${titleImdbId}`
-    );
-
-  return {
-    name: matches.groups.name,
-    pictureUrl: getPicturesFromRolePageDocument(document),
-    imdbId: personImdbId,
-    personImdbId,
-    titleImdbId,
-  };
-}
-
-function getPicturesFromRolePageDocument(document: Document): string | null {
-  const pictureElement = document.querySelector(
-    ".titlecharacters-image-grid > a > img"
-  );
-
-  if (!pictureElement) return null;
-  const pictureLink = pictureElement.getAttribute("src");
-  if (!pictureLink) return null;
-  return removePictureCropDirectiveFromUrl(pictureLink);
 }
 
 async function getPersonFromPersonImdbId(imdbId: string): Promise<Person> {
@@ -158,4 +95,40 @@ async function getPersonFromPersonImdbId(imdbId: string): Promise<Person> {
       ? removePictureCropDirectiveFromUrl(pictureElement.getAttribute("src"))
       : null,
   };
+}
+
+export async function getRolesIdFromFullCreditDocumentAndTitleImdb(
+  document: Document,
+  titleImdbId: string
+): Promise<Role[]> {
+  const roleElements = Array.from(
+    document.querySelectorAll(`.cast_list > tbody > tr > .character > a`)
+  );
+  const personImdbIds = roleElements.reduce((accumulator, element) => {
+    const regex = new RegExp("(?<imdbId>nm[0-9]*)", "gim");
+    const link = element.getAttribute("href");
+    if (!link) return accumulator;
+
+    const matches = regex.exec(link);
+    if (!matches || !matches.groups || !matches.groups.imdbId)
+      return accumulator;
+    accumulator.push(matches.groups.imdbId);
+    return accumulator;
+  }, [] as string[]);
+  const threadPool = Pool(() =>
+    spawn<GetTitleRoleByImdbIdsThreadWorker>(
+      new Worker("../workers/getTitleRoleByImdbIds")
+    )
+  );
+  const tasks = personImdbIds.map((personImdbId) =>
+    threadPool.queue((task) => task(titleImdbId, personImdbId))
+  );
+  const results =
+    await Promise.allSettled<GetTitleRoleByImdbIdsThreadWorkerReturn>(tasks);
+
+  return results.reduce((accumulator, promise) => {
+    if (promise.status === "rejected" || !promise.value) return accumulator;
+    accumulator.push(promise.value);
+    return accumulator;
+  }, [] as Role[]);
 }
