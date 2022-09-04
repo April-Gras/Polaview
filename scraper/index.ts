@@ -16,6 +16,7 @@ import {
   getTitleWritersFromMovieImdbId,
   getTitleRolesFromMovieImdbId,
 } from "scraper/title/index";
+import { fileGetByTitleImdbId } from "./file";
 import { serieGet, serieGetSeaons } from "./serie";
 import { titleGetSearch } from "scraper/title/search";
 
@@ -29,13 +30,7 @@ const ROUTES: ScraperRuntimeConfig = [
   buildSingleRuntimeConfigEntry(
     "get",
     "/file/titleImdbId/:imdbId",
-    async (prisma, req) => {
-      return await prisma.file.findFirstOrThrow({
-        where: {
-          titleImdbId: req.params.imdbId,
-        },
-      });
-    }
+    fileGetByTitleImdbId
   ),
   buildSingleRuntimeConfigEntry("get", "/serie/:imdbId", serieGet),
   buildSingleRuntimeConfigEntry(

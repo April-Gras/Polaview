@@ -1,4 +1,4 @@
-FROM node:lts
+FROM node:lts as dev_build
 
 ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES video,compute,utility
@@ -22,12 +22,13 @@ RUN cd ~/nvidia/ffmpeg/ \
   && ./configure \
   && make -j $(nproc)
 
+# RUN apt update && apt install ffmpeg -y
+
 WORKDIR /api
 
 COPY tsconfig.node.json /api/tsconfig.node.json
 COPY tsconfig.json /api/tsconfig.json
 COPY package.json /api/package.json
-COPY nodemon.config.json /api/nodemon.config.json
 
 COPY shared /api/shared
 COPY prisma /api/prisma
@@ -40,3 +41,7 @@ COPY node_modules /api/node_modules
 RUN npx prisma generate
 
 EXPOSE 8080
+
+FROM dev_build as prod_build
+
+RUN npm run server-build

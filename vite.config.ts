@@ -25,13 +25,11 @@ export default defineConfig({
             src: "/favicon_258.png",
             sizes: "258x258",
             type: "image/png",
-            purpose: "maskable",
           },
           {
             src: "/favicon_512.png",
             sizes: "512x512",
             type: "image/png",
-            purpose: "maskable",
           },
         ],
       },

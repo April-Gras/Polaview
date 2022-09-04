@@ -1,4 +1,4 @@
-FROM node:lts
+FROM node:lts AS dev_build
 
 RUN mkdir -p /scraper/
 WORKDIR /scraper
@@ -8,7 +8,6 @@ ENV THREADS_WORKER_INIT_TIMEOUT=1000000
 COPY tsconfig.node.json /scraper/tsconfig.node.json
 COPY tsconfig.json /scraper/tsconfig.json
 COPY package.json /scraper/package.json
-COPY nodemon.config.json /scraper/nodemon.config.json
 
 COPY shared /scraper/shared
 COPY prisma /scraper/prisma
@@ -24,3 +23,7 @@ COPY node_modules /scraper/node_modules/
 RUN npx prisma generate
 
 EXPOSE 8081
+
+FROM dev_build AS prod_build
+
+RUN npm run scraper-build

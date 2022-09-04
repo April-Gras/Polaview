@@ -1,4 +1,0 @@
-services:
-  mediavolume:
-    volume:
-      - /media/${USER}:/openMedia

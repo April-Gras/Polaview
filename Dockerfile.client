@@ -1,4 +1,4 @@
-FROM node:lts
+FROM node:lts AS dev_build
 
 RUN mkdir -p /client/
 WORKDIR /client

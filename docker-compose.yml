@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.server
+      target: dev_build
     networks:
       - polaview.network
     ports:
@@ -31,6 +32,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.client
+      target: dev_build
     networks:
       - polaview.network
     ports:
@@ -38,13 +40,11 @@ services:
       - 3010:3010
     restart: unless-stopped
     tty: true
-    # command: npm run client-build
     command: npm run client-dev
     volumes:
       - ./src:/client/src
       - ./shared:/client/shared
       - ./node_modules:/client/node_modules
-      - ./dist:/client/dist
 
   nginx:
     image: nginx
@@ -67,6 +67,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.scraper
+      target: dev_build
     networks:
       - polaview.network
     ports:
@@ -92,18 +93,6 @@ services:
       - db:/var/lib/postgresql/data
     networks:
       - polaview.network
-
-  # pgadmin:
-  #   container_name: pgadmin4_container
-  #   image: dpage/pgadmin4
-  #   restart: always
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: admin@admin.com
-  #     PGADMIN_DEFAULT_PASSWORD: root
-  #   ports:
-  #     - "5050:80"
-  #   networks:
-  #     - polaview.network
 
 networks:
   polaview.network:
