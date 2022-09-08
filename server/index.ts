@@ -27,9 +27,6 @@ const prisma = new PrismaClient();
 const app: Express = express();
 const port = process.env.PORT ?? "8080";
 
-startupCreateBaseUsers(prisma);
-startupProcessSources();
-
 const ROUTES: ServerRuntimeConfig = [
   buildSingleRuntimeConfigEntry("get", "/", async () => {
     return "health" as const;
@@ -119,5 +116,7 @@ for (const index in MIDDLEWARES) {
 }
 
 app.listen(port, () => {
+  startupCreateBaseUsers(prisma);
+  startupProcessSources();
   console.log(applyServiceColor(`running at http://localhost:${port}`));
 });

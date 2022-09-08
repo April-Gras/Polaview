@@ -7,7 +7,7 @@ import {
 
 import { expose } from "threads";
 import { AxiosError } from "axios";
-import { PrismaClient, Title, ImdbSearch } from "@prisma/client";
+import { PrismaClient, Title, ImdbSearch, SearchResult } from "@prisma/client";
 
 import { compareTwoStrings } from "string-similarity";
 
@@ -43,64 +43,37 @@ const processSingleFileThreadWorker: ProcessSingleFileThreadWorker =
 
     try {
       console.log(applyInfoColor(`Looking for ${cleanTitleName}`));
-      const searchDataResponse = (
-        await makeServersidePostScraper("/search", {
-          term: cleanTitleName,
-          typesToCheck: fileIsProbablyPartOfSerie
-            ? [SearchType.TV]
-            : [SearchType.movie],
-          releaseYear,
-        })
-      ).data;
-
-      if (!searchDataResponse.length) {
-        console.info(applyFailureColor(`No matches for ${cleanTitleName}`));
-        return;
-      }
-
-      const matchingSearchElement = selectMostMatchingSearchData(
-        searchDataResponse,
+      const { data } = await makeServersidePostScraper("/searchV2", {
+        query: cleanTitleName,
+        type: fileIsProbablyPartOfSerie ? "series" : "movie",
+      });
+      const mostProbableChoice = selectMostMatchingSearchData(
+        data,
         cleanTitleName
       );
 
-      try {
-        const titleData = (
-          await makeServersideGetScraper(
-            `/title/${matchingSearchElement.imdbId}`
-          )
-        ).data;
+      console.log(
+        applyInfoColor(` | Found search match ${mostProbableChoice.name}`)
+      );
 
-        console.log(applySuccessColor(`${cleanTitleName} got a title match`));
+      if (mostProbableChoice.id.includes("movie"))
+        await makeServersidePostScraper("/processEntity", {
+          entityId: mostProbableChoice.id as `movie-${number}`,
+          episodeInfo: undefined,
+        });
+      else if (mostProbableChoice.id.includes("serie")) {
+        const episodeInfo = getSeasonAndEpisodeNumberFromFilePath(fileBaseName);
 
-        await saveFileAndConnectToTitle(sourcePath, wholePath, titleData);
-      } catch (_) {
-        const serieData = (
-          await makeServersideGetScraper(
-            `/serie/${matchingSearchElement.imdbId}`
-          )
-        ).data;
-        const { seasonNumber, episodeNumber } =
-          getSeasonAndEpisodeNumberFromFilePath(filePath);
-
-        const targetSeason = serieData.seasons[seasonNumber - 1];
-        if (!targetSeason)
-          throw `Could not find season with index ${seasonNumber - 1}`;
-        const targetEpisode = targetSeason.episodes[episodeNumber - 1];
-        if (!targetEpisode)
-          throw `Could not find episode with index ${episodeNumber - 1}`;
-
-        console.log(
-          applySuccessColor(
-            `${cleanTitleName} got a serie match for E${episodeNumber} and S${seasonNumber} title id should be ${targetEpisode.imdbId} ${targetEpisode.name}`
-          )
-        );
-        await saveFileAndConnectToTitle(sourcePath, wholePath, targetEpisode);
-      }
+        await makeServersidePostScraper("/processEntity", {
+          entityId: mostProbableChoice.id as `movie-${number}`,
+          episodeInfo,
+        });
+      } else throw new Error("Unvalid entity type");
     } catch (err) {
       if (err instanceof AxiosError && err.response?.data)
         console.info(err.response?.data);
       console.log(err);
-      console.info(applyFailureColor(`Failed for ${filePath}`));
+      console.info(applyFailureColor(` | Failed for ${filePath}`));
       return;
     }
   };
@@ -190,12 +163,12 @@ function getSeasonAndEpisodeNumberFromFilePath(filePath: string): {
 }
 
 function selectMostMatchingSearchData(
-  searchData: Omit<ImdbSearch, "imdbSearchCacheTerm">[],
+  searchData: SearchResult[],
   searchTerm: string
-): Omit<ImdbSearch, "imdbSearchCacheTerm"> {
+): SearchResult {
   let mostSimilarMatch = {
     score: 0,
-    element: null as Omit<ImdbSearch, "imdbSearchCacheTerm"> | null,
+    element: null as SearchResult | null,
   };
   searchTerm = searchTerm.toLocaleLowerCase();
 

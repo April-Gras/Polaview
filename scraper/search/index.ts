@@ -11,17 +11,11 @@ export const searchPost: GetRouteDataHandlerFromUrlAndVerb<
   "/search"
 > = async (prisma, _, __, { term, typesToCheck, releaseYear }) => {
   if (!term || !term.length) return [];
-  const searchCacheEntry = await prisma.imdbSearchCache.findFirst({
-    where: {
-      term,
-    },
+  const cachedSearches = await prisma.imdbSearch.findMany({
+    where: { imdbSearchCacheTerm: term },
   });
 
-  if (searchCacheEntry)
-    return await prisma.imdbSearch.findMany({
-      where: { imdbSearchCacheTerm: searchCacheEntry.term },
-    });
-
+  if (cachedSearches.length) return cachedSearches;
   const searchThread: SearchThreadWorker = await spawn(
     new Worker("../workers/search.ts")
   );

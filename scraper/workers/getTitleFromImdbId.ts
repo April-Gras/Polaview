@@ -48,22 +48,25 @@ const getTitleDataFromImdbIdWorker: GetTitleDataFromImdbIdThreadWorker = async (
   if (episodeGuideElement)
     return processSeasonFromEpisodeGuideElement(document, imdbId);
 
-  const casts = getCastFromTitleDocument(document);
   // Regular title
   const [
     name,
     { releaseYear },
     pictureUrl,
+    casts,
     writers,
     directors,
     roleToCastRelation,
+    storyline,
   ] = await Promise.all([
     getNameFromDocument(document),
     getMetadatasFromDocument(document),
     getPictureUrlFromDocument(document),
+    getStaffByTypeFromFullCreditDocument(fullCreditDocument, "cast"),
     getStaffByTypeFromFullCreditDocument(fullCreditDocument, "writer"),
     getStaffByTypeFromFullCreditDocument(fullCreditDocument, "director"),
     getRolesIdFromFullCreditDocumentAndTitleImdb(fullCreditDocument, imdbId),
+    getStoryLineFromDocucment(document),
   ]);
 
   return {
@@ -73,8 +76,8 @@ const getTitleDataFromImdbIdWorker: GetTitleDataFromImdbIdThreadWorker = async (
           imdbId,
           releaseYear,
           name,
-          storyline: getStoryLineFromDocucment(document),
-          pictureUrl: pictureUrl || null,
+          storyline,
+          pictureUrl,
           seasonId: null,
           episodeNumber: 0,
           createdOn: new Date(),
@@ -150,7 +153,8 @@ async function processSeasonFromEpisodeGuideElement(
   const threadPool = Pool(
     () => spawn<GetSeasonWorkerThread>(new Worker("./getSeason.ts")),
     {
-      concurrency: 4,
+      concurrency: seasonCount / 2,
+      size: 2,
       maxQueuedJobs: seasonCount,
     }
   );
@@ -162,7 +166,7 @@ async function processSeasonFromEpisodeGuideElement(
 
   const results: GetSeasonWorkerThreadReturn[] = await Promise.all(tasks);
 
-  await threadPool.terminate();
+  await threadPool.terminate(true);
 
   if (results.length !== seasonCount) throw "Missmatch season count";
   return {

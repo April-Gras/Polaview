@@ -133,3 +133,137 @@ model File {
   title          Title       @relation(fields: [titleImdbId], references: [imdbId])
   titleImdbId    String
 }
+
+// THE TVDB Update
+model Biography {
+  text     String
+  lang     String
+  People   People @relation(fields: [peopleId], references: [id])
+  peopleId Int
+
+  @@id([lang, peopleId])
+}
+
+model People {
+  id            Int             @id @unique
+  name          String
+  biography     Biography[]
+  birth         String?
+  birthPlace    String?
+  death         String?
+  movieOnCast   MovieOnCast[]
+  episodeOnCast EpisodeOnCast[]
+  Character     Character[]
+}
+
+model Character {
+  id        Int      @id @unique
+  name      String
+  image     String
+  people    People   @relation(fields: [peopleId], references: [id])
+  peopleId  Int
+  movie     Movie?   @relation(fields: [movieId], references: [id])
+  episode   Episode? @relation(fields: [episodeId], references: [id])
+  movieId   Int?
+  episodeId Int?
+}
+
+model Movie {
+  id          Int           @id @unique
+  name        String
+  year        Int
+  image       String
+  file        FileV2?       @relation(fields: [fileV2Id], references: [id])
+  fileV2Id    Int?          @unique
+  movieOnCast MovieOnCast[]
+  characters  Character[]
+}
+
+model Episode {
+  id            Int             @id @unique
+  season        SeasonV2        @relation(fields: [seasonId], references: [id])
+  seasonId      Int
+  SerieV2       SerieV2?        @relation(fields: [serieId], references: [id])
+  serieId       Int?
+  FileV2        FileV2?         @relation(fields: [fileV2Id], references: [id])
+  fileV2Id      Int?            @unique
+  episodeOnCast EpisodeOnCast[]
+  characters    Character[]
+}
+
+model EpisodeOnCast {
+  episode   Episode @relation(fields: [episodeId], references: [id])
+  episodeId Int
+  people    People  @relation(fields: [peopleId], references: [id])
+  peopleId  Int
+
+  @@id([episodeId, peopleId])
+}
+
+model MovieOnCast {
+  movie    Movie  @relation(fields: [movieId], references: [id])
+  movieId  Int
+  people   People @relation(fields: [peopleId], references: [id])
+  peopleId Int
+
+  @@id([movieId, peopleId])
+}
+
+model Entity {
+  movieId Int? @default(0)
+  serieId Int? @default(0)
+  order   Int
+  List    List @relation(fields: [listId], references: [id])
+  listId  Int  @id @unique
+}
+
+model List {
+  id         Int      @id @unique
+  entities   Entity[]
+  image      String
+  name       String
+  isOfficial Boolean
+}
+
+model SeasonV2 {
+  id      Int       @id @unique
+  episode Episode[]
+  serie   SerieV2?  @relation(fields: [serieId], references: [id])
+  serieId Int?
+}
+
+model SerieV2 {
+  id       Int        @id @unique
+  seasons  SeasonV2[]
+  episodes Episode[]
+}
+
+model FileSourceV2 {
+  path      String   @id @unique
+  files     FileV2[]
+  createdOn DateTime @default(now())
+  updatedOn DateTime @default(now())
+}
+
+model FileV2 {
+  id               Int          @id @unique @default(autoincrement())
+  path             String       @unique
+  fileSource       FileSourceV2 @relation(fields: [fileSourceV2Path], references: [path])
+  fileSourcePath   String?
+  fileSourceV2Path String
+  movie            Movie?
+  episode          Episode?
+}
+
+model SearchResult {
+  name            String
+  image_url       String
+  id              String
+  SearchCache     SearchCache @relation(fields: [searchCacheTerm], references: [term])
+  searchCacheTerm String      @id @unique
+}
+
+model SearchCache {
+  term    String         @id @unique
+  results SearchResult[]
+}

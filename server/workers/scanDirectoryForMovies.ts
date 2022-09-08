@@ -1,7 +1,7 @@
 import path from "node:path";
 import { readdirSync, lstatSync } from "node:fs";
 
-import { expose, Worker, spawn, Pool } from "threads";
+import { expose, Worker, spawn } from "threads";
 
 import { ProcessSingleFileThreadWorker } from "#/workers/processSingleFile";
 import { ConvertFileToMp4ThreadWorker } from "#/workers/convertFileToMp4";

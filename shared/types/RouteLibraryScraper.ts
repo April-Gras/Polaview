@@ -6,6 +6,9 @@ import {
   Season,
   File,
   Role,
+  SearchResult,
+  Movie,
+  Episode,
 } from "@prisma/client";
 import { BuildRouteEntry, RuntimeConfigBuilder } from "~/types/Route";
 
@@ -22,6 +25,16 @@ export type SerieSummary = Serie & {
   _count: {
     seasons: number;
   };
+};
+
+export type EpisodeIndexInfo = {
+  episodeNumber: number;
+  seasonNumber: number;
+};
+
+type ProcessEntityPayload<T extends "movie" | "serie" = "movie" | "serie"> = {
+  entityId: `${T}-${number}`;
+  episodeInfo: T extends "movie" ? undefined : EpisodeIndexInfo;
 };
 
 export type AllRoutes = [
@@ -62,6 +75,18 @@ export type AllRoutes = [
     "/search",
     Omit<ImdbSearch, "imdbSearchCacheTerm">[],
     SearchArguments
+  >,
+  BuildRouteEntry<
+    "post",
+    "/searchV2",
+    SearchResult[],
+    { query: string; type: "movie" | "series" }
+  >,
+  BuildRouteEntry<
+    "post",
+    "/processEntity",
+    Movie | Episode,
+    ProcessEntityPayload
   >
   // PATCH
   // DELETE

@@ -6,8 +6,10 @@ import cookieParser from "cookie-parser";
 import { buildSingleRuntimeConfigEntry } from "~/expressUtils";
 import { ScraperRuntimeConfig } from "~/types/RouteLibraryScraper";
 import { userHasSessionMiddleware } from "~/middlewares/userHasSession";
+import { addTvDbTokenToProcessEnv } from "~/addTvDbTokenToProcessEnv";
 
-import { searchPost } from "scraper/search/index";
+import { searchPost } from "./search/index";
+import { searchV2Post } from "./searchV2/index";
 import { latestSerieGet, latestTitleGet } from "./latest";
 import {
   titleGetByImdbId,
@@ -15,10 +17,11 @@ import {
   getTitleDirectorFromMovieImdbId,
   getTitleWritersFromMovieImdbId,
   getTitleRolesFromMovieImdbId,
-} from "scraper/title/index";
+} from "./title/index";
 import { fileGetByTitleImdbId } from "./file";
 import { serieGet, serieGetSeaons } from "./serie";
-import { titleGetSearch } from "scraper/title/search";
+import { titleGetSearch } from "./title/search";
+import { processEntityIdPost } from "./process";
 
 const prisma = new PrismaClient();
 const app: Express = express();
@@ -59,19 +62,27 @@ const ROUTES: ScraperRuntimeConfig = [
     "/title/:imdbId/roles",
     getTitleRolesFromMovieImdbId
   ),
-  buildSingleRuntimeConfigEntry("get", "/person/:imdbId", async () => {
-    return {
-      imdbId: "",
-      name: "",
-      pictureUrl: "",
-    };
-  }),
+  buildSingleRuntimeConfigEntry(
+    "get",
+    "/person/:imdbId",
+    async (prisma, req) => {
+      const { imdbId } = req.params;
+
+      return await prisma.person.findFirstOrThrow({
+        where: {
+          imdbId,
+        },
+      });
+    }
+  ),
   buildSingleRuntimeConfigEntry(
     "get",
     "/title/search/:searchTerm",
     titleGetSearch
   ),
   buildSingleRuntimeConfigEntry("post", "/search", searchPost),
+  buildSingleRuntimeConfigEntry("post", "/searchV2", searchV2Post),
+  buildSingleRuntimeConfigEntry("post", "/processEntity", processEntityIdPost),
 ];
 
 app.use(bodyParser.json());
@@ -98,6 +109,15 @@ for (const index in ROUTES) {
   });
 }
 
-app.listen(port, () => {
-  console.log(`ܡ scraper is running at http://localhost:${port}`);
-});
+async function startup() {
+  await addTvDbTokenToProcessEnv();
+  if (!process.env.TVDB_API_KEY)
+    throw new Error(
+      "Couldn't retrieve TVDB API KEY, are you sure your token / PIN are valid ?"
+    );
+  app.listen(port, async () => {
+    console.log(`ܡ scraper is running at http://localhost:${port}`);
+  });
+}
+
+startup();

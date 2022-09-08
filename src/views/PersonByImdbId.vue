@@ -1,7 +1,21 @@
 <script lang="ts">
+import { Person } from "@prisma/client";
 import { defineComponent } from "vue";
 
-export default defineComponent({});
+export default defineComponent({
+  data() {
+    return {
+      person: null as null | Person,
+    };
+  },
+  created() {
+    this.$getScraperRequest(`/person/${this.$route.params.imdbId}`).then(
+      ({ data }) => {
+        this.person = data;
+      }
+    );
+  },
+});
 </script>
 
 <template>

@@ -57,6 +57,8 @@ const getSeason: GetSeasonWorkerThread = async (imdbId, seasonIndex) => {
       );
     },
     {
+      concurrency: 2,
+      size: imdbIds.length / 2,
       maxQueuedJobs: imdbIds.length,
     }
   );
@@ -67,7 +69,7 @@ const getSeason: GetSeasonWorkerThread = async (imdbId, seasonIndex) => {
   const results: GetTitleFromEpisodesImdbIdThreadWorkerReturn[] =
     await Promise.all(tasks);
 
-  await threadPool.terminate();
+  await threadPool.terminate(true);
 
   return {
     collection: results,

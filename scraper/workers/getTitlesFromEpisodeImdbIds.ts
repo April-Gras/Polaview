@@ -43,7 +43,7 @@ const getTitleFromEdpisodesImdbId: GetTitleFromEpisodesImdbIdThreadWorker =
       directors,
       roleToCastRelation,
     ] = await Promise.all([
-      getCastFromTitleDocument(document),
+      getStaffByTypeFromFullCreditDocument(fullCreditDocument, "cast"),
       getTitleNameFromdocument(document),
       getPictureUrlFromDocument(document),
       getEpisodeNumberAndSeasonNumberFromDocument(document),

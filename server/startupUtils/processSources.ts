@@ -33,7 +33,7 @@ export async function startupProcessSources() {
   });
 
   await Promise.all(tasks);
-  await sourceThreadPool.terminate();
+  await sourceThreadPool.terminate(true);
 
   console.info(applyInfoColor("Done with all the startup processings"));
 }
