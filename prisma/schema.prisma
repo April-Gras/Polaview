@@ -153,7 +153,7 @@ model People {
   death         String?
   movieOnCast   MovieOnCast[]
   episodeOnCast EpisodeOnCast[]
-  Character     Character[]
+  characters    Character[]
 }
 
 model Character {

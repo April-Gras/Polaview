@@ -57,15 +57,17 @@ const processSingleFileThreadWorker: ProcessSingleFileThreadWorker =
       );
 
       if (mostProbableChoice.id.includes("movie"))
-        await makeServersidePostScraper("/processEntity", {
-          entityId: mostProbableChoice.id as `movie-${number}`,
-          episodeInfo: undefined,
-        });
+        console.log(
+          await makeServersidePostScraper("/processEntity", {
+            entityId: mostProbableChoice.id as `movie-${number}`,
+            episodeInfo: undefined,
+          })
+        );
       else if (mostProbableChoice.id.includes("serie")) {
         const episodeInfo = getSeasonAndEpisodeNumberFromFilePath(fileBaseName);
 
         await makeServersidePostScraper("/processEntity", {
-          entityId: mostProbableChoice.id as `movie-${number}`,
+          entityId: mostProbableChoice.id as `serie-${number}`,
           episodeInfo,
         });
       } else throw new Error("Unvalid entity type");

@@ -1,15 +1,20 @@
 import {
+  Character,
   Episode,
   Movie,
   People,
-  prisma,
+  Prisma,
+  MovieOnCast,
   PrismaClient,
-  SerieV2,
 } from "@prisma/client";
 
 import { GetRouteDataHandlerFromUrlAndVerb } from "~/types/Route";
 import { AllRoutes, EpisodeIndexInfo } from "~/types/RouteLibraryScraper";
-import { TvDbPeople, TvDbCharacter } from "~/types/RouteLibraryTvDbApi";
+import {
+  TvDbPeople,
+  TvDbCharacter,
+  TvDbMovie,
+} from "~/types/RouteLibraryTvDbApi";
 import { tvDbGetRequest } from "#/tvDbApi";
 
 export const processEntityIdPost: GetRouteDataHandlerFromUrlAndVerb<
@@ -34,6 +39,17 @@ async function processIdAsMovie(
     data: { data },
   } = await tvDbGetRequest(`/movies/${id.toString()}/extended`);
   const seekedPeopleType = ["Actor", "Writer", "Director"] as const;
+  const peopleId = [] as number[];
+  const currentCharacters = data.characters.reduce((accumulator, character) => {
+    if (
+      !peopleId.includes(character.peopleId) &&
+      seekedPeopleType.includes(character.peopleType)
+    ) {
+      peopleId.push(character.peopleId);
+      accumulator.push(character);
+    }
+    return accumulator;
+  }, [] as TvDbCharacter[]);
   const peopleIds = data.characters.reduce(
     (accumulator, { peopleId, peopleType }) => {
       if (
@@ -46,29 +62,90 @@ async function processIdAsMovie(
     [] as number[]
   );
 
+  // Save movie
+  const movie = await saveMovie(prisma, data);
   // Save all people
   const savedPeopleIds = await savePeoeplesFromIds(prisma, peopleIds);
   // Save all characters
-  const savedCharacters = await saveCharacters(
+  await saveCharacters(
     prisma,
-    data.characters.filter((e) => e.peopleType === "Actors")
+    data.characters.filter((e) => e.peopleType === "Actor"),
+    { movieId: id }
   );
-  // Save movie
-
   //// Bind people to cast
-  //// Bind people to writers
-  //// Bind people to directors
-  //// Bind casts to roles
+  await prisma.$transaction(
+    saveMovieOnHuman(prisma, "Actor", currentCharacters, savedPeopleIds, id)
+  );
+  // TODO Bind people to writer
+  // TODO Bind people to director
 
-  return {} as Movie;
+  return movie;
 }
 
-async function saveCharacters(
+function saveMovieOnHuman(
   prisma: PrismaClient,
-  tvdbCharacters: TvDbCharacter[]
+  targetPeopleType: TvDbCharacter["peopleType"],
+  characterSet: TvDbCharacter[],
+  savedPeopleIds: number[],
+  movieId: number
 ) {
-  // TODO
-  // return prisma.
+  return characterSet.reduce((accumulator, { peopleId, peopleType }) => {
+    if (savedPeopleIds.includes(peopleId) && targetPeopleType === peopleType) {
+      accumulator.push(
+        prisma.movieOnCast.create({
+          data: {
+            movie: {
+              connect: {
+                id: movieId,
+              },
+            },
+            people: {
+              connect: {
+                id: peopleId,
+              },
+            },
+          },
+        })
+      );
+    }
+    return accumulator;
+  }, [] as Prisma.Prisma__MovieOnCastClient<MovieOnCast>[]);
+}
+
+async function saveMovie(prisma: PrismaClient, movie: TvDbMovie) {
+  return prisma.movie.create({
+    data: {
+      id: movie.id,
+      name: movie.name,
+      year: Number(movie.year),
+      image: movie.image,
+    },
+  });
+}
+
+async function saveCharacters<MID extends number | undefined>(
+  prisma: PrismaClient,
+  tvdbCharacters: TvDbCharacter[],
+  ...args: [
+    MID extends number
+      ? { movieId: number; episodeId?: undefined }
+      : { movieId?: undefined; episodeId: number }
+  ]
+) {
+  const { episodeId, movieId } = args[0];
+
+  return prisma.character.createMany({
+    data: tvdbCharacters.map(({ id, image, name, peopleId }) => {
+      return {
+        episodeId,
+        movieId,
+        peopleId,
+        id,
+        name,
+        image,
+      };
+    }),
+  });
 }
 
 async function savePeoeplesFromIds(

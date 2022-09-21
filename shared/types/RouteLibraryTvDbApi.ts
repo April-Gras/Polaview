@@ -13,12 +13,12 @@ type TvDbSearchResult = {
   [key: string]: any;
 };
 
-type TvDbCharacter = {
+export type TvDbCharacter = {
   id: number;
   image: string;
   name: string;
   peopleId: number;
-  peopleType: "Actor" | "Writer" | "Director" | string;
+  peopleType: "Actor" | "Writer" | "Director";
 };
 
 export type TvDbMovie = {
