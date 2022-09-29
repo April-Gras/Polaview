@@ -8,19 +8,12 @@ import { ScraperRuntimeConfig } from "~/types/RouteLibraryScraper";
 import { userHasSessionMiddleware } from "~/middlewares/userHasSession";
 import { addTvDbTokenToProcessEnv } from "~/addTvDbTokenToProcessEnv";
 
-import { searchPost } from "./search/index";
 import { searchV2Post } from "./searchV2/index";
 import { latestSerieGet, latestTitleGet } from "./latest";
-import {
-  titleGetByImdbId,
-  getTitleCastsFromMovieImdbId,
-  getTitleDirectorFromMovieImdbId,
-  getTitleWritersFromMovieImdbId,
-  getTitleRolesFromMovieImdbId,
-} from "./title/index";
-import { fileGetByTitleImdbId } from "./file";
-import { serieGet, serieGetSeaons } from "./serie";
-import { titleGetSearch } from "./title/search";
+import { fileGetByMovieId, fileGetByEpisodeId } from "./file";
+import { serieGetSeaons } from "./serie";
+import { cacheGetSearch } from "./cacheSearch";
+
 import { processEntityIdPost } from "./process";
 
 const prisma = new PrismaClient();
@@ -30,57 +23,18 @@ const port = process.env.PORT ?? "8081";
 const ROUTES: ScraperRuntimeConfig = [
   buildSingleRuntimeConfigEntry("get", "/latest-movie/", latestTitleGet),
   buildSingleRuntimeConfigEntry("get", "/latest-serie/", latestSerieGet),
+  buildSingleRuntimeConfigEntry("get", "/file/movie/:id/", fileGetByMovieId),
   buildSingleRuntimeConfigEntry(
     "get",
-    "/file/titleImdbId/:imdbId",
-    fileGetByTitleImdbId
+    "/file/episode/:id/",
+    fileGetByEpisodeId
   ),
-  buildSingleRuntimeConfigEntry("get", "/serie/:imdbId", serieGet),
+  buildSingleRuntimeConfigEntry("get", "/serie/:id/seasons", serieGetSeaons),
   buildSingleRuntimeConfigEntry(
     "get",
-    "/serie/:imdbId/seasons",
-    serieGetSeaons
+    "/cache/search/:searchTerm",
+    cacheGetSearch
   ),
-  buildSingleRuntimeConfigEntry("get", "/title/:imdbId", titleGetByImdbId),
-  buildSingleRuntimeConfigEntry(
-    "get",
-    "/title/:imdbId/cast",
-    getTitleCastsFromMovieImdbId
-  ),
-  buildSingleRuntimeConfigEntry(
-    "get",
-    "/title/:imdbId/writers",
-    getTitleWritersFromMovieImdbId
-  ),
-  buildSingleRuntimeConfigEntry(
-    "get",
-    "/title/:imdbId/directors",
-    getTitleDirectorFromMovieImdbId
-  ),
-  buildSingleRuntimeConfigEntry(
-    "get",
-    "/title/:imdbId/roles",
-    getTitleRolesFromMovieImdbId
-  ),
-  buildSingleRuntimeConfigEntry(
-    "get",
-    "/person/:imdbId",
-    async (prisma, req) => {
-      const { imdbId } = req.params;
-
-      return await prisma.person.findFirstOrThrow({
-        where: {
-          imdbId,
-        },
-      });
-    }
-  ),
-  buildSingleRuntimeConfigEntry(
-    "get",
-    "/title/search/:searchTerm",
-    titleGetSearch
-  ),
-  buildSingleRuntimeConfigEntry("post", "/search", searchPost),
   buildSingleRuntimeConfigEntry("post", "/searchV2", searchV2Post),
   buildSingleRuntimeConfigEntry("post", "/processEntity", processEntityIdPost),
 ];
@@ -101,7 +55,7 @@ for (const index in ROUTES) {
         res.status(200).json(data);
       })
       .catch((err) => {
-        console.log(err);
+        console.trace(err);
         if (err instanceof Prisma.PrismaClientKnownRequestError)
           res.status(400).json(err.message);
         else res.status(400).json(err);

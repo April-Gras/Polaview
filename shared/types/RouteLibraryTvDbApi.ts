@@ -1,4 +1,5 @@
 import { Movie } from ".prisma/client";
+import { number } from "@intlify/core-base";
 import { BuildRouteEntry } from "./Route";
 
 type DefaultTvDbRespionse<T> = {
@@ -15,33 +16,64 @@ type TvDbSearchResult = {
 
 export type TvDbCharacter = {
   id: number;
-  image: string;
+  image: string | null;
   name: string;
   peopleId: number;
-  peopleType: "Actor" | "Writer" | "Director";
+  peopleType: "Actor" | "Writer" | "Director" | "Guest Star";
 };
 
 export type TvDbMovie = {
   id: number;
-  characters: TvDbCharacter[];
-  image: string;
+  characters: TvDbCharacter[] | null;
+  image: string | null;
   name: string;
   lists: any[]; //TODO List feature
   year: string;
-};
-
-export type TvDbSerie = {
-  averageRuntime: number;
-  id: number;
-  image: string;
-  name: string;
-  seasons: { id: number }[];
-  year: string;
+  overview: string | null;
 };
 
 type TvDbBiography = {
   biography: string;
   language: string;
+};
+
+export type TvDbEpisode = {
+  id: number;
+  characters: TvDbCharacter[] | null;
+  image: string | null;
+  name: string;
+  number: number;
+  overview: string | null;
+  seasonNumber: number;
+  year: string;
+};
+
+export type TvDbSeasonType = {
+  id: number;
+  type: "official" | "dvd" | "absolute";
+};
+
+export type TvDbSeason = {
+  id: number;
+  image: string | null;
+  number: number;
+  seriesId: number;
+  type: TvDbSeasonType;
+};
+
+type TvDbEpisodeBase = {
+  id: number;
+};
+
+export type TvDbSerie = {
+  id: number;
+  name: string;
+  image: string | null;
+  seasons: TvDbSeason[]; //TODO
+  episodes: TvDbEpisodeBase[];
+  year: string;
+  overview: string | null;
+  seasonTypes: TvDbSeasonType[];
 };
 
 export type TvDbPeople = {
@@ -50,6 +82,7 @@ export type TvDbPeople = {
   birthPlace?: string;
   death?: string;
   id: number;
+  image: string;
   name: string;
 };
 
@@ -62,8 +95,13 @@ export type AllRoutes = [
   >,
   BuildRouteEntry<
     "get",
-    "/series/:id/extended",
+    "/series/:id/extended?meta=episodes&short=true",
     DefaultTvDbRespionse<TvDbSerie>
+  >,
+  BuildRouteEntry<
+    "get",
+    "/episodes/:id/extended",
+    DefaultTvDbRespionse<TvDbEpisode>
   >,
   BuildRouteEntry<
     "get",

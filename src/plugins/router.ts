@@ -29,19 +29,29 @@ export const routerPlugin = createRouter({
       component: () => import("@/views/Admin.vue"),
     },
     {
-      path: "/title/:imdbId",
-      name: "titleByImdbId",
-      component: () => import("@/views/TitleByImdbId.vue"),
+      path: "/watch/movie/:id",
+      name: "movieById",
+      component: () => import("@/views/WatchById.vue"),
     },
     {
-      path: "/serie/:imdbId",
-      name: "serieByImdbId",
-      component: () => import("@/views/SerieByImdbId.vue"),
+      path: "/watch/episode/:id",
+      name: "episodeById",
+      component: () => import("@/views/WatchById.vue"),
     },
     {
-      path: "/person/:imdbId",
-      name: "personByImdbId",
-      component: () => import("@/views/PersonByImdbId.vue"),
+      path: "/serie/:id",
+      name: "serieById",
+      component: () => import("@/views/SerieById.vue"),
+    },
+    {
+      path: "/people/:id",
+      name: "peopleById",
+      component: () => import("@/views/PeopleById.vue"),
+    },
+    {
+      path: "/error",
+      name: "error",
+      component: () => import("@/views/Error.vue"),
     },
   ],
 });

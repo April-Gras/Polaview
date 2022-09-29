@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
 
-import type { Person } from "@prisma/client";
+import type { People } from "@prisma/client";
 
 import CommonTemplateVue from "./CommonTemplate.vue";
 
@@ -10,8 +10,8 @@ export default defineComponent({
     CommonTemplateVue,
   },
   props: {
-    person: {
-      type: Object as PropType<Person>,
+    people: {
+      type: Object as PropType<People>,
       required: true,
     },
   },
@@ -20,19 +20,19 @@ export default defineComponent({
 
 <template>
   <CommonTemplateVue
-    :link="`/person/${person.imdbId}`"
-    :picture-url="person.pictureUrl"
-    :picture-alt="person.name"
-    class="person"
+    :link="`/people/${people.id}`"
+    :picture-url="people.image"
+    :picture-alt="people.name"
+    class="people"
   >
     <ul class="p-4">
-      <li class="base-text ellipsis !font-bold">{{ person.name }}</li>
+      <li class="base-text ellipsis !font-bold">{{ people.name }}</li>
     </ul>
   </CommonTemplateVue>
 </template>
 
 <style scoped lang="scss">
-.person:deep(.picture) {
+.people:deep(.picture) {
   @apply h-52;
 }
 </style>

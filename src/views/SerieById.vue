@@ -2,33 +2,30 @@
 import { defineComponent } from "vue";
 import { useRoute } from "vue-router";
 
-import { SeasonSummary } from "~/types/RouteLibraryScraper";
-import { Serie } from ".prisma/client";
-
-import { addAwsDirectivesToPictureUrl } from "@/utils/addAwsDirectiveToPictureUrl";
+import { SerieV2, SeasonV2, Episode } from ".prisma/client";
 
 export default defineComponent({
   setup() {
     const route = useRoute();
 
     return {
-      imdbId: route.params.imdbId,
+      id: route.params.id,
     };
   },
   data() {
     return {
-      summary: null as { serie: Serie; seasons: SeasonSummary[] } | null,
+      summary: null as
+        | (SerieV2 & {
+            seasons: SeasonV2[];
+            episodes: Episode[];
+          })
+        | null,
     };
   },
-  methods: {
-    addAwsDirectivesToPictureUrl,
-  },
   created() {
-    this.$getScraperRequest(`/serie/${this.imdbId}/seasons`).then(
-      ({ data }) => {
-        this.summary = data;
-      }
-    );
+    this.$getScraperRequest(`/serie/${this.id}/seasons`).then(({ data }) => {
+      this.summary = data;
+    });
   },
 });
 </script>
@@ -36,39 +33,27 @@ export default defineComponent({
 <template>
   <div v-if="summary" class="grid gap-10">
     <div class="serieInfoHolder grid gap-4">
-      <img
-        class="picture"
-        :src="
-          addAwsDirectivesToPictureUrl(summary.serie.pictureUrl, {
-            quality: 80,
-            scale: 430,
-          })
-        "
-        v-if="summary.serie.pictureUrl"
-      />
+      <img class="picture" :src="summary.image" v-if="summary.image" />
       <div class="picture" v-else />
       <div>
-        <h1 class="title-text mb-4">{{ summary.serie.name }}</h1>
-        <div class="base-text">{{ summary.serie.storyline }}</div>
+        <h1 class="title-text mb-4">{{ summary.name }}</h1>
+        <div class="base-text">{{ summary.overview }}</div>
       </div>
     </div>
     <div class="grid grid-cols-1 gap-10">
       <div v-for="(season, index) in summary.seasons">
-        <h2 class="subtitle-text">{{ $t("common.seasonCount", index + 1) }}</h2>
+        <h2 class="subtitle-text">
+          {{ $tc("common.seasonCount", index + 1) }}
+        </h2>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <RouterLink
-            :to="`/title/${episode.imdbId}`"
-            v-for="episode in season.episodes"
+            :to="`/watch/episode/${episode.id}`"
+            v-for="episode in summary.episodes"
             class="episode relative max-h-[115px] cursor-pointer overflow-hidden rounded-sm shadow transition duration-150 ease-in-out hover:z-10 hover:scale-[1.02] hover:shadow-lg"
           >
             <img
-              :src="
-                addAwsDirectivesToPictureUrl(episode.pictureUrl, {
-                  quality: 100,
-                  scale: 700,
-                })
-              "
-              v-if="episode.pictureUrl"
+              :src="episode.image"
+              v-if="episode.image"
               class="h-full w-full object-cover object-center"
             />
             <div v-else />

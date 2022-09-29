@@ -1,11 +1,11 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 
-import { Title } from "@prisma/client";
+import { Movie } from "@prisma/client";
 
 import CardGridVue from "@/components/ui/CardGrid.vue";
 import SerieCardVue from "@/components/cards/SerieCard.vue";
-import TitleCardVue from "@/components/cards/TitleCard.vue";
+import MovieCardVue from "@/components/cards/MovieCard.vue";
 import VSearchInputVue from "@/components/ui/VSearchInput.vue";
 
 import type { SerieSummary } from "~/types/RouteLibraryScraper";
@@ -22,12 +22,12 @@ export default defineComponent({
   components: {
     CardGridVue,
     SerieCardVue,
-    TitleCardVue,
+    MovieCardVue,
     VSearchInputVue,
   },
   data() {
     return {
-      latestMovies: [] as Title[],
+      latestMovies: [] as Movie[],
       latestSeries: [] as SerieSummary[],
     };
   },
@@ -62,10 +62,10 @@ export default defineComponent({
           {{ $t("pages.root.categorySubtitles.latestMovies") }}
         </template>
         <template #list>
-          <TitleCardVue
-            v-for="title in latestMovies"
-            :key="title.imdbId"
-            :title="title"
+          <MovieCardVue
+            v-for="movie in latestMovies"
+            :key="movie.id"
+            :movie="movie"
           />
         </template>
       </CardGridVue>
@@ -76,7 +76,7 @@ export default defineComponent({
         <template #list>
           <SerieCardVue
             v-for="serieSummary in latestSeries"
-            :key="serieSummary.imdbId"
+            :key="serieSummary.id"
             :serie-summary="serieSummary"
           />
         </template>

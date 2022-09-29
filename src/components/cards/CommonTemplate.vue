@@ -3,8 +3,6 @@ import { defineComponent, PropType } from "vue";
 
 import { RouteLocationRaw } from "vue-router";
 
-import { addAwsDirectivesToPictureUrl } from "@/utils/addAwsDirectiveToPictureUrl";
-
 type PictureLoadStatus = "not loaded" | "failed" | "loaded";
 
 export default defineComponent({
@@ -39,10 +37,7 @@ export default defineComponent({
       this.pictureData = image.src;
       this.pictureLoadStatus = "loaded";
     };
-    image.src = addAwsDirectivesToPictureUrl(this.pictureUrl, {
-      quality: 95,
-      scale: 375,
-    });
+    image.src = this.pictureUrl;
   },
 });
 </script>

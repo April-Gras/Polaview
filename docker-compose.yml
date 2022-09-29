@@ -15,6 +15,7 @@ services:
     command: npm run server-dev
     depends_on:
       - postgres
+      - scraper
     volumes:
       - ./server:/api/server
       - ./shared:/api/shared

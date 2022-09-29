@@ -14,7 +14,7 @@ export default async (req: Request, res: Response) => {
   // Check if file exists
 
   try {
-    const file = await prisma.file.findUniqueOrThrow({
+    const file = await prisma.fileV2.findUniqueOrThrow({
       where: {
         id: Number(id),
       },

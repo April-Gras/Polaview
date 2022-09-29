@@ -20,8 +20,8 @@ export default defineComponent({
 
 <template>
   <CommonTemplateVue
-    :link="`/serie/${serieSummary.imdbId}`"
-    :picture-url="serieSummary.pictureUrl"
+    :link="`/serie/${serieSummary.id}`"
+    :picture-url="serieSummary.image"
     :picture-alt="serieSummary.name"
   >
     <ul class="p-4">

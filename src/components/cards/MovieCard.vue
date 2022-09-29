@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
 
-import { Title } from "@prisma/client";
+import { Movie } from "@prisma/client";
 
 import CommonTemplateVue from "./CommonTemplate.vue";
 
@@ -10,8 +10,8 @@ export default defineComponent({
     CommonTemplateVue,
   },
   props: {
-    title: {
-      type: Object as PropType<Title>,
+    movie: {
+      type: Object as PropType<Movie>,
       required: true,
     },
   },
@@ -20,10 +20,10 @@ export default defineComponent({
 
 <template>
   <CommonTemplateVue
-    :link="`/title/${title.imdbId}`"
-    :picture-url="title.pictureUrl"
-    :picture-alt="title.name"
+    :link="`/watch/movie/${movie.id}`"
+    :picture-url="movie.image"
+    :picture-alt="movie.name"
   >
-    <div class="base-text ellipsis p-4 !font-bold">{{ title.name }}</div>
+    <div class="base-text ellipsis p-4 !font-bold">{{ movie.name }}</div>
   </CommonTemplateVue>
 </template>

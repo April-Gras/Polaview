@@ -3,28 +3,52 @@ import {
   Title,
   Person,
   Serie,
+  Character,
+  People,
   Season,
   File,
   Role,
+  FileV2,
   SearchResult,
   Movie,
   Episode,
+  SeasonV2,
+  SerieV2,
 } from "@prisma/client";
 import { BuildRouteEntry, RuntimeConfigBuilder } from "~/types/Route";
 
 import { SearchArguments } from "~/types/Search";
 
-export type SeasonSummary = Season & { episodes: Title[] };
+export type SeasonSummary = SeasonV2 & { episodes: Episode[] };
 
-export type SerieSummary = Serie & {
-  seasons: {
-    _count: {
-      episodes: number;
-    };
-  }[];
+export type SerieSummary = SerieV2 & {
   _count: {
     seasons: number;
+    episodes: number;
   };
+};
+
+export type FileSummary<
+  E extends Episode | Movie,
+  K extends "episode" | "movie" = E extends Episode ? "episode" : "movie"
+> = FileV2 & {
+  [KEY in K]:
+    | (E & {
+        [key in `${K}OnCast`]: {
+          people: People;
+        }[];
+      } & {
+        [key in `${K}OnWriter`]: {
+          people: People;
+        }[];
+      } & {
+        [key in `${K}OnDirector`]: {
+          people: People;
+        }[];
+      } & {
+        characters: Character[];
+      })
+    | null;
 };
 
 export type EpisodeIndexInfo = {
@@ -39,43 +63,24 @@ type ProcessEntityPayload<T extends "movie" | "serie" = "movie" | "serie"> = {
 
 export type AllRoutes = [
   // GET
-  BuildRouteEntry<"get", "/latest-movie/", Title[]>,
+  BuildRouteEntry<"get", "/latest-movie/", Movie[]>,
   BuildRouteEntry<"get", "/latest-serie/", SerieSummary[]>,
-  BuildRouteEntry<"get", "/file/titleImdbId/:imdbId", File>,
+  BuildRouteEntry<"get", "/file/movie/:id/", FileSummary<Movie>>,
+  BuildRouteEntry<"get", "/file/episode/:id/", FileSummary<Episode>>,
   BuildRouteEntry<
     "get",
-    "/serie/:imdbId",
-    Serie & {
-      seasons: {
-        id: string;
-        serieImdbId: string;
-        episodes: Title[];
-      }[];
+    "/serie/:id/seasons",
+    SerieV2 & {
+      seasons: SeasonV2[];
+      episodes: Episode[];
     }
   >,
   BuildRouteEntry<
     "get",
-    "/serie/:imdbId/seasons",
-    { serie: Serie; seasons: SeasonSummary[] }
-  >,
-  BuildRouteEntry<"get", "/title/:imdbId", Title>,
-  BuildRouteEntry<"get", "/title/:imdbId/cast", Person[]>,
-  BuildRouteEntry<"get", "/title/:imdbId/writers", Person[]>,
-  BuildRouteEntry<"get", "/title/:imdbId/directors", Person[]>,
-  BuildRouteEntry<"get", "/title/:imdbId/roles", Role[]>,
-  BuildRouteEntry<"get", "/person/:imdbId", Person>,
-  BuildRouteEntry<
-    "get",
-    "/title/search/:searchTerm",
-    { series: Serie[]; titles: Title[] }
+    "/cache/search/:searchTerm",
+    { series: SerieV2[]; movies: Movie[] }
   >,
   // POST
-  BuildRouteEntry<
-    "post",
-    "/search",
-    Omit<ImdbSearch, "imdbSearchCacheTerm">[],
-    SearchArguments
-  >,
   BuildRouteEntry<
     "post",
     "/searchV2",

@@ -7,7 +7,7 @@ import {
 
 import { expose } from "threads";
 import { AxiosError } from "axios";
-import { PrismaClient, Title, ImdbSearch, SearchResult } from "@prisma/client";
+import { PrismaClient, SearchResult, Movie, Episode } from "@prisma/client";
 
 import { compareTwoStrings } from "string-similarity";
 
@@ -56,20 +56,49 @@ const processSingleFileThreadWorker: ProcessSingleFileThreadWorker =
         applyInfoColor(` | Found search match ${mostProbableChoice.name}`)
       );
 
-      if (mostProbableChoice.id.includes("movie"))
-        console.log(
-          await makeServersidePostScraper("/processEntity", {
+      if (mostProbableChoice.id.includes("movie")) {
+        const { data: movie } = await makeServersidePostScraper(
+          "/processEntity",
+          {
             entityId: mostProbableChoice.id as `movie-${number}`,
             episodeInfo: undefined,
-          })
+          }
         );
-      else if (mostProbableChoice.id.includes("serie")) {
-        const episodeInfo = getSeasonAndEpisodeNumberFromFilePath(fileBaseName);
 
-        await makeServersidePostScraper("/processEntity", {
-          entityId: mostProbableChoice.id as `serie-${number}`,
-          episodeInfo,
-        });
+        console.log(
+          applyInfoColor(` | Found movie data match with name ${movie.name}`)
+        );
+        const { id } = await saveFileAndConnectToEntity(
+          sourcePath,
+          wholePath,
+          "movie",
+          movie as Movie
+        );
+        console.log(applySuccessColor(`Saved file in id ${id}`));
+        return;
+      } else if (mostProbableChoice.id.includes("serie")) {
+        const episodeInfo = getSeasonAndEpisodeNumberFromFilePath(fileBaseName);
+        const { data: episode } = await makeServersidePostScraper(
+          "/processEntity",
+          {
+            entityId: mostProbableChoice.id as `serie-${number}`,
+            episodeInfo,
+          }
+        );
+
+        console.log(
+          applyInfoColor(
+            ` | Found episode data match with name ${episode.name}`
+          )
+        );
+        const { id } = await saveFileAndConnectToEntity(
+          sourcePath,
+          wholePath,
+          "episode",
+          episode as Episode
+        );
+        console.log(applySuccessColor(`Saved file in id ${id}`));
+        return;
       } else throw new Error("Unvalid entity type");
     } catch (err) {
       if (err instanceof AxiosError && err.response?.data)
@@ -80,12 +109,13 @@ const processSingleFileThreadWorker: ProcessSingleFileThreadWorker =
     }
   };
 
-async function saveFileAndConnectToTitle(
+async function saveFileAndConnectToEntity<T extends "movie" | "episode">(
   sourcePath: string,
   filePath: string,
-  targetTitle: Title
+  type: T,
+  targetEntity: T extends "movie" ? Movie : Episode
 ) {
-  const source = await prisma.fileSource.upsert({
+  const source = await prisma.fileSourceV2.upsert({
     where: {
       path: sourcePath,
     },
@@ -96,23 +126,38 @@ async function saveFileAndConnectToTitle(
       updatedOn: new Date(),
     },
   });
-  await prisma.file.upsert({
+  return await prisma.fileV2.upsert({
     where: {
       path: filePath,
     },
     create: {
       path: filePath,
-      fileSourcePath: source.path,
-      titleImdbId: targetTitle.imdbId,
+      fileSource: {
+        connect: {
+          path: source.path,
+        },
+      },
+      [type]: {
+        connect: {
+          id: targetEntity.id,
+        },
+      },
     },
     update: {
-      fileSourcePath: source.path,
-      titleImdbId: targetTitle.imdbId,
+      fileSource: {
+        connect: {
+          path: source.path,
+        },
+      },
+      [type]: {
+        connect: {
+          id: targetEntity.id,
+        },
+      },
     },
-    select: {
-      title: true,
+    include: {
+      [type]: true,
       fileSource: true,
-      path: true,
     },
   });
 }

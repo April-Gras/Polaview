@@ -3,7 +3,7 @@ import { defineComponent, PropType } from "vue";
 
 export default defineComponent({
   props: {
-    pictureUrl: {
+    image: {
       type: String as PropType<string | null | undefined>,
       required: false,
     },
@@ -11,7 +11,7 @@ export default defineComponent({
       type: String,
       required: false,
     },
-    storyline: {
+    overview: {
       type: String as PropType<string | null | undefined>,
       required: false,
     },
@@ -23,10 +23,10 @@ export default defineComponent({
   <li
     class="listContainer grid cursor-pointer items-center justify-start gap-4 bg-gray-300 px-6 py-4 transition duration-150 ease-in-out dark:bg-gray-600 hover:dark:bg-gray-500"
   >
-    <img class="picture" v-if="pictureUrl" :src="pictureUrl" />
+    <img class="picture" v-if="image" :src="image" />
     <div class="picture" v-else />
     <b class="base-text flex-shrink-0">{{ name }}</b>
-    <i class="ellipsis text-opacity-80" v-if="storyline">{{ storyline }}</i>
+    <i class="ellipsis text-opacity-80" v-if="overview">{{ overview }}</i>
   </li>
 </template>
 

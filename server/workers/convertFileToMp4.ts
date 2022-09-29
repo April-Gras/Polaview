@@ -84,8 +84,8 @@ async function getFfmpegCommand(
   filePath: string,
   newFileName: string
 ): Promise<string> {
-  const ffmpegCmdPath = "/root/nvidia/ffmpeg/ffmpeg";
-  // const ffmpegCmdPath = "ffmpeg";
+  // const ffmpegCmdPath = "/root/nvidia/ffmpeg/ffmpeg";
+  const ffmpegCmdPath = "ffmpeg";
 
   const nVideaBaseArgs = "-hwaccel cuda";
   const nvideoEncodingArgs = "-c:v h264_nvenc -pix_fmt yuv420p -y";
