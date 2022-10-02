@@ -7,8 +7,5 @@ export async function getTvDbMovieFomId(id: number): Promise<TvDbMovie> {
     data: { data: movie },
   } = await tvDbGetRequest(`/movies/${id.toString()}/extended`);
 
-  return {
-    ...movie,
-    overview: null,
-  };
+  return movie;
 }

@@ -2,7 +2,7 @@
 import { defineComponent } from "vue";
 import { useRoute } from "vue-router";
 
-import { SerieV2, SeasonV2, Episode } from ".prisma/client";
+import { SerieExtendedSummary } from "~/types/RouteLibraryScraper";
 
 export default defineComponent({
   setup() {
@@ -14,18 +14,15 @@ export default defineComponent({
   },
   data() {
     return {
-      summary: null as
-        | (SerieV2 & {
-            seasons: SeasonV2[];
-            episodes: Episode[];
-          })
-        | null,
+      summary: null as SerieExtendedSummary | null,
     };
   },
   created() {
-    this.$getScraperRequest(`/serie/${this.id}/seasons`).then(({ data }) => {
-      this.summary = data;
-    });
+    this.$getScraperRequest(`/serie/${this.id}/seasons`).then(
+      ({ data: serie }) => {
+        this.summary = serie;
+      }
+    );
   },
 });
 </script>
@@ -48,8 +45,9 @@ export default defineComponent({
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <RouterLink
             :to="`/watch/episode/${episode.id}`"
-            v-for="episode in summary.episodes"
+            v-for="episode in season.episodes"
             class="episode relative max-h-[115px] cursor-pointer overflow-hidden rounded-sm shadow transition duration-150 ease-in-out hover:z-10 hover:scale-[1.02] hover:shadow-lg"
+            :class="{ noFiles: !episode._count.files }"
           >
             <img
               :src="episode.image"
@@ -58,11 +56,23 @@ export default defineComponent({
             />
             <div v-else />
             <div
-              class="episodeText absolute top-0 left-0 flex h-full w-full items-center justify-center bg-black bg-opacity-25 p-4 transition duration-150 ease-in-out hover:bg-opacity-5 dark:bg-opacity-50 hover:dark:bg-opacity-25"
+              class="episodeText absolute top-0 left-0 flex h-full w-full items-center justify-center gap-2 bg-black bg-opacity-25 p-4 transition duration-150 ease-in-out hover:bg-opacity-5 dark:bg-opacity-50 hover:dark:bg-opacity-25"
             >
-              <span class="ellipsis base-text !font-bold !text-white underline">
+              <span
+                class="ellipsis base-text !font-bold !text-white"
+                :class="{
+                  underline: episode._count.files,
+                  'line-through': !episode._count.files,
+                }"
+              >
                 {{ episode.name }}
               </span>
+              <span
+                v-if="!episode._count.files"
+                class="ellipsis base-text !font-bold !text-white"
+              >
+                - {{ $t("common.missingFile") }}</span
+              >
             </div>
           </RouterLink>
         </div>
@@ -82,5 +92,13 @@ export default defineComponent({
 
 .picture {
   @apply w-full overflow-hidden rounded border border-solid border-gray-700 p-2 dark:border-neutral-100;
+}
+
+.episode.noFiles {
+  @apply pointer-events-none;
+
+  > .episodeText {
+    @apply bg-opacity-75;
+  }
 }
 </style>

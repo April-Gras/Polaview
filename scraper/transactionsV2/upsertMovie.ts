@@ -13,12 +13,12 @@ export function upsertMovie(
       id,
       image: image || undefined,
       name,
-      year: Number(year),
+      year: year ? Number(year) : undefined,
     },
     update: {
       image: image || undefined,
       name,
-      year: Number(year),
+      year: year ? Number(year) : undefined,
     },
   });
 }

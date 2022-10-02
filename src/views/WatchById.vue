@@ -7,7 +7,12 @@ import PeopleCardVue from "@/components/cards/PeopleCard.vue";
 import CharacterCardVue from "@/components/cards/CharacterCard.vue";
 import VVideoVue from "@/components/VVideo.vue";
 
-import type { Character, Episode, Movie, People, FileV2 } from "@prisma/client";
+import type {
+  Episode,
+  Movie,
+  MovieOverviewTranslation,
+  People,
+} from "@prisma/client";
 import type { FileSummary } from "~/types/RouteLibraryScraper";
 
 export default defineComponent({
@@ -40,43 +45,43 @@ export default defineComponent({
       );
       this.file = file as FileSummary<Movie | Episode>;
     } catch (_) {
-      this.$router.replace("/error");
+      this.$router.push("/error");
     }
   },
   computed: {
-    entity():
-      | FileSummary<Movie>["movie"]
-      | FileSummary<Episode>["episode"]
-      | undefined
-      | null {
-      if (this.file) return this.file[this.entityType];
-      return null;
+    entity(): FileSummary<Movie>["movie"] | FileSummary<Episode>["episode"] {
+      if (!this.file) throw "No file found";
+      // @ts-expect-error
+      return this.file[this.entityType];
+    },
+    overview(): string | undefined {
+      const userLanguage = this.$i18n.locale;
+      const overviewCollection = this.entity
+        .overviews as MovieOverviewTranslation[];
+
+      return overviewCollection.find(({ lang }) => {
+        return lang === userLanguage;
+      })?.text;
     },
     directors(): People[] {
-      const entity = this.entity;
-
-      if (this.typeSafeguardMovieEpisode(entity, "episode") && entity)
-        return entity.episodeOnDirector.map((e) => e.people) ?? [];
-      if (this.typeSafeguardMovieEpisode(entity, "movie") && entity)
-        return entity.movieOnDirector.map((e) => e.people) ?? [];
+      if (this.typeSafeguardMovieEpisode(this.entity, "episode"))
+        return this.entity.episodeOnDirector.map((e) => e.people) ?? [];
+      if (this.typeSafeguardMovieEpisode(this.entity, "movie"))
+        return this.entity.movieOnDirector.map((e) => e.people) ?? [];
       return [];
     },
     writers(): People[] {
-      const entity = this.entity;
-
-      if (this.typeSafeguardMovieEpisode(entity, "episode") && entity)
-        return entity.episodeOnWriter.map((e) => e.people) ?? [];
-      if (this.typeSafeguardMovieEpisode(entity, "movie") && entity)
-        return entity.movieOnWriter.map((e) => e.people) ?? [];
+      if (this.typeSafeguardMovieEpisode(this.entity, "episode"))
+        return this.entity.episodeOnWriter.map((e) => e.people) ?? [];
+      if (this.typeSafeguardMovieEpisode(this.entity, "movie"))
+        return this.entity.movieOnWriter.map((e) => e.people) ?? [];
       return [];
     },
     cast(): People[] {
-      const entity = this.entity;
-
-      if (this.typeSafeguardMovieEpisode(entity, "episode") && entity)
-        return entity.episodeOnCast.map((e) => e.people) ?? [];
-      if (this.typeSafeguardMovieEpisode(entity, "movie") && entity)
-        return entity.movieOnCast.map((e) => e.people) ?? [];
+      if (this.typeSafeguardMovieEpisode(this.entity, "episode"))
+        return this.entity.episodeOnCast.map((e) => e.people) ?? [];
+      if (this.typeSafeguardMovieEpisode(this.entity, "movie"))
+        return this.entity.movieOnCast.map((e) => e.people) ?? [];
       return [];
     },
   },
@@ -95,13 +100,14 @@ export default defineComponent({
 
 <template>
   <div v-if="file && entity" class="relative grid w-full grid-cols-1 gap-10">
-    <h1 class="title-text">
-      <span>
+    <div class="flex items-end gap-2">
+      <h1 class="title-text">
         {{ entity.name }}
-      </span>
-      <span v-if="entity.year">({{ entity.year }})</span>
-    </h1>
-    <VVideoVue :source="`/api/video/${file.id}`" />
+      </h1>
+      <h2 class="subtitle-text" v-if="entity.year">({{ entity.year }})</h2>
+    </div>
+    <VVideoVue :source="`/scraper/video/${file.id}`" />
+    <p v-if="overview" class="text-base">{{ overview }}</p>
     <FoldCardGridVue>
       <template #title>{{ $t("common.cast") }}</template>
       <template #list>

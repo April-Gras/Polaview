@@ -28,8 +28,8 @@ export type TvDbMovie = {
   image: string | null;
   name: string;
   lists: any[]; //TODO List feature
-  year: string;
-  overview: string | null;
+  year: string | null;
+  overviewTranslations: string[] | null;
 };
 
 type TvDbBiography = {
@@ -44,8 +44,9 @@ export type TvDbEpisode = {
   name: string;
   number: number;
   overview: string | null;
+  overviewTranslations: string[] | null;
   seasonNumber: number;
-  year: string;
+  year: string | null;
 };
 
 export type TvDbSeasonType = {
@@ -71,7 +72,7 @@ export type TvDbSerie = {
   image: string | null;
   seasons: TvDbSeason[]; //TODO
   episodes: TvDbEpisodeBase[];
-  year: string;
+  year: string | null;
   overview: string | null;
   seasonTypes: TvDbSeasonType[];
 };
@@ -90,6 +91,15 @@ export type AllRoutes = [
   // Get
   BuildRouteEntry<
     "get",
+    "/movies/:id/translations/:language",
+    DefaultTvDbRespionse<{
+      language: "string";
+      name: "string";
+      overview?: "string";
+    }>
+  >,
+  BuildRouteEntry<
+    "get",
     "/movies/:id/extended",
     DefaultTvDbRespionse<TvDbMovie>
   >,
@@ -97,6 +107,15 @@ export type AllRoutes = [
     "get",
     "/series/:id/extended?meta=episodes&short=true",
     DefaultTvDbRespionse<TvDbSerie>
+  >,
+  BuildRouteEntry<
+    "get",
+    "/episodes/:id/translations/:language",
+    DefaultTvDbRespionse<{
+      language: "string";
+      name: "string";
+      overview?: "string";
+    }>
   >,
   BuildRouteEntry<
     "get",

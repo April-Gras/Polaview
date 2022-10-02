@@ -23,9 +23,9 @@ export function upsertEpisodeCollectionAndSerieAndSeason(
         create: {
           id: episode.id,
           number: episode.number,
-          overview: episode.overview || undefined,
           image: episode.image || undefined,
           name: episode.name,
+          year: episode.year ? Number(episode.year) : undefined,
           season: {
             connectOrCreate: {
               where: {

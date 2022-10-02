@@ -1,7 +1,8 @@
 import path from "node:path";
+import fs from "node:fs";
 import { readdirSync, lstatSync } from "node:fs";
 
-import { expose, Worker, spawn } from "threads";
+import { expose, Worker, spawn, Pool } from "threads";
 
 import { ProcessSingleFileThreadWorker } from "#/workers/processSingleFile";
 import { ConvertFileToMp4ThreadWorker } from "#/workers/convertFileToMp4";
@@ -43,18 +44,26 @@ const scanDirectoryForMovies: ScanDirectoryForMoviesThreadWorker =
       }
     );
 
-    const processFileWorker: ProcessSingleFileThreadWorker = await spawn(
-      new Worker("./processSingleFile.ts")
+    const currentDirectoryFileThreadPool = Pool(
+      () =>
+        spawn<ProcessSingleFileThreadWorker>(
+          new Worker("./processSingleFile.ts")
+        ),
+      {
+        concurrency: 1,
+        size: 1,
+      }
     );
     const wellFormatedFiles = await handleFilesFormat(toProcessFiles);
 
-    for (const filePath of wellFormatedFiles)
-      await processFileWorker(
-        source,
-        filePath,
-        path.resolve(directory, filePath)
-      );
+    const results = wellFormatedFiles.map((filePath) =>
+      currentDirectoryFileThreadPool.queue((task) =>
+        task(source, filePath, path.resolve(directory, filePath))
+      )
+    );
 
+    await Promise.allSettled(results);
+    await currentDirectoryFileThreadPool.terminate();
     for (const directory of toProcessDirectories) {
       await scanDirectoryForMovies(source, path.resolve(source, directory));
     }
@@ -76,6 +85,20 @@ async function handleFilesFormat(files: string[]): Promise<string[]> {
       if (!accumulator.includes(file)) accumulator.push(file);
       return accumulator;
     }, [] as string[]);
+}
+
+function findMatchingSubTracks(wellFormatedFilePath: string) {
+  const targetExtentions = [".srt"];
+
+  return targetExtentions.reduce((accumulator, targetExtention) => {
+    const potencialSubtitleTrack = wellFormatedFilePath.replace(
+      /\.mp4/,
+      targetExtention
+    );
+
+    fs.existsSync(potencialSubtitleTrack);
+    return accumulator;
+  }, [] as string[]);
 }
 
 expose(scanDirectoryForMovies);

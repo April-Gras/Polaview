@@ -63,34 +63,54 @@ model Character {
   episodeId Int?
 }
 
+model MovieOverviewTranslation {
+  movieId Int
+  lang    String
+  text    String
+  movie   Movie  @relation(fields: [movieId], references: [id])
+
+  @@id([movieId, lang])
+}
+
 model Movie {
-  id              Int               @id @unique
+  id              Int                        @id @unique
   characters      Character[]
-  createdOn       DateTime          @default(now())
+  createdOn       DateTime                   @default(now())
   files           FileV2[]
   image           String?
   movieOnCast     MovieOnCast[]
   movieOnDirector MovieOnDirector[]
   movieOnWriter   MovieOnWriter[]
   name            String
-  year            Int
+  overviews       MovieOverviewTranslation[]
+  year            Int?
+}
+
+model EpisodeOverviewTranslation {
+  episodeId Int
+  lang      String
+  text      String
+  episode   Episode @relation(fields: [episodeId], references: [id])
+
+  @@id([episodeId, lang])
 }
 
 model Episode {
-  id                Int                 @id @unique
-  name              String
-  overview          String?
-  season            SeasonV2?           @relation(fields: [seasonId], references: [id])
-  seasonId          Int?
-  serie             SerieV2?            @relation(fields: [serieId], references: [id])
-  serieId           Int?
-  image             String?
-  number            Int
-  files             FileV2[]
+  id                Int                          @id @unique
   characters        Character[]
   episodeOnCast     EpisodeOnCast[]
   episodeOnDirector EpisodeOnDirector[]
   episodeOnWriter   EpisodeOnWriter[]
+  overviews         EpisodeOverviewTranslation[]
+  files             FileV2[]
+  image             String?
+  name              String
+  number            Int
+  season            SeasonV2?                    @relation(fields: [seasonId], references: [id])
+  seasonId          Int?
+  serie             SerieV2?                     @relation(fields: [serieId], references: [id])
+  serieId           Int?
+  year              Int?
 }
 
 model MovieOnCast {
@@ -164,12 +184,12 @@ model List {
 }
 
 model SeasonV2 {
-  id      Int       @id @unique
-  number  Int
-  image   String?
-  episode Episode[]
-  serie   SerieV2?  @relation(fields: [serieId], references: [id])
-  serieId Int?
+  id       Int       @id @unique
+  number   Int
+  image    String?
+  episodes Episode[]
+  serie    SerieV2?  @relation(fields: [serieId], references: [id])
+  serieId  Int?
 }
 
 model SerieV2 {
@@ -193,6 +213,7 @@ model FileSourceV2 {
 model FileV2 {
   id               Int          @id @unique @default(autoincrement())
   path             String       @unique
+  subtitleTracks   String[]
   fileSource       FileSourceV2 @relation(fields: [fileSourceV2Path], references: [path])
   fileSourceV2Path String
   movie            Movie?       @relation(fields: [movieId], references: [id])

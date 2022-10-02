@@ -13,8 +13,10 @@ import { latestSerieGet, latestTitleGet } from "./latest";
 import { fileGetByMovieId, fileGetByEpisodeId } from "./file";
 import { serieGetSeaons } from "./serie";
 import { cacheGetSearch } from "./cacheSearch";
+import getVideoRoute from "./video";
 
 import { processEntityIdPost } from "./process";
+import { startupProcessSources } from "./utils/processSources";
 
 const prisma = new PrismaClient();
 const app: Express = express();
@@ -63,8 +65,11 @@ for (const index in ROUTES) {
   });
 }
 
+app.get("/video/:id", getVideoRoute);
+
 async function startup() {
   await addTvDbTokenToProcessEnv();
+  startupProcessSources();
   if (!process.env.TVDB_API_KEY)
     throw new Error(
       "Couldn't retrieve TVDB API KEY, are you sure your token / PIN are valid ?"

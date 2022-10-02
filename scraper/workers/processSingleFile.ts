@@ -3,20 +3,14 @@ import {
   applyFailureColor,
   applySuccessColor,
   applyInfoColor,
-} from "#/utils/log";
+} from "#/utils/dataLayerLog";
 
 import { expose } from "threads";
-import { AxiosError } from "axios";
 import { PrismaClient, SearchResult, Movie, Episode } from "@prisma/client";
 
 import { compareTwoStrings } from "string-similarity";
 
-import {
-  makeServersideGetScraper,
-  makeServersidePostScraper,
-} from "#/axiosTransporter";
-
-import { SearchType } from "~/types/Search";
+import { makeServersidePostScraper } from "#/axiosTransporter";
 
 const prisma = new PrismaClient();
 
@@ -52,11 +46,12 @@ const processSingleFileThreadWorker: ProcessSingleFileThreadWorker =
         cleanTitleName
       );
 
-      console.log(
-        applyInfoColor(` | Found search match ${mostProbableChoice.name}`)
-      );
-
       if (mostProbableChoice.id.includes("movie")) {
+        console.log(
+          applyInfoColor(
+            ` | Found movie search match ${mostProbableChoice.name}`
+          )
+        );
         const { data: movie } = await makeServersidePostScraper(
           "/processEntity",
           {
@@ -78,6 +73,11 @@ const processSingleFileThreadWorker: ProcessSingleFileThreadWorker =
         return;
       } else if (mostProbableChoice.id.includes("serie")) {
         const episodeInfo = getSeasonAndEpisodeNumberFromFilePath(fileBaseName);
+        console.log(
+          applyInfoColor(
+            ` | Found episode search match ${mostProbableChoice.name} S${episodeInfo.seasonNumber}E${episodeInfo.episodeNumber}`
+          )
+        );
         const { data: episode } = await makeServersidePostScraper(
           "/processEntity",
           {
@@ -101,9 +101,6 @@ const processSingleFileThreadWorker: ProcessSingleFileThreadWorker =
         return;
       } else throw new Error("Unvalid entity type");
     } catch (err) {
-      if (err instanceof AxiosError && err.response?.data)
-        console.info(err.response?.data);
-      console.log(err);
       console.info(applyFailureColor(` | Failed for ${filePath}`));
       return;
     }

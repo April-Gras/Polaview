@@ -2,7 +2,8 @@
 import { defineComponent } from "vue";
 import { useUserStore } from "@/stores/user";
 
-import { TranslateResult } from "vue-i18n";
+import { availableLocales } from "~/availableLocales";
+import type { TranslateResult } from "vue-i18n";
 
 type NavigationEntry = { route: string; text: TranslateResult; icon: string };
 
@@ -20,6 +21,7 @@ export default defineComponent({
   },
   data() {
     return {
+      availableLocales,
       displayLangMenu: false,
       appTheme:
         window.matchMedia &&
@@ -101,7 +103,7 @@ export default defineComponent({
           <hr class="mx-auto h-[2px] w-3/4 bg-neutral-400" />
           <li
             :key="lang"
-            v-for="lang in $i18n.availableLocales"
+            v-for="lang in availableLocales"
             class="base-text z-40 cursor-pointer px-4 py-1 transition-colors duration-150 ease-in-out hover:bg-neutral-300 hover:dark:bg-gray-600"
             @click="selectLang(lang)"
           >

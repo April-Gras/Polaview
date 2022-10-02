@@ -46,9 +46,11 @@ export function handleHumans(
     ),
     ...upsertActorCharacterCollection(
       prisma,
-      (entity.characters || []).filter((e) => e.peopleType === "Actor"),
+      (entity.characters || []).filter((e) =>
+        ["Actor", "Guest Star"].includes(e.peopleType)
+      ),
       id,
-      "movie"
+      entityType
     ),
   ];
 }

@@ -1,14 +1,17 @@
 import { AllRoutes } from "~/types/RouteLibraryScraper";
 import { GetRouteDataHandlerFromUrlAndVerb } from "~/types/Route";
 
+// @ts-expect-error
 export const fileGetByMovieId: GetRouteDataHandlerFromUrlAndVerb<
   "get",
   AllRoutes,
   "/file/movie/:id/"
 > = async (prisma, req) => {
-  return await prisma.fileV2.findFirstOrThrow({
+  const file = await prisma.fileV2.findFirstOrThrow({
     where: {
-      movieId: Number(req.params.id),
+      movieId: {
+        equals: Number(req.params.id),
+      },
     },
     include: {
       movie: {
@@ -29,12 +32,17 @@ export const fileGetByMovieId: GetRouteDataHandlerFromUrlAndVerb<
               people: true,
             },
           },
+          overviews: true,
         },
       },
     },
   });
+
+  if (!file.movie) throw new Error(`No movie in file ${file.id}`);
+  return file;
 };
 
+// @ts-expect-error
 export const fileGetByEpisodeId: GetRouteDataHandlerFromUrlAndVerb<
   "get",
   AllRoutes,
@@ -47,6 +55,7 @@ export const fileGetByEpisodeId: GetRouteDataHandlerFromUrlAndVerb<
     include: {
       episode: {
         include: {
+          overviews: true,
           characters: true,
           episodeOnCast: {
             select: {
@@ -68,5 +77,6 @@ export const fileGetByEpisodeId: GetRouteDataHandlerFromUrlAndVerb<
     },
   });
 
+  if (!file.episode) throw new Error(`No episode in file ${file.id}`);
   return file;
 };

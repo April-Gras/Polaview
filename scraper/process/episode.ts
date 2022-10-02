@@ -1,4 +1,8 @@
-import { Episode, PrismaClient } from "@prisma/client";
+import {
+  Episode,
+  EpisodeOverviewTranslation,
+  PrismaClient,
+} from "@prisma/client";
 
 import { EpisodeIndexInfo } from "~/types/RouteLibraryScraper";
 import {
@@ -10,7 +14,9 @@ import {
 
 import { getTvDbSerieFromId } from "#/tvdb-api/getTvDbSerieFromId";
 import { getTvDbEpisodeFromId } from "#/tvdb-api/getTvDbEpisodeFromId";
+import { getTranslations } from "#/tvdb-api/getEpisodeOverviewTranslations";
 import { upsertEpisodeCollectionAndSerieAndSeason } from "#/transactionsV2/upsertEpisodeCollectionAndSerieAndSeason";
+import { upsertAndConnectEpisodeOverviewTranslations } from "#/transactionsV2/upsertAndConnectEpisodeOverviewTranslationCollection";
 
 import { getCharactersFromEntity } from "./character";
 import { handleHumans } from "./humans";
@@ -28,7 +34,10 @@ export async function processIdAsEpisode(
     throw new Error("Missing data to build episode listing");
 
   const episodes = await getEpisodesFromIds(episodeIds);
-  const episodeOnPeople = await getEpisodeOnPeople(episodes);
+  const [episodeOnPeople, episodeOnOverviewTranslations] = await Promise.all([
+    getEpisodeOnPeople(episodes),
+    getEpisodeOnOverviewTranslations(episodes),
+  ]);
 
   await prisma.$transaction([
     ...upsertEpisodeCollectionAndSerieAndSeason(
@@ -53,6 +62,13 @@ export async function processIdAsEpisode(
       );
     }),
   ]);
+  await Promise.allSettled(
+    episodes.flatMap((episode) => {
+      const translations = episodeOnOverviewTranslations[episode.id];
+
+      return upsertAndConnectEpisodeOverviewTranslations(prisma, translations);
+    })
+  );
 
   return await prisma.episode.findFirstOrThrow({
     where: {
@@ -108,4 +124,17 @@ async function getEpisodeOnPeople(episodes: TvDbEpisode[]) {
     episodeOnPeoples[episode.id] = { cast, writers, directors };
   }
   return episodeOnPeoples;
+}
+
+async function getEpisodeOnOverviewTranslations(
+  episodes: TvDbEpisode[]
+): Promise<Record<number, EpisodeOverviewTranslation[]>> {
+  const episodeOnOverviewTranslations: Record<
+    number,
+    EpisodeOverviewTranslation[]
+  > = {};
+
+  for (const episode of episodes)
+    episodeOnOverviewTranslations[episode.id] = await getTranslations(episode);
+  return episodeOnOverviewTranslations;
 }

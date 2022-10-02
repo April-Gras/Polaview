@@ -14,14 +14,12 @@ import { AllRoutes } from "~/types/RouteLibraryServer";
 import { userIsAdminMiddleware } from "~/middlewares/userIsAdmin";
 
 import { startupCreateBaseUsers } from "#/startupUtils/createBaseUser";
-import { startupProcessSources } from "#/startupUtils/processSources";
 
 import { getUser, userGetById, userPost, userPatchById } from "#/user";
 import { authLoginPost, authUserGet, authLogoutPost } from "#/auth";
-import getVideoRoute from "#/video/index";
 
 import { JsonCompliantData } from "~/types/Route";
-import { applyServiceColor } from "./utils/log";
+import { applyServiceColor } from "./utils/serverLayerLog";
 
 const prisma = new PrismaClient();
 const app: Express = express();
@@ -87,8 +85,6 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use("/", router);
 
-app.get("/video/:id", getVideoRoute);
-
 for (const index in ROUTES) {
   const [verb, url, handler] = ROUTES[index];
 
@@ -117,6 +113,5 @@ for (const index in MIDDLEWARES) {
 
 app.listen(port, () => {
   startupCreateBaseUsers(prisma);
-  startupProcessSources();
   console.log(applyServiceColor(`running at http://localhost:${port}`));
 });

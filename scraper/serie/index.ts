@@ -7,15 +7,30 @@ export const serieGetSeaons: GetRouteDataHandlerFromUrlAndVerb<
   "/serie/:id/seasons"
 > = async (prisma, req) => {
   const { id } = req.params;
-  const serie = await prisma.serieV2.findUniqueOrThrow({
+  return await prisma.serieV2.findUniqueOrThrow({
     where: {
       id: Number(id),
     },
     include: {
-      episodes: true,
-      seasons: true,
+      seasons: {
+        orderBy: {
+          number: "asc",
+        },
+        include: {
+          episodes: {
+            orderBy: {
+              number: "asc",
+            },
+            include: {
+              _count: {
+                select: {
+                  files: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
-
-  return serie;
 };

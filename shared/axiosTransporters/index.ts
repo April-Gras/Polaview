@@ -16,12 +16,3 @@ export const scraperTransporter = axios.create({
   baseURL: "/scraper",
   withCredentials: true,
 });
-
-export const tvDbTransporter = axios.create({
-  baseURL: "https://api4.thetvdb.com/v4/",
-  transformRequest(data, headers) {
-    if (headers)
-      headers["authorization"] = `Bearer ${process.env.TVDB_API_KEY}`;
-    return JSON.stringify(data);
-  },
-});
