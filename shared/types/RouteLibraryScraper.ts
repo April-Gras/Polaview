@@ -9,6 +9,7 @@ import {
   SerieV2,
   MovieOverviewTranslation,
   EpisodeOverviewTranslation,
+  SubtitleTrack,
 } from "@prisma/client";
 import { BuildRouteEntry, RuntimeConfigBuilder } from "~/types/Route";
 
@@ -61,8 +62,9 @@ type FileSummaryAdditions<ENTITY extends Episode | Movie> =
           }[];
         } & { characters: Character[] };
       };
-export type FileSummary<ENTITY extends Episode | Movie> = FileV2 &
-  FileSummaryAdditions<ENTITY>;
+export type FileSummary<ENTITY extends Episode | Movie> = FileV2 & {
+  subtitleTracks: SubtitleTrack[];
+} & FileSummaryAdditions<ENTITY>;
 
 export type EpisodeIndexInfo = {
   episodeNumber: number;

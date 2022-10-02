@@ -57,9 +57,16 @@ const scanDirectoryForMovies: ScanDirectoryForMoviesThreadWorker =
     const wellFormatedFiles = await handleFilesFormat(toProcessFiles);
 
     const results = wellFormatedFiles.map((filePath) =>
-      currentDirectoryFileThreadPool.queue((task) =>
-        task(source, filePath, path.resolve(directory, filePath))
-      )
+      currentDirectoryFileThreadPool.queue((task) => {
+        const fullPath = path.resolve(directory, filePath);
+
+        return task(
+          source,
+          filePath,
+          fullPath,
+          findMatchingSubTracks(fullPath)
+        );
+      })
     );
 
     await Promise.allSettled(results);
@@ -96,7 +103,8 @@ function findMatchingSubTracks(wellFormatedFilePath: string) {
       targetExtention
     );
 
-    fs.existsSync(potencialSubtitleTrack);
+    if (fs.existsSync(potencialSubtitleTrack))
+      accumulator.push(potencialSubtitleTrack);
     return accumulator;
   }, [] as string[]);
 }

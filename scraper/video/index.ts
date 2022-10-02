@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { userHasValidSession } from "~/middlewares/userHasSession";
 import { getSessionIdFromRequest } from "~/expressUtils";
 import fs from "node:fs";
+import { parse, stringify } from "subtitle";
 
 const prisma = new PrismaClient();
 
@@ -46,6 +47,45 @@ export default async (req: Request, res: Response) => {
       res.writeHead(200, head);
       fs.createReadStream(path).pipe(res);
     }
+  } catch (_) {
+    res.statusCode = 404;
+    res.statusMessage = "Not found";
+    res.end("Not found");
+  }
+};
+
+export const getVideoSubtitle = async (req: Request, res: Response) => {
+  const sessionid = getSessionIdFromRequest(req);
+  if (!(await userHasValidSession(prisma, sessionid)))
+    return res.status(403).json("Not allowed");
+  const { fileId, subtitleId } = req.params;
+
+  try {
+    const { subtitleTracks } = await prisma.fileV2.findUniqueOrThrow({
+      where: {
+        id: Number(fileId),
+      },
+      select: {
+        subtitleTracks: {
+          where: {
+            id: Number(subtitleId),
+          },
+        },
+      },
+    });
+
+    if (!subtitleTracks[0]) {
+      res.statusCode = 404;
+      res.statusMessage = "Not found";
+      return res.end("Not found");
+    }
+    res.writeHead(200, {
+      "Content-Type": "application/x-subrip",
+    });
+    fs.createReadStream(subtitleTracks[0].path)
+      .pipe(parse())
+      .pipe(stringify({ format: "WebVTT" }))
+      .pipe(res);
   } catch (_) {
     res.statusCode = 404;
     res.statusMessage = "Not found";

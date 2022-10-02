@@ -210,14 +210,23 @@ model FileSourceV2 {
   updatedOn DateTime @default(now())
 }
 
+model SubtitleTrack {
+  id       Int    @unique @default(autoincrement())
+  path     String @unique
+  fileV2   FileV2 @relation(fields: [fileV2Id], references: [id])
+  fileV2Id Int
+
+  @@id([path, fileV2Id])
+}
+
 model FileV2 {
-  id               Int          @id @unique @default(autoincrement())
-  path             String       @unique
-  subtitleTracks   String[]
-  fileSource       FileSourceV2 @relation(fields: [fileSourceV2Path], references: [path])
+  id               Int             @id @unique @default(autoincrement())
+  path             String          @unique
+  subtitleTracks   SubtitleTrack[]
+  fileSource       FileSourceV2    @relation(fields: [fileSourceV2Path], references: [path])
   fileSourceV2Path String
-  movie            Movie?       @relation(fields: [movieId], references: [id])
-  episode          Episode?     @relation(fields: [episodeId], references: [id])
+  movie            Movie?          @relation(fields: [movieId], references: [id])
+  episode          Episode?        @relation(fields: [episodeId], references: [id])
   movieId          Int?
   episodeId        Int?
 }
