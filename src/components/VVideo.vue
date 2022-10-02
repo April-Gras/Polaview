@@ -1,44 +1,18 @@
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, PropType } from "vue";
 
-import "@videojs/themes/dist/sea/index.css";
-import videojs, { VideoJsPlayer } from "video.js";
+import { SubtitleTrack } from ".prisma/client";
 
 export default defineComponent({
   props: {
-    source: {
-      type: String,
+    fileId: {
+      type: Number,
       required: true,
     },
-  },
-  data() {
-    return {
-      player: null as null | VideoJsPlayer,
-    };
-  },
-  mounted() {
-    if (!this.$refs.videoPlayer || this.player) return;
-    this.player = videojs(
-      this.$refs.videoPlayer as Element,
-      {
-        fluid: true,
-        sources: [
-          {
-            src: this.source,
-            type: "video/mp4",
-          },
-        ],
-      },
-      () => {
-        if (!this.player) return;
-      }
-    );
-  },
-  beforeDestroy() {
-    if (!this.player) return;
-    // TODO beforeDestroy save current video timestamp
-    // console.log((this.$refs.videoPlayer as HTMLVideoElement).currentTime)
-    this.player.dispose();
+    subtitles: {
+      type: Array as PropType<SubtitleTrack[]>,
+      required: true,
+    },
   },
 });
 </script>
@@ -46,16 +20,16 @@ export default defineComponent({
 <template>
   <video
     ref="videoPlayer"
-    class="video-js vjs-theme-sea"
+    class="video-js vjs-theme-city"
     controls
     preload="auto"
   >
-    <p class="vjs-no-js">
-      To view this video please enable JavaScript, and consider upgrading to a
-      web browser that
-      <a href="https://videojs.com/html5-video-support/" target="_blank"
-        >supports HTML5 video</a
-      >
-    </p>
+    <source type="video/mp4" :src="`/scraper/video/${fileId}`" />
+    <track
+      v-for="subtitle in subtitles"
+      kind="captions"
+      :src="`/scraper/video/${fileId}/subtitle/${subtitle.id}`"
+      :language="$t('lang.eng').toString()"
+    />
   </video>
 </template>

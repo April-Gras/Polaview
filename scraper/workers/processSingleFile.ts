@@ -18,11 +18,12 @@ type ProcessSingleFileThreadWorkerReturn = void;
 export type ProcessSingleFileThreadWorker = (
   sourcePath: string,
   filePath: string,
-  wholePath: string
+  wholePath: string,
+  potencialSubtitleTrack: string[]
 ) => Promise<ProcessSingleFileThreadWorkerReturn>;
 
 const processSingleFileThreadWorker: ProcessSingleFileThreadWorker =
-  async function (sourcePath, filePath, wholePath) {
+  async function (sourcePath, filePath, wholePath, potencialSubtitleTrack) {
     const fileBaseName = path.basename(filePath);
     const magicRegex =
       /^(.+?)[.( \t]*(?:(?:(19\d{2}|20(?:0\d|1[0-9]))).*|(?:(?=bluray|\d+p|brrip|WEBRip)..*)?[.](mkv|avi|mpe?g|mp4)$)/gim;
@@ -67,9 +68,9 @@ const processSingleFileThreadWorker: ProcessSingleFileThreadWorker =
           sourcePath,
           wholePath,
           "movie",
-          movie as Movie
+          movie as Movie,
+          potencialSubtitleTrack
         );
-        console.log(applySuccessColor(`Saved file in id ${id}`));
         return;
       } else if (mostProbableChoice.id.includes("serie")) {
         const episodeInfo = getSeasonAndEpisodeNumberFromFilePath(fileBaseName);
@@ -95,9 +96,9 @@ const processSingleFileThreadWorker: ProcessSingleFileThreadWorker =
           sourcePath,
           wholePath,
           "episode",
-          episode as Episode
+          episode as Episode,
+          potencialSubtitleTrack
         );
-        console.log(applySuccessColor(`Saved file in id ${id}`));
         return;
       } else throw new Error("Unvalid entity type");
     } catch (err) {
@@ -110,7 +111,8 @@ async function saveFileAndConnectToEntity<T extends "movie" | "episode">(
   sourcePath: string,
   filePath: string,
   type: T,
-  targetEntity: T extends "movie" ? Movie : Episode
+  targetEntity: T extends "movie" ? Movie : Episode,
+  potencialSubtitleTrack: string[]
 ) {
   const source = await prisma.fileSourceV2.upsert({
     where: {
@@ -123,7 +125,7 @@ async function saveFileAndConnectToEntity<T extends "movie" | "episode">(
       updatedOn: new Date(),
     },
   });
-  return await prisma.fileV2.upsert({
+  const file = await prisma.fileV2.upsert({
     where: {
       path: filePath,
     },
@@ -157,6 +159,40 @@ async function saveFileAndConnectToEntity<T extends "movie" | "episode">(
       fileSource: true,
     },
   });
+  const subtitle = await prisma.$transaction(
+    potencialSubtitleTrack.map((subtitlePath) => {
+      return prisma.subtitleTrack.upsert({
+        where: {
+          path_fileV2Id: {
+            fileV2Id: file.id,
+            path: subtitlePath,
+          },
+        },
+        create: {
+          fileV2: {
+            connect: {
+              id: file.id,
+            },
+          },
+          path: subtitlePath,
+        },
+        update: {
+          fileV2: {
+            connect: {
+              id: file.id,
+            },
+          },
+          path: subtitlePath,
+        },
+      });
+    })
+  );
+  console.log(
+    applySuccessColor(
+      `Saved file in id ${file.id} with ${subtitle.length} subtitle tracks`
+    )
+  );
+  return file;
 }
 
 function cleanupTitleName(name: string) {

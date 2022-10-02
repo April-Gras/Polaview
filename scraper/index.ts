@@ -13,7 +13,7 @@ import { latestSerieGet, latestTitleGet } from "./latest";
 import { fileGetByMovieId, fileGetByEpisodeId } from "./file";
 import { serieGetSeaons } from "./serie";
 import { cacheGetSearch } from "./cacheSearch";
-import getVideoRoute from "./video";
+import getVideoRoute, { getVideoSubtitle } from "./video";
 
 import { processEntityIdPost } from "./process";
 import { startupProcessSources } from "./utils/processSources";
@@ -66,6 +66,7 @@ for (const index in ROUTES) {
 }
 
 app.get("/video/:id", getVideoRoute);
+app.get("/video/:fileId/subtitle/:subtitleId", getVideoSubtitle);
 
 async function startup() {
   await addTvDbTokenToProcessEnv();

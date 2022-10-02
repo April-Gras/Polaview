@@ -14,6 +14,7 @@ export const fileGetByMovieId: GetRouteDataHandlerFromUrlAndVerb<
       },
     },
     include: {
+      subtitleTracks: true,
       movie: {
         include: {
           characters: true,
@@ -53,6 +54,7 @@ export const fileGetByEpisodeId: GetRouteDataHandlerFromUrlAndVerb<
       episodeId: Number(req.params.id),
     },
     include: {
+      subtitleTracks: true,
       episode: {
         include: {
           overviews: true,

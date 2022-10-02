@@ -106,7 +106,7 @@ export default defineComponent({
       </h1>
       <h2 class="subtitle-text" v-if="entity.year">({{ entity.year }})</h2>
     </div>
-    <VVideoVue :source="`/scraper/video/${file.id}`" />
+    <VVideoVue :file-id="file.id" :subtitles="file.subtitleTracks" />
     <p v-if="overview" class="text-base">{{ overview }}</p>
     <FoldCardGridVue>
       <template #title>{{ $t("common.cast") }}</template>
