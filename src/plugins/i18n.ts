@@ -1,12 +1,12 @@
 import { createI18n } from "vue-i18n";
 
-import en from "@/locales/en.json";
-import fr from "@/locales/fr.json";
+import eng from "@/locales/eng.json";
+import fra from "@/locales/fra.json";
 
 export const i18nPlugin = createI18n({
-  locale: "en",
+  locale: "eng",
   messages: {
-    en,
-    fr,
+    eng,
+    fra,
   },
 });

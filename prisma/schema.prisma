@@ -25,111 +25,212 @@ model Session {
   lastAccess DateTime @default(now())
 }
 
-model ImdbSearch {
-  imdbId              String           @id @unique
-  name                String
-  thumbnailUrl        String?
-  imdbSearchCache     ImdbSearchCache? @relation(fields: [imdbSearchCacheTerm], references: [term])
-  imdbSearchCacheTerm String
+model Biography {
+  text     String
+  lang     String
+  People   People @relation(fields: [peopleId], references: [id])
+  peopleId Int
+
+  @@id([lang, peopleId])
 }
 
-model ImdbSearchCache {
-  term    String       @id @unique
-  results ImdbSearch[]
+model People {
+  id                Int                 @id @unique
+  name              String
+  biography         Biography[]
+  birth             String?
+  birthPlace        String?
+  death             String?
+  image             String?
+  characters        Character[]
+  movieOnCast       MovieOnCast[]
+  movieOnDirector   MovieOnDirector[]
+  movieOnWriter     MovieOnWriter[]
+  EpisodeOnCast     EpisodeOnCast[]
+  EpisodeOnDirector EpisodeOnDirector[]
+  EpisodeOnWriter   EpisodeOnWriter[]
 }
 
-model Title {
-  imdbId          String            @id @unique
-  createdOn       DateTime          @default(now())
-  episodeNumber   Int
-  File            File[]
+model Character {
+  id        Int      @id @unique
+  name      String
+  image     String?
+  people    People   @relation(fields: [peopleId], references: [id])
+  peopleId  Int
+  movie     Movie?   @relation(fields: [movieId], references: [id])
+  episode   Episode? @relation(fields: [episodeId], references: [id])
+  movieId   Int?
+  episodeId Int?
+}
+
+model MovieOverviewTranslation {
+  movieId Int
+  lang    String
+  text    String
+  movie   Movie  @relation(fields: [movieId], references: [id])
+
+  @@id([movieId, lang])
+}
+
+model Movie {
+  id              Int                        @id @unique
+  characters      Character[]
+  createdOn       DateTime                   @default(now())
+  files           FileV2[]
+  image           String?
+  movieOnCast     MovieOnCast[]
+  movieOnDirector MovieOnDirector[]
+  movieOnWriter   MovieOnWriter[]
   name            String
-  pictureUrl      String?
-  releaseYear     Int?
-  season          Season?           @relation(fields: [seasonId], references: [id])
-  seasonId        String?
-  storyline       String?
-  titleOnCast     TitleOnCast[]
-  titleOnDirector TitleOnDirector[]
-  titleOnWriter   TitleOnWriter[]
-  roles           Role[]
+  overviews       MovieOverviewTranslation[]
+  year            Int?
 }
 
-model Role {
-  imdbId       String  @id @unique
-  name         String
-  pictureUrl   String?
-  title        Title   @relation(fields: [titleImdbId], references: [imdbId])
-  person       Person  @relation(fields: [personImdbId], references: [imdbId])
-  titleImdbId  String
-  personImdbId String
+model EpisodeOverviewTranslation {
+  episodeId Int
+  lang      String
+  text      String
+  episode   Episode @relation(fields: [episodeId], references: [id])
+
+  @@id([episodeId, lang])
 }
 
-model Person {
-  imdbId          String            @id @unique
-  name            String
-  pictureUrl      String?
-  titleOnCast     TitleOnCast[]
-  titleOnWriter   TitleOnWriter[]
-  titleOnDirector TitleOnDirector[]
-  roles           Role[]
+model Episode {
+  id                Int                          @id @unique
+  characters        Character[]
+  episodeOnCast     EpisodeOnCast[]
+  episodeOnDirector EpisodeOnDirector[]
+  episodeOnWriter   EpisodeOnWriter[]
+  overviews         EpisodeOverviewTranslation[]
+  files             FileV2[]
+  image             String?
+  name              String
+  number            Int
+  season            SeasonV2?                    @relation(fields: [seasonId], references: [id])
+  seasonId          Int?
+  serie             SerieV2?                     @relation(fields: [serieId], references: [id])
+  serieId           Int?
+  year              Int?
 }
 
-model TitleOnWriter {
-  title    Title  @relation(fields: [titleId], references: [imdbId])
-  titleId  String
-  person   Person @relation(fields: [personId], references: [imdbId])
-  personId String
+model MovieOnCast {
+  movie    Movie  @relation(fields: [movieId], references: [id])
+  movieId  Int
+  people   People @relation(fields: [peopleId], references: [id])
+  peopleId Int
 
-  @@id([titleId, personId])
+  @@id([peopleId, movieId])
 }
 
-model TitleOnDirector {
-  title    Title  @relation(fields: [titleId], references: [imdbId])
-  titleId  String
-  person   Person @relation(fields: [personId], references: [imdbId])
-  personId String
+model MovieOnDirector {
+  movie    Movie  @relation(fields: [movieId], references: [id])
+  movieId  Int
+  people   People @relation(fields: [peopleId], references: [id])
+  peopleId Int
 
-  @@id([titleId, personId])
+  @@id([peopleId, movieId])
 }
 
-model TitleOnCast {
-  title    Title  @relation(fields: [titleId], references: [imdbId])
-  titleId  String
-  person   Person @relation(fields: [personId], references: [imdbId])
-  personId String
+model MovieOnWriter {
+  movie    Movie  @relation(fields: [movieId], references: [id])
+  movieId  Int
+  people   People @relation(fields: [peopleId], references: [id])
+  peopleId Int
 
-  @@id([titleId, personId])
+  @@id([peopleId, movieId])
 }
 
-model Serie {
-  imdbId     String   @id @unique
-  createdOn  DateTime @default(now())
-  seasons    Season[]
-  pictureUrl String?
-  storyline  String?
+model EpisodeOnCast {
+  episode   Episode @relation(fields: [episodeId], references: [id])
+  episodeId Int
+  people    People  @relation(fields: [peopleId], references: [id])
+  peopleId  Int
+
+  @@id([peopleId, episodeId])
+}
+
+model EpisodeOnDirector {
+  episode   Episode @relation(fields: [episodeId], references: [id])
+  episodeId Int
+  people    People  @relation(fields: [peopleId], references: [id])
+  peopleId  Int
+
+  @@id([peopleId, episodeId])
+}
+
+model EpisodeOnWriter {
+  episode   Episode @relation(fields: [episodeId], references: [id])
+  episodeId Int
+  people    People  @relation(fields: [peopleId], references: [id])
+  peopleId  Int
+
+  @@id([peopleId, episodeId])
+}
+
+model Entity {
+  movieId Int? @default(0)
+  serieId Int? @default(0)
+  order   Int
+  List    List @relation(fields: [listId], references: [id])
+  listId  Int  @id @unique
+}
+
+model List {
+  id         Int      @id @unique
+  entities   Entity[]
+  image      String?
   name       String
+  isOfficial Boolean
 }
 
-model Season {
-  id          String  @id @unique
-  episodes    Title[]
-  serie       Serie   @relation(fields: [serieImdbId], references: [imdbId])
-  serieImdbId String
+model SeasonV2 {
+  id       Int       @id @unique
+  number   Int
+  image    String?
+  episodes Episode[]
+  serie    SerieV2?  @relation(fields: [serieId], references: [id])
+  serieId  Int?
 }
 
-model FileSource {
+model SerieV2 {
+  id        Int        @id @unique
+  createdOn DateTime   @default(now())
+  episodes  Episode[]
+  name      String
+  overview  String?
+  seasons   SeasonV2[]
+  image     String?
+  updatedOn DateTime   @default(now())
+}
+
+model FileSourceV2 {
   path      String   @id @unique
-  files     File[]
+  files     FileV2[]
   createdOn DateTime @default(now())
   updatedOn DateTime @default(now())
 }
 
-model File {
-  id             Int         @id @unique @default(autoincrement())
-  path           String      @unique
-  fileSource     FileSource? @relation(fields: [fileSourcePath], references: [path])
-  fileSourcePath String?
-  title          Title       @relation(fields: [titleImdbId], references: [imdbId])
-  titleImdbId    String
+model FileV2 {
+  id               Int          @id @unique @default(autoincrement())
+  path             String       @unique
+  subtitleTracks   String[]
+  fileSource       FileSourceV2 @relation(fields: [fileSourceV2Path], references: [path])
+  fileSourceV2Path String
+  movie            Movie?       @relation(fields: [movieId], references: [id])
+  episode          Episode?     @relation(fields: [episodeId], references: [id])
+  movieId          Int?
+  episodeId        Int?
+}
+
+model SearchResult {
+  name            String
+  image_url       String?
+  id              String
+  SearchCache     SearchCache @relation(fields: [searchCacheTerm], references: [term])
+  searchCacheTerm String      @id @unique
+}
+
+model SearchCache {
+  term    String         @id @unique
+  results SearchResult[]
 }

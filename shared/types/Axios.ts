@@ -1,12 +1,13 @@
-import {
+import type {
   ExtractRouteEntriesByVerb,
   RouteEntry,
   ExtractAvailableUrlsFromCollection,
   GetEntryInCollectionFromUrl,
 } from "~/types/Route";
-import { AxiosRequestConfig, AxiosResponse } from "axios";
-import { AllRoutes as ServerRoutes } from "~/types/RouteLibraryServer";
-import { AllRoutes as ScraperRoutes } from "~/types/RouteLibraryScraper";
+import type { AxiosRequestConfig, AxiosResponse } from "axios";
+import type { AllRoutes as ServerRoutes } from "~/types/RouteLibraryServer";
+import type { AllRoutes as ScraperRoutes } from "~/types/RouteLibraryScraper";
+import type { AllRoutes as TvDbApiRoutes } from "~/types/RouteLibraryTvDbApi";
 
 type Primitive = number | string;
 
@@ -77,11 +78,13 @@ type BuildAxiosHandler<COLLECTION extends RouteEntry[]> = <
     : [payload: ENTRY[3], config?: AxiosRequestConfig]
 ) => Promise<AxiosResponse<ENTRY[2]>>;
 
+// Server Routes
 export type AxiosGetRequest = BuildAxiosHandler<GetRoutes>;
 export type AxiosPostRequest = BuildAxiosHandler<PostRoutes>;
 export type AxiosPatchRequest = BuildAxiosHandler<PatchRoutes>;
 export type AxiosDeleteRequest = BuildAxiosHandler<DeleteRoutes>;
 
+// Scraper Routes
 type ScraperPostRoutes = PrepExpressRoutesToLiveUrls<
   ExtractRouteEntriesByVerb<"post", ScraperRoutes>
 >;
@@ -92,3 +95,15 @@ type ScraperGetRoutes = PrepExpressRoutesToLiveUrls<
 
 export type AxiosScraperPostRequest = BuildAxiosHandler<ScraperPostRoutes>;
 export type AxiosScraperGetRequest = BuildAxiosHandler<ScraperGetRoutes>;
+
+// TvDbApiRoutes
+export type AxiosTvDbApiPostRoutes = PrepExpressRoutesToLiveUrls<
+  ExtractRouteEntriesByVerb<"post", TvDbApiRoutes>
+>;
+
+export type AxiosTvDbApiGetRoutes = PrepExpressRoutesToLiveUrls<
+  ExtractRouteEntriesByVerb<"get", TvDbApiRoutes>
+>;
+
+export type AxiosTvDbApiPostRequest = BuildAxiosHandler<AxiosTvDbApiPostRoutes>;
+export type AxiosTvDbApiGetRequest = BuildAxiosHandler<AxiosTvDbApiGetRoutes>;

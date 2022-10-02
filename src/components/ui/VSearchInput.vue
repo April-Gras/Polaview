@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Title, Serie } from "@prisma/client";
+import { Movie, SerieV2 } from "@prisma/client";
 import { defineComponent } from "vue";
 
 import VTextInputVue from "@/components/ui/VTextInput.vue";
@@ -14,8 +14,8 @@ export default defineComponent({
     return {
       search: "",
       timer: null as null | number,
-      titles: [] as Title[],
-      series: [] as Serie[],
+      movies: [] as Movie[],
+      series: [] as SerieV2[],
       displayResults: false,
     };
   },
@@ -24,15 +24,15 @@ export default defineComponent({
       const searchTerm = this.search.trim();
 
       if (!searchTerm.length) return this.resetResults();
-      const { data } = await this.$getScraperRequest(
-        `/title/search/${this.search}`
-      );
+      const {
+        data: { movies, series },
+      } = await this.$getScraperRequest(`/cache/search/${this.search}`);
 
-      this.titles = data.titles;
-      this.series = data.series;
+      this.movies = movies;
+      this.series = series;
     },
     resetResults(): void {
-      this.titles = [];
+      this.movies = [];
       this.series = [];
     },
   },
@@ -64,20 +64,20 @@ export default defineComponent({
     </VTextInputVue>
     <Transition name="fade">
       <ul
-        v-if="(titles.length || series.length) && displayResults"
+        v-if="(movies.length || series.length) && displayResults"
         class="searchResults absolute z-50 grid max-h-80 w-full overflow-y-auto rounded bg-gray-300 py-6 shadow-lg dark:bg-gray-600"
       >
         <RouterLink
-          v-for="title in titles"
-          :key="title.imdbId"
-          :to="`/title/${title.imdbId}`"
+          v-for="title in movies"
+          :key="title.id"
+          :to="`/watch/movie/${title.id}`"
         >
           <TitleOrSeriePreviewVue v-bind="title" />
         </RouterLink>
         <RouterLink
           v-for="serie in series"
-          :key="serie.imdbId"
-          :to="`/serie/${serie.imdbId}`"
+          :key="serie.id"
+          :to="`/serie/${serie.id}`"
         >
           <TitleOrSeriePreviewVue v-bind="serie" />
         </RouterLink>

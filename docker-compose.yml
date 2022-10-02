@@ -15,18 +15,11 @@ services:
     command: npm run server-dev
     depends_on:
       - postgres
+      - scraper
     volumes:
       - ./server:/api/server
       - ./shared:/api/shared
-      - /home/${USER}/Videos:/openMedia
       - ./node_modules:/api/node_modules
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - count: 1
-    #           capabilities: [gpu]
-    #           # driver: nvidia
 
   client:
     build:
@@ -78,6 +71,27 @@ services:
       - ./scraper:/scraper/scraper
       - ./shared:/scraper/shared
       - ./node_modules:/scraper/node_modules
+      - /home/${USER}/Videos:/openMedia
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - count: 1
+    #           capabilities: [gpu]
+    #           # driver: nvidia
+
+  cache:
+    image: redis
+    container_name: cache
+    expose:
+      - 6379
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - polaview.network
 
   postgres:
     container_name: pg_container
@@ -100,4 +114,6 @@ networks:
 
 volumes:
   db:
+    driver: local
+  redis_data:
     driver: local

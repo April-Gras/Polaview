@@ -1,4 +1,5 @@
 import axios from "axios";
+import { AxiosTvDbApiGetRequest, AxiosTvDbApiPostRequest } from "~/types/Axios";
 
 /**
  * Base axios transporter to reach the main server service

@@ -1,3 +1,5 @@
+import { Movie } from "@prisma/client";
+
 import { GetRouteDataHandlerFromUrlAndVerb } from "~/types/Route";
 import { AllRoutes } from "~/types/RouteLibraryScraper";
 
@@ -5,25 +7,28 @@ export const latestTitleGet: GetRouteDataHandlerFromUrlAndVerb<
   "get",
   AllRoutes,
   "/latest-movie/"
-> = async (prisma, req, res) => {
-  const response = await prisma.file.findMany({
+> = async (prisma) => {
+  const response = await prisma.fileV2.findMany({
     take: 50,
     orderBy: {
-      title: {
+      movie: {
         createdOn: "asc",
       },
     },
     where: {
-      title: {
-        seasonId: null,
+      movie: {
+        isNot: null,
       },
     },
     select: {
-      title: true,
+      movie: true,
     },
   });
 
-  return response.map((e) => e.title);
+  return response.reduce((accumulator, file) => {
+    if (file.movie) accumulator.push(file.movie);
+    return accumulator;
+  }, [] as Movie[]);
 };
 
 export const latestSerieGet: GetRouteDataHandlerFromUrlAndVerb<
@@ -31,29 +36,16 @@ export const latestSerieGet: GetRouteDataHandlerFromUrlAndVerb<
   AllRoutes,
   "/latest-serie/"
 > = async (prisma) => {
-  const results = await prisma.serie.findMany({
+  const results = await prisma.serieV2.findMany({
     orderBy: {
       createdOn: "asc",
     },
     take: 10,
-    select: {
-      createdOn: true,
-      imdbId: true,
-      name: true,
-      pictureUrl: true,
-      storyline: true,
+    include: {
       _count: {
         select: {
+          episodes: true,
           seasons: true,
-        },
-      },
-      seasons: {
-        select: {
-          _count: {
-            select: {
-              episodes: true,
-            },
-          },
         },
       },
     },
