@@ -30,9 +30,3 @@ export default defineComponent({
     </ul>
   </CommonTemplateVue>
 </template>
-
-<style scoped lang="scss">
-.people:deep(.picture) {
-  @apply h-52;
-}
-</style>

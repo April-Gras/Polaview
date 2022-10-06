@@ -58,20 +58,29 @@ export default defineComponent({
             key="done"
             rel="preload"
             as="image"
+            defer
+            async
             :alt="pictureAlt"
             v-if="pictureUrl && pictureData && pictureLoadStatus === 'loaded'"
           />
           <!-- Additional div because of the 15s transition time -->
-          <div v-else-if="pictureLoadStatus === 'not loaded'" key="loading">
+          <div
+            v-else-if="pictureLoadStatus === 'not loaded' && pictureUrl"
+            key="loading"
+          >
             <div
               class="picture loadingPicture bg-gradient-to-b from-blue-500 via-gray-500 to-green-500"
             />
           </div>
           <div
             key="failed"
-            class="picture bg-gradient-to-br from-gray-200 to-gray-600"
+            class="picture flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-600"
             v-else
-          />
+          >
+            <span class="bold text-xl text-white">{{
+              $t("common.pictureMissing")
+            }}</span>
+          </div>
         </Transition>
       </div>
       <slot />

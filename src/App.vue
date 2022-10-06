@@ -3,6 +3,7 @@ import { defineComponent } from "vue";
 import { useUserStore } from "@/stores/user";
 
 import NavigationVue from "./components/Navigation.vue";
+import FooterVue from "./components/Footer.vue";
 
 const noMandatoryLoginRoutes = [
   "/login",
@@ -16,6 +17,7 @@ const adminRoutes = ["/admin"];
 export default defineComponent({
   components: {
     NavigationVue,
+    FooterVue,
   },
   setup() {
     return {
@@ -56,7 +58,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="min-h-screen bg-neutral-100 dark:bg-gray-800">
+  <div class="flex min-h-screen flex-col bg-neutral-100 dark:bg-gray-800">
     <NavigationVue class="bg-neutral-200 dark:bg-gray-700" />
     <div class="page-layout">
       <RouterView v-slot="{ Component }">
@@ -65,5 +67,6 @@ export default defineComponent({
         </transition>
       </RouterView>
     </div>
+    <FooterVue />
   </div>
 </template>

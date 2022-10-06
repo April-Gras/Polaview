@@ -33,7 +33,9 @@ export default defineComponent({
   <CommonTemplateVue
     v-if="people"
     :link="`/people/${people.id}`"
-    :picture-url="character.image"
+    :picture-url="
+      character.image ? `https://artworks.thetvdb.com${character.image}` : null
+    "
     :picture-alt="character.name"
     class="people"
   >
@@ -43,9 +45,3 @@ export default defineComponent({
     </ul>
   </CommonTemplateVue>
 </template>
-
-<style scoped lang="scss">
-.people:deep(.picture) {
-  @apply h-52;
-}
-</style>

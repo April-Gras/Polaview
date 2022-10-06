@@ -99,7 +99,7 @@ export default defineComponent({
           v-if="displayLangMenu"
           v-click-outside="closeLangMenu"
         >
-          <h4 class="subtitle-text p-2">Lang</h4>
+          <h4 class="subtitle-text p-2">{{ $t("common.language") }}</h4>
           <hr class="mx-auto h-[2px] w-3/4 bg-neutral-400" />
           <li
             :key="lang"
@@ -107,6 +107,8 @@ export default defineComponent({
             class="base-text z-40 cursor-pointer px-4 py-1 transition-colors duration-150 ease-in-out hover:bg-neutral-300 hover:dark:bg-gray-600"
             @click="selectLang(lang)"
           >
+            <!-- {{ $t('lang.eng') }} -->
+            <!-- {{ $t('lang.fra') }} -->
             {{ $t(`lang.${lang}`) }}
           </li>
         </ul>
