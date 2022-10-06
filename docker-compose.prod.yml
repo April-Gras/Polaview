@@ -1,11 +1,6 @@
 version: "3.9"
 
 services:
-  server:
-    build:
-      target: prod_build
-    command: npm run server-start
-
   nginx:
     image: nginx
     build:
@@ -20,9 +15,3 @@ services:
     depends_on:
       - scraper
       - server
-
-  scraper:
-    image: scraper
-    build:
-      target: prod_build
-    command: npm run scraper-start

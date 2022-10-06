@@ -1,6 +1,7 @@
 import { User } from "@prisma/client";
 import { BuildRouteEntry, RuntimeConfigBuilder } from "~/types/Route";
-import { NoId } from "~/types/Utils";
+
+type NoId<T extends Record<string, any>> = Omit<T, "id">;
 
 export type AllRoutes = [
   // GET

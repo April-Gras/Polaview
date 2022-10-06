@@ -15,7 +15,7 @@ services:
     command: npm run server-dev
     depends_on:
       - postgres
-      - scraper
+      - cache
     volumes:
       - ./server:/api/server
       - ./shared:/api/shared
@@ -63,6 +63,9 @@ services:
       target: dev_build
     networks:
       - polaview.network
+    depends_on:
+      - cache
+      - postgres
     ports:
       - 8081:8081
     restart: unless-stopped

@@ -19,7 +19,3 @@ COPY node_modules /api/node_modules
 RUN npx prisma generate
 
 EXPOSE 8080
-
-FROM dev_build as prod_build
-
-RUN npm run server-build

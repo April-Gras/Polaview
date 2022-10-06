@@ -4,6 +4,7 @@
   },
   "outDir": "build",
   "compilerOptions": {
+    "module": "esnext",
     "paths": {
       "~/*": ["./shared/*"],
       "@/*": ["./src/*"],

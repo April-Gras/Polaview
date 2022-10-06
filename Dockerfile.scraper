@@ -41,7 +41,3 @@ COPY node_modules /scraper/node_modules/
 RUN npx prisma generate
 
 EXPOSE 8081
-
-FROM dev_build AS prod_build
-
-RUN npm run scraper-build
