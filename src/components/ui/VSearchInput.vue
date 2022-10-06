@@ -1,9 +1,16 @@
 <script lang="ts">
-import { Movie, SerieV2 } from "@prisma/client";
+import {
+  Movie,
+  MovieOverviewTranslation,
+  SerieOverviewTranslation,
+  SerieV2,
+} from "@prisma/client";
 import { defineComponent } from "vue";
 
 import VTextInputVue from "@/components/ui/VTextInput.vue";
 import TitleOrSeriePreviewVue from "@/components/TitleOrSeriePreview.vue";
+
+import { selectOverview } from "@/utils/selectOverview";
 
 export default defineComponent({
   components: {
@@ -14,8 +21,12 @@ export default defineComponent({
     return {
       search: "",
       timer: null as null | number,
-      movies: [] as Movie[],
-      series: [] as SerieV2[],
+      movies: [] as (Movie & {
+        overviews: MovieOverviewTranslation[];
+      })[],
+      series: [] as (SerieV2 & {
+        overviews: SerieOverviewTranslation[];
+      })[],
       displayResults: false,
     };
   },
@@ -35,6 +46,7 @@ export default defineComponent({
       this.movies = [];
       this.series = [];
     },
+    selectOverview,
   },
   watch: {
     search() {
@@ -68,18 +80,26 @@ export default defineComponent({
         class="searchResults absolute z-50 grid max-h-80 w-full overflow-y-auto rounded bg-gray-300 py-6 shadow-lg dark:bg-gray-600"
       >
         <RouterLink
-          v-for="title in movies"
-          :key="title.id"
-          :to="`/watch/movie/${title.id}`"
+          v-for="movie in movies"
+          :key="movie.id"
+          :to="`/watch/movie/${movie.id}`"
         >
-          <TitleOrSeriePreviewVue v-bind="title" />
+          <TitleOrSeriePreviewVue
+            :image="movie.image"
+            :name="movie.name"
+            :overview="selectOverview(movie.overviews, $i18n.locale)"
+          />
         </RouterLink>
         <RouterLink
           v-for="serie in series"
           :key="serie.id"
           :to="`/serie/${serie.id}`"
         >
-          <TitleOrSeriePreviewVue v-bind="serie" />
+          <TitleOrSeriePreviewVue
+            :image="serie.image"
+            :name="serie.name"
+            :overview="selectOverview(serie.overviews, $i18n.locale)"
+          />
         </RouterLink>
       </ul>
     </Transition>

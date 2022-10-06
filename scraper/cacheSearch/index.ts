@@ -17,6 +17,9 @@ export const cacheGetSearch: GetRouteDataHandlerFromUrlAndVerb<
           mode: "insensitive",
         },
       },
+      include: {
+        overviews: true,
+      },
       take: 10,
     }),
     prisma.serieV2.findMany({
@@ -25,6 +28,9 @@ export const cacheGetSearch: GetRouteDataHandlerFromUrlAndVerb<
           contains: searchTerm,
           mode: "insensitive",
         },
+      },
+      include: {
+        overviews: true,
       },
       take: 10,
     }),

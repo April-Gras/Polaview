@@ -12,6 +12,7 @@ export const serieGetSeaons: GetRouteDataHandlerFromUrlAndVerb<
       id: Number(id),
     },
     include: {
+      overviews: true,
       seasons: {
         orderBy: {
           number: "asc",

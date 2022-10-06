@@ -2,6 +2,8 @@
 import { defineComponent } from "vue";
 import { useRoute } from "vue-router";
 
+import { selectOverview } from "@/utils/selectOverview";
+
 import { SerieExtendedSummary } from "~/types/RouteLibraryScraper";
 
 export default defineComponent({
@@ -24,6 +26,9 @@ export default defineComponent({
       }
     );
   },
+  methods: {
+    selectOverview,
+  },
 });
 </script>
 
@@ -34,7 +39,9 @@ export default defineComponent({
       <div class="picture" v-else />
       <div>
         <h1 class="title-text mb-4">{{ summary.name }}</h1>
-        <div class="base-text">{{ summary.overview }}</div>
+        <div class="base-text">
+          {{ selectOverview(summary.overviews, $i18n.locale) }}
+        </div>
       </div>
     </div>
     <div class="grid grid-cols-1 gap-10">

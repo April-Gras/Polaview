@@ -21,7 +21,7 @@ export default defineComponent({
 
 <template>
   <li
-    class="listContainer grid cursor-pointer items-center justify-start gap-4 bg-gray-300 px-6 py-4 transition duration-150 ease-in-out dark:bg-gray-600 hover:dark:bg-gray-500"
+    class="listContainer grid cursor-pointer items-center justify-start gap-4 bg-gray-300 px-6 py-4 transition duration-150 ease-in-out hover:bg-gray-200 dark:bg-gray-600 hover:dark:bg-gray-500"
   >
     <img class="picture" v-if="image" :src="image" />
     <div class="picture" v-else />
