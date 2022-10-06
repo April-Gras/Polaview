@@ -192,15 +192,25 @@ model SeasonV2 {
   serieId  Int?
 }
 
+model SerieOverviewTranslation {
+  serieId Int
+  lang    String
+  text    String
+  serieV2 SerieV2 @relation(fields: [serieId], references: [id])
+
+  @@id([serieId, lang])
+}
+
 model SerieV2 {
-  id        Int        @id @unique
-  createdOn DateTime   @default(now())
+  id        Int                        @id @unique
+  createdOn DateTime                   @default(now())
   episodes  Episode[]
   name      String
   overview  String?
   seasons   SeasonV2[]
   image     String?
-  updatedOn DateTime   @default(now())
+  updatedOn DateTime                   @default(now())
+  overviews SerieOverviewTranslation[]
 }
 
 model FileSourceV2 {

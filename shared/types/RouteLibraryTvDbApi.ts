@@ -2,7 +2,7 @@ import { Movie } from ".prisma/client";
 import { number } from "@intlify/core-base";
 import { BuildRouteEntry } from "./Route";
 
-type DefaultTvDbRespionse<T> = {
+export type DefaultTvDbResponse<T> = {
   status: string;
   data: T;
 };
@@ -71,6 +71,7 @@ export type TvDbSerie = {
   name: string;
   image: string | null;
   seasons: TvDbSeason[]; //TODO
+  overviewTranslations: string[] | null;
   episodes: TvDbEpisodeBase[];
   year: string | null;
   overview: string | null;
@@ -87,12 +88,18 @@ export type TvDbPeople = {
   name: string;
 };
 
+export type TvDbOverviewTranslation = {
+  language: string;
+  name: string;
+  overview?: string;
+};
+
 export type AllRoutes = [
   // Get
   BuildRouteEntry<
     "get",
     "/movies/:id/translations/:language",
-    DefaultTvDbRespionse<{
+    DefaultTvDbResponse<{
       language: "string";
       name: "string";
       overview?: "string";
@@ -101,36 +108,37 @@ export type AllRoutes = [
   BuildRouteEntry<
     "get",
     "/movies/:id/extended",
-    DefaultTvDbRespionse<TvDbMovie>
+    DefaultTvDbResponse<TvDbMovie>
   >,
   BuildRouteEntry<
     "get",
     "/series/:id/extended?meta=episodes&short=true",
-    DefaultTvDbRespionse<TvDbSerie>
+    DefaultTvDbResponse<TvDbSerie>
+  >,
+  BuildRouteEntry<
+    "get",
+    "/series/:id/translations/:language",
+    DefaultTvDbResponse<TvDbOverviewTranslation>
   >,
   BuildRouteEntry<
     "get",
     "/episodes/:id/translations/:language",
-    DefaultTvDbRespionse<{
-      language: "string";
-      name: "string";
-      overview?: "string";
-    }>
+    DefaultTvDbResponse<TvDbOverviewTranslation>
   >,
   BuildRouteEntry<
     "get",
     "/episodes/:id/extended",
-    DefaultTvDbRespionse<TvDbEpisode>
+    DefaultTvDbResponse<TvDbEpisode>
   >,
   BuildRouteEntry<
     "get",
     "/people/:id/extended",
-    DefaultTvDbRespionse<TvDbPeople>
+    DefaultTvDbResponse<TvDbPeople>
   >,
   BuildRouteEntry<
     "get",
     "/search",
-    DefaultTvDbRespionse<TvDbSearchResult[]>,
+    DefaultTvDbResponse<TvDbSearchResult[]>,
     {
       query: string;
       type: "movie" | "series";

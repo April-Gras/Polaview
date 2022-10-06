@@ -5,6 +5,8 @@ import { TvDbEpisode } from "~/types/RouteLibraryTvDbApi";
 import { tvDbGetRequest } from "#/tvDbApi";
 import { availableLocales } from "~/availableLocales";
 
+import { removeEmptyTextOverviewsAndFormat } from "./utils";
+
 export async function getTranslations(
   episode: TvDbEpisode
 ): Promise<EpisodeOverviewTranslation[]> {
@@ -23,23 +25,9 @@ export async function getTranslations(
       )
   );
 
-  return tvDbOverviews.reduce(
-    (
-      accumulator,
-      {
-        data: {
-          data: { language, overview },
-        },
-      }
-    ) => {
-      if (overview)
-        accumulator.push({
-          lang: language,
-          episodeId: episode.id,
-          text: overview,
-        });
-      return accumulator;
-    },
-    [] as EpisodeOverviewTranslation[]
+  return removeEmptyTextOverviewsAndFormat(
+    "episode",
+    episode.id,
+    tvDbOverviews
   );
 }

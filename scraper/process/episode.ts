@@ -14,9 +14,11 @@ import {
 
 import { getTvDbSerieFromId } from "#/tvdb-api/getTvDbSerieFromId";
 import { getTvDbEpisodeFromId } from "#/tvdb-api/getTvDbEpisodeFromId";
-import { getTranslations } from "#/tvdb-api/getEpisodeOverviewTranslations";
+import { getTranslations as getEpisodeTranslations } from "#/tvdb-api/getEpisodeOverviewTranslations";
+import { getTranslations as getSerieTranslations } from "#/tvdb-api/getSerieOverviewTranslations";
 import { upsertEpisodeCollectionAndSerieAndSeason } from "#/transactionsV2/upsertEpisodeCollectionAndSerieAndSeason";
 import { upsertAndConnectEpisodeOverviewTranslations } from "#/transactionsV2/upsertAndConnectEpisodeOverviewTranslationCollection";
+import { upsertAndConnectSerieOverviewTranslations } from "#/transactionsV2/upsertAndConnectSerieOverviewTranslationCollection";
 
 import { getCharactersFromEntity } from "./character";
 import { handleHumans } from "./humans";
@@ -34,9 +36,14 @@ export async function processIdAsEpisode(
     throw new Error("Missing data to build episode listing");
 
   const episodes = await getEpisodesFromIds(episodeIds);
-  const [episodeOnPeople, episodeOnOverviewTranslations] = await Promise.all([
+  const [
+    episodeOnPeople,
+    episodeOnOverviewTranslations,
+    serieOverviewTranslations,
+  ] = await Promise.all([
     getEpisodeOnPeople(episodes),
     getEpisodeOnOverviewTranslations(episodes),
+    getSerieTranslations(serie),
   ]);
 
   await prisma.$transaction([
@@ -62,14 +69,18 @@ export async function processIdAsEpisode(
       );
     }),
   ]);
-  await Promise.allSettled(
-    episodes.flatMap((episode) => {
+
+  await Promise.allSettled([
+    ...episodes.flatMap((episode) => {
       const translations = episodeOnOverviewTranslations[episode.id];
 
       return upsertAndConnectEpisodeOverviewTranslations(prisma, translations);
-    })
-  );
-
+    }),
+    ...upsertAndConnectSerieOverviewTranslations(
+      prisma,
+      serieOverviewTranslations
+    ),
+  ]);
   return await prisma.episode.findFirstOrThrow({
     where: {
       season: {
@@ -135,6 +146,8 @@ async function getEpisodeOnOverviewTranslations(
   > = {};
 
   for (const episode of episodes)
-    episodeOnOverviewTranslations[episode.id] = await getTranslations(episode);
+    episodeOnOverviewTranslations[episode.id] = await getEpisodeTranslations(
+      episode
+    );
   return episodeOnOverviewTranslations;
 }

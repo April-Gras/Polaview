@@ -9,6 +9,7 @@ import {
   SerieV2,
   MovieOverviewTranslation,
   EpisodeOverviewTranslation,
+  SerieOverviewTranslation,
   SubtitleTrack,
 } from "@prisma/client";
 import { BuildRouteEntry, RuntimeConfigBuilder } from "~/types/Route";
@@ -23,6 +24,7 @@ export type SerieSummary = SerieV2 & {
 };
 
 export type SerieExtendedSummary = SerieV2 & {
+  overviews: SerieOverviewTranslation[];
   seasons: (SeasonV2 & {
     episodes: (Episode & {
       _count: {
@@ -86,7 +88,10 @@ export type AllRoutes = [
   BuildRouteEntry<
     "get",
     "/cache/search/:searchTerm",
-    { series: SerieV2[]; movies: Movie[] }
+    {
+      series: (SerieV2 & { overviews: SerieOverviewTranslation[] })[];
+      movies: (Movie & { overviews: MovieOverviewTranslation[] })[];
+    }
   >,
   // POST
   BuildRouteEntry<
