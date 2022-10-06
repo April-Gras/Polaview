@@ -18,12 +18,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <video
-    ref="videoPlayer"
-    class="video-js vjs-theme-city"
-    controls
-    preload="auto"
-  >
+  <video ref="videoPlayer" controls preload="auto">
     <source type="video/mp4" :src="`/scraper/video/${fileId}`" />
     <track
       v-for="subtitle in subtitles"

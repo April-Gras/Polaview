@@ -53,5 +53,10 @@ export const routerPlugin = createRouter({
       name: "error",
       component: () => import("@/views/Error.vue"),
     },
+    {
+      path: "/about",
+      name: "about",
+      component: () => import("@/views/About.vue"),
+    },
   ],
 });
