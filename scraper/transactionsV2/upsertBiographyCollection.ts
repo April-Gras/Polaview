@@ -1,5 +1,6 @@
 import { TvDbMovie, TvDbPeople } from "~/types/RouteLibraryTvDbApi";
 import { PrismaClient } from "@prisma/client";
+import { availableLocales } from "~/availableLocales";
 
 export function upsertBiographyCollection(
   prisma: PrismaClient,
@@ -7,28 +8,33 @@ export function upsertBiographyCollection(
 ) {
   return peoples.flatMap((people) => {
     if (!people.biographies) return [];
-    return people.biographies.map((bio) =>
-      prisma.biography.upsert({
-        where: {
-          lang_peopleId: {
-            lang: bio.language,
-            peopleId: people.id,
-          },
-        },
-        create: {
-          lang: bio.language,
-          text: bio.biography,
-          People: {
-            connect: {
-              id: people.id,
+    return people.biographies
+      .filter(
+        ({ language, biography }) =>
+          availableLocales.includes(language) && !!biography
+      )
+      .map(({ language, biography }) =>
+        prisma.biography.upsert({
+          where: {
+            lang_peopleId: {
+              lang: language,
+              peopleId: people.id,
             },
           },
-        },
-        update: {
-          lang: bio.language,
-          text: bio.biography,
-        },
-      })
-    );
+          create: {
+            lang: language,
+            text: biography,
+            People: {
+              connect: {
+                id: people.id,
+              },
+            },
+          },
+          update: {
+            lang: language,
+            text: biography,
+          },
+        })
+      );
   });
 }

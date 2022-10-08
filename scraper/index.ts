@@ -14,6 +14,7 @@ import { fileGetByMovieId, fileGetByEpisodeId } from "./file";
 import { serieGetSeaons } from "./serie";
 import { cacheGetSearch } from "./cacheSearch";
 import getVideoRoute, { getVideoSubtitle } from "./video";
+import { getPeopleById } from "./people";
 
 import { processEntityIdPost } from "./process";
 import { startupProcessSources } from "./utils/processSources";
@@ -37,6 +38,7 @@ const ROUTES: ScraperRuntimeConfig = [
     "/cache/search/:searchTerm",
     cacheGetSearch
   ),
+  buildSingleRuntimeConfigEntry("get", "/people/:id/", getPeopleById),
   buildSingleRuntimeConfigEntry("post", "/searchV2", searchV2Post),
   buildSingleRuntimeConfigEntry("post", "/processEntity", processEntityIdPost),
 ];

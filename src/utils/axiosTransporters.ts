@@ -1,5 +1,6 @@
 import axios from "axios";
-import { AxiosTvDbApiGetRequest, AxiosTvDbApiPostRequest } from "~/types/Axios";
+
+const open = window.indexedDB.open("polaview", 1);
 
 /**
  * Base axios transporter to reach the main server service
