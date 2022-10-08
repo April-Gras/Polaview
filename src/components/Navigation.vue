@@ -109,7 +109,6 @@ export default defineComponent({
           >
             <!-- {{ $t('lang.eng') }} -->
             <!-- {{ $t('lang.fra') }} -->
-            <!-- {{ $t('lang.deu') }} -->
             {{ $t(`lang.${lang}`) }}
           </li>
         </ul>
