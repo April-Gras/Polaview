@@ -10,8 +10,12 @@ export default defineComponent({});
       class="page-layout flex flex-wrap gap-4 sm:justify-between md:flex-nowrap"
     >
       <RouterLink to="/" class="flex items-start justify-start gap-2">
-        <img src="/favicon_192.png" class="sugoma h-10 w-10 overflow-hidden" />
-        <h3 class="title-text">Polaview</h3>
+        <img
+          src="/favicon_192.png"
+          class="sugoma h-10 w-10 overflow-hidden"
+          alt="$t('common.mascot')"
+        />
+        <h5 class="title-text">Polaview</h5>
         <span>2022</span>
       </RouterLink>
       <div class="grid gap-2">

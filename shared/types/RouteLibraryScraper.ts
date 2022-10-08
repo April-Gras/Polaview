@@ -11,6 +11,7 @@ import {
   EpisodeOverviewTranslation,
   SerieOverviewTranslation,
   SubtitleTrack,
+  Biography,
 } from "@prisma/client";
 import { BuildRouteEntry, RuntimeConfigBuilder } from "~/types/Route";
 
@@ -78,6 +79,28 @@ type ProcessEntityPayload<T extends "movie" | "serie" = "movie" | "serie"> = {
   episodeInfo: T extends "movie" ? undefined : EpisodeIndexInfo;
 };
 
+export type PeopleExtended = People & {
+  biography: Biography[];
+  episodeOnCast: {
+    episode: Episode;
+  }[];
+  episodeOnDirector: {
+    episode: Episode;
+  }[];
+  episodeOnWriter: {
+    episode: Episode;
+  }[];
+  movieOnCast: {
+    movie: Movie;
+  }[];
+  movieOnWriter: {
+    movie: Movie;
+  }[];
+  movieOnDirector: {
+    movie: Movie;
+  }[];
+};
+
 export type AllRoutes = [
   // GET
   BuildRouteEntry<"get", "/latest-movie/", Movie[]>,
@@ -93,6 +116,7 @@ export type AllRoutes = [
       movies: (Movie & { overviews: MovieOverviewTranslation[] })[];
     }
   >,
+  BuildRouteEntry<"get", "/people/:id/", PeopleExtended>,
   // POST
   BuildRouteEntry<
     "post",

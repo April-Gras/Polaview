@@ -12,7 +12,7 @@ import {
 import {
   serverApiTransporter,
   scraperTransporter,
-} from "~/axiosTransporters/index";
+} from "@/utils/axiosTransporters";
 
 // Vue3 Plugin
 export const axiosPlugin: Plugin = {

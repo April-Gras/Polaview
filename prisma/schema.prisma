@@ -41,14 +41,15 @@ model People {
   birth             String?
   birthPlace        String?
   death             String?
+  // TODO Country
   image             String?
   characters        Character[]
   movieOnCast       MovieOnCast[]
   movieOnDirector   MovieOnDirector[]
   movieOnWriter     MovieOnWriter[]
-  EpisodeOnCast     EpisodeOnCast[]
-  EpisodeOnDirector EpisodeOnDirector[]
-  EpisodeOnWriter   EpisodeOnWriter[]
+  episodeOnCast     EpisodeOnCast[]
+  episodeOnDirector EpisodeOnDirector[]
+  episodeOnWriter   EpisodeOnWriter[]
 }
 
 model Character {
