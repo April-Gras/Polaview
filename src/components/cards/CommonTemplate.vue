@@ -3,7 +3,7 @@ import { defineComponent, PropType } from "vue";
 
 import { RouteLocationRaw } from "vue-router";
 
-type PictureLoadStatus = "not loaded" | "failed" | "loaded";
+type PictureLoadStatus = "not loaded" | "failed" | "loaded" | "loading";
 
 export default defineComponent({
   props: {
@@ -28,16 +28,29 @@ export default defineComponent({
   },
   mounted() {
     if (!this.pictureUrl) return;
-    const image = new Image();
+    const observer = new IntersectionObserver((entries) => {
+      if (this.pictureLoadStatus !== "not loaded") return;
+      if (entries[0] && entries[0].isIntersecting) this.loadPicture();
+    });
 
-    image.onerror = () => {
-      this.pictureLoadStatus = "failed";
-    };
-    image.onload = () => {
-      this.pictureData = image.src;
-      this.pictureLoadStatus = "loaded";
-    };
-    image.src = this.pictureUrl;
+    observer.observe(this.$el);
+  },
+  methods: {
+    loadPicture() {
+      if (!this.pictureUrl) return;
+      const image = new Image();
+      this.pictureLoadStatus = "loading";
+
+      image.attributes.setNamedItem;
+      image.onerror = () => {
+        this.pictureLoadStatus = "failed";
+      };
+      image.onload = () => {
+        this.pictureData = image.src;
+        this.pictureLoadStatus = "loaded";
+      };
+      image.src = this.pictureUrl.split(".jpg").join("_t.jpg");
+    },
   },
 });
 </script>
@@ -57,6 +70,7 @@ export default defineComponent({
             :src="pictureData"
             key="done"
             rel="preload"
+            loading="lazy"
             as="image"
             defer
             async
@@ -65,7 +79,10 @@ export default defineComponent({
           />
           <!-- Additional div because of the 15s transition time -->
           <div
-            v-else-if="pictureLoadStatus === 'not loaded' && pictureUrl"
+            v-else-if="
+              ['loading', 'not loaded'].includes(pictureLoadStatus) &&
+              pictureUrl
+            "
             key="loading"
           >
             <div

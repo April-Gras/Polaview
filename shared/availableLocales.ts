@@ -1,1 +1,1 @@
-export const availableLocales = ["eng", "fra"];
+export const availableLocales = ["eng", "fra", "deu"];

@@ -18,7 +18,7 @@ export default defineComponent({
     <HeightExpandVue>
       <ul
         v-if="$slots['list']"
-        class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4"
+        class="grid grid-cols-1 gap-x-2 gap-y-6 xs:grid-cols-2 sm:grid-cols-3 md:gap-6 xl:grid-cols-4"
       >
         <slot name="list" />
       </ul>
