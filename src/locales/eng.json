@@ -24,6 +24,7 @@
   "inputErrors.password": "The password must be at least 8 characters long",
   "lang.eng": "Englando",
   "lang.fra": "French",
+  "lang.ger": "German",
   "navigation.admin": "Administration",
   "navigation.login": "Login",
   "navigation.root": "Home",
