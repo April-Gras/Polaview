@@ -74,17 +74,18 @@ model MovieOverviewTranslation {
 }
 
 model Movie {
-  id              Int                        @id @unique
-  characters      Character[]
-  createdOn       DateTime                   @default(now())
-  files           FileV2[]
-  image           String?
-  movieOnCast     MovieOnCast[]
-  movieOnDirector MovieOnDirector[]
-  movieOnWriter   MovieOnWriter[]
-  name            String
-  overviews       MovieOverviewTranslation[]
-  year            Int?
+  id                   Int                        @id @unique
+  characters           Character[]
+  createdOn            DateTime                   @default(now())
+  files                FileV2[]
+  image                String?
+  movieOnCast          MovieOnCast[]
+  movieOnDirector      MovieOnDirector[]
+  movieOnWriter        MovieOnWriter[]
+  name                 String
+  overviews            MovieOverviewTranslation[]
+  year                 Int?
+  entityAddtionRequest EntityAddtionRequest[]
 }
 
 model EpisodeOverviewTranslation {
@@ -203,15 +204,16 @@ model SerieOverviewTranslation {
 }
 
 model SerieV2 {
-  id        Int                        @id @unique
-  createdOn DateTime                   @default(now())
-  episodes  Episode[]
-  name      String
-  overview  String?
-  seasons   SeasonV2[]
-  image     String?
-  updatedOn DateTime                   @default(now())
-  overviews SerieOverviewTranslation[]
+  id                   Int                        @id @unique
+  createdOn            DateTime                   @default(now())
+  episodes             Episode[]
+  name                 String
+  overview             String?
+  seasons              SeasonV2[]
+  image                String?
+  updatedOn            DateTime                   @default(now())
+  overviews            SerieOverviewTranslation[]
+  entityAddtionRequest EntityAddtionRequest[]
 }
 
 model FileSourceV2 {
@@ -243,14 +245,33 @@ model FileV2 {
 }
 
 model SearchResult {
-  name            String
-  image_url       String?
-  id              String
-  SearchCache     SearchCache @relation(fields: [searchCacheTerm], references: [term])
-  searchCacheTerm String      @id @unique
+  name                      String
+  image_url                 String?
+  id                        String                      @id @unique
+  SearchResultOnSearchCache SearchResultOnSearchCache[]
+}
+
+model SearchResultOnSearchCache {
+  searchResult    SearchResult @relation(fields: [searchResultId], references: [id])
+  searchResultId  String
+  searchCache     SearchCache  @relation(fields: [searchCacheTerm], references: [term])
+  searchCacheTerm String
+
+  @@id([searchCacheTerm, searchResultId])
 }
 
 model SearchCache {
-  term    String         @id @unique
-  results SearchResult[]
+  term                      String                      @id @unique
+  SearchResultOnSearchCache SearchResultOnSearchCache[]
+}
+
+model EntityAddtionRequest {
+  id              Int      @id @unique @default(autoincrement())
+  upvoteUserIds   Int[]
+  createdByUserId Int
+  movieId         Int?
+  movie           Movie?   @relation(fields: [movieId], references: [id])
+  serieId         Int?
+  serie           SerieV2? @relation(fields: [serieId], references: [id])
+  status          String
 }

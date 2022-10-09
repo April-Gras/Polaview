@@ -141,8 +141,9 @@ export type AllRoutes = [
     DefaultTvDbResponse<TvDbSearchResult[]>,
     {
       query: string;
-      type: "movie" | "series";
+      type?: "movie" | "series";
       limit: number;
+      offset: number;
     }
   >
   // Post

@@ -7,43 +7,63 @@ export const searchV2Post: GetRouteDataHandlerFromUrlAndVerb<
   "post",
   AllRoutes,
   "/searchV2"
-> = async (prisma, req, res, payload) => {
+> = async (prisma, _req, _res, payload) => {
   if (!payload.query || !payload.query.length) return [];
-  const cached = await prisma.searchCache.findFirst({
-    where: {
-      term: payload.query,
-    },
-    select: {
-      results: true,
-    },
-  });
-
-  if (cached) return cached.results;
-  const {
-    data: { data },
-  } = await tvDbGetRequest("/search", {
-    ...payload,
-    limit: 25,
-  });
-
-  const { results } = await prisma.searchCache.create({
-    data: {
-      term: payload.query,
-      results: {
-        createMany: {
-          data: data.map((result) => ({
-            image_url: result.image_url,
-            id: result.id,
-            name: result.name,
-          })),
-          skipDuplicates: true,
-        },
+  const term = payload.query;
+  const cachedEntry = (
+    await prisma.searchResultOnSearchCache.findMany({
+      where: {
+        searchCacheTerm: term,
       },
-    },
-    select: {
-      results: true,
-    },
+      select: {
+        searchResult: true,
+      },
+    })
+  ).map((e) => e.searchResult);
+
+  if (cachedEntry.length) return cachedEntry;
+  const {
+    data: { data: tvDbResults },
+  } = await tvDbGetRequest("/search", {
+    query: term,
+    type: payload.type,
+    limit: 25,
+    offset: 0,
   });
 
+  const [_, ...results] = await prisma.$transaction([
+    prisma.searchCache.create({
+      data: {
+        term,
+      },
+    }),
+    ...tvDbResults.map(({ id, image_url, name }) =>
+      prisma.searchResult.upsert({
+        where: {
+          id,
+        },
+        create: {
+          id,
+          image_url,
+          name,
+        },
+        update: {
+          id,
+          image_url,
+          name,
+        },
+      })
+    ),
+  ]);
+  await prisma.$transaction(
+    tvDbResults.map((e) =>
+      prisma.searchResultOnSearchCache.create({
+        data: {
+          searchCacheTerm: term,
+          searchResultId: e.id,
+        },
+      })
+    )
+  );
   return results;
 };

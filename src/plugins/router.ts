@@ -58,5 +58,10 @@ export const routerPlugin = createRouter({
       name: "about",
       component: () => import("@/views/About.vue"),
     },
+    {
+      path: "/requests",
+      name: "requests",
+      component: () => import("@/views/ResquestAddtion.vue"),
+    },
   ],
 });

@@ -1,4 +1,5 @@
 <script lang="ts">
+import { thumbnailifyTvDbImage } from "@/utils/thumbnailifyTvDbImage";
 import { defineComponent, PropType } from "vue";
 
 import { RouteLocationRaw } from "vue-router";
@@ -49,7 +50,7 @@ export default defineComponent({
         this.pictureData = image.src;
         this.pictureLoadStatus = "loaded";
       };
-      image.src = this.pictureUrl.split(".jpg").join("_t.jpg");
+      image.src = thumbnailifyTvDbImage(this.pictureUrl);
     },
   },
 });
