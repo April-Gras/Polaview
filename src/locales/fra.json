@@ -55,5 +55,6 @@
   "pages.signupConfirmed.text": "Quelqeu'un s'occupera de ta demande",
   "pages.signupConfirmed.title": "Bravo",
   "placeholders.email": "Entrez un courriel",
-  "placeholders.name": "Nom d'utilisateur"
+  "placeholders.name": "Nom d'utilisateur",
+  "pages.requestAddition.subtitle": "Demande toujours, on essayera 💬"
 }

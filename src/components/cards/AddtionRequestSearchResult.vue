@@ -2,6 +2,7 @@
 import { defineComponent } from "vue";
 
 import VPillVue from "@/components/ui/VPill.vue";
+import VLazyPictureVue from "@/components/ui/VLazyPicture.vue";
 
 import { thumbnailifyTvDbImage } from "@/utils/thumbnailifyTvDbImage";
 
@@ -12,6 +13,7 @@ import type { TranslateResult } from "vue-i18n";
 export default defineComponent({
   components: {
     VPillVue,
+    VLazyPictureVue,
   },
   props: {
     result: {
@@ -33,23 +35,19 @@ export default defineComponent({
 
 <template>
   <li
-    class="relative flex overflow-hidden rounded-r-lg border border-gray-300 bg-gray-200 shadow dark:border-slate-900 dark:bg-slate-700"
+    class="relative flex overflow-hidden rounded-r-lg border border-gray-300 bg-gray-200 shadow dark:border-slate-600 dark:bg-slate-700"
   >
-    <img
-      v-if="result.image_url"
-      :src="thumbnailifyTvDbImage(result.image_url)"
-      class="picture"
-    />
-    <div v-else class="picture" />
+    <div
+      class="relative h-40 w-[100px] flex-shrink-0 overflow-hidden rounded-r-lg object-cover object-center shadow"
+    >
+      <VLazyPictureVue
+        :picture-url="result.image_url"
+        :picture-alt="result.name"
+      />
+    </div>
     <div class="relative overflow-hidden p-4">
       <h6 v-once class="subtitle-text ellipsis">{{ result.name }}</h6>
       <VPillVue class="w-fit">{{ entityTypeText }}</VPillVue>
     </div>
   </li>
 </template>
-
-<style lang="scss" scoped>
-.picture {
-  @apply h-40 w-[100] flex-shrink-0 overflow-hidden rounded-r-lg object-cover object-center shadow;
-}
-</style>

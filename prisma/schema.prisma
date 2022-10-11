@@ -254,15 +254,19 @@ model SearchResult {
 model SearchResultOnSearchCache {
   searchResult    SearchResult @relation(fields: [searchResultId], references: [id])
   searchResultId  String
-  searchCache     SearchCache  @relation(fields: [searchCacheTerm], references: [term])
+  searchCache     SearchCache  @relation(fields: [searchCacheTerm, searchCacheType], references: [term, type])
+  searchCacheType String
   searchCacheTerm String
 
   @@id([searchCacheTerm, searchResultId])
 }
 
 model SearchCache {
-  term                      String                      @id @unique
+  term                      String
+  type                      String
   SearchResultOnSearchCache SearchResultOnSearchCache[]
+
+  @@id([term, type])
 }
 
 model EntityAddtionRequest {

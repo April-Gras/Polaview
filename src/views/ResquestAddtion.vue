@@ -19,6 +19,7 @@ export default defineComponent({
       loading: false,
       searchResults: [] as SearchResult[],
       needSearchValue: false,
+      searchMode: "movie" as "movie" | "series",
     };
   },
   methods: {
@@ -28,6 +29,7 @@ export default defineComponent({
       this.loading = true;
       this.$postScraperRequest("/searchV2", {
         query: term.toLowerCase(),
+        type: this.searchMode,
       })
         .then(({ data: searchResults }) => {
           this.searchResults = searchResults;
@@ -35,6 +37,10 @@ export default defineComponent({
         .finally(() => {
           this.loading = false;
         });
+    },
+    moveSearchMode(mode: "series" | "movie") {
+      this.searchMode = mode;
+      this.lookForEntity(this.searchValue);
     },
   },
 });
@@ -46,8 +52,19 @@ export default defineComponent({
       <h1 class="title-text">{{ $t("pages.requestAddition.title") }}</h1>
       <h3 class="subtitle-text">{{ $t("pages.requestAddition.subtitle") }}</h3>
     </header>
-    <section class="grid grid-cols-1 gap-10">
-      <article class="flex items-center justify-between gap-4">
+    <section class="relative flex gap-4">
+      <div class="sheen" :class="{ moved: searchMode === 'series' }" />
+      <button class="typeToggle" @click="moveSearchMode('movie')">
+        {{ $t("common.movie") }}
+      </button>
+      <button class="typeToggle" @click="moveSearchMode('series')">
+        {{ $t("common.serie") }}
+      </button>
+    </section>
+    <section class="relative grid grid-cols-1 gap-10">
+      <article
+        class="searchWrapper relative grid w-full items-center justify-between gap-4"
+      >
         <VTextInputVue
           v-model="searchValue"
           :placeholder="$t('pages.requestAddition.placeholderSearchInput')"
@@ -104,5 +121,29 @@ export default defineComponent({
   @apply flex items-center justify-center;
 
   animation: sugoma 0.8s infinite ease-in-out;
+}
+
+.sheen {
+  @apply absolute h-full rounded bg-gradient-to-b from-gray-400 to-gray-300 opacity-25 duration-150 ease-in-out dark:from-slate-700 dark:to-slate-600;
+
+  left: 0%;
+  transition-property: left;
+  width: calc(50% - theme("space.2"));
+
+  &.moved {
+    left: calc(50% + theme("space.2"));
+  }
+}
+
+.typeToggle {
+  @apply w-full p-2;
+}
+
+.searchWrapper {
+  @apply grid-cols-1;
+
+  @screen xs {
+    @apply flex justify-between;
+  }
 }
 </style>

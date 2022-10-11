@@ -122,7 +122,7 @@ export type AllRoutes = [
     "post",
     "/searchV2",
     SearchResult[],
-    { query: string; type?: "movie" | "series" }
+    { query: string; type: "movie" | "series" }
   >,
   BuildRouteEntry<
     "post",

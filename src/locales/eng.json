@@ -55,5 +55,6 @@
   "pages.signupConfirmed.text": "Someone will take care of your request",
   "pages.signupConfirmed.title": "Congrats",
   "placeholders.email": "Enter email address",
-  "placeholders.name": "User name"
+  "placeholders.name": "User name",
+  "pages.requestAddition.subtitle": "Ask ahead, we'll try to get it for you 💬"
 }

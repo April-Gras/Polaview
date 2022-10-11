@@ -13,9 +13,9 @@ COPY prisma /api/prisma
 COPY .env /api/.env
 COPY server /api/server
 
-COPY node_modules /api/node_modules
-
 # Prisma routine
 RUN npx prisma generate
+
+COPY node_modules /api/node_modules
 
 EXPOSE 8080

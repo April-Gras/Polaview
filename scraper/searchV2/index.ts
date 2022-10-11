@@ -14,6 +14,7 @@ export const searchV2Post: GetRouteDataHandlerFromUrlAndVerb<
     await prisma.searchResultOnSearchCache.findMany({
       where: {
         searchCacheTerm: term,
+        searchCacheType: payload.type,
       },
       select: {
         searchResult: true,
@@ -25,16 +26,18 @@ export const searchV2Post: GetRouteDataHandlerFromUrlAndVerb<
   const {
     data: { data: tvDbResults },
   } = await tvDbGetRequest("/search", {
-    query: term,
-    type: payload.type,
     limit: 25,
     offset: 0,
+    query: term,
+    type: payload.type,
   });
 
+  if (!tvDbResults.length) return [];
   const [_, ...results] = await prisma.$transaction([
     prisma.searchCache.create({
       data: {
         term,
+        type: payload.type,
       },
     }),
     ...tvDbResults.map(({ id, image_url, name }) =>
@@ -61,6 +64,7 @@ export const searchV2Post: GetRouteDataHandlerFromUrlAndVerb<
         data: {
           searchCacheTerm: term,
           searchResultId: e.id,
+          searchCacheType: payload.type,
         },
       })
     )
