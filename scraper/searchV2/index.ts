@@ -7,43 +7,77 @@ export const searchV2Post: GetRouteDataHandlerFromUrlAndVerb<
   "post",
   AllRoutes,
   "/searchV2"
-> = async (prisma, req, res, payload) => {
+> = async (prisma, _req, _res, payload) => {
   if (!payload.query || !payload.query.length) return [];
-  const cached = await prisma.searchCache.findFirst({
-    where: {
-      term: payload.query,
-    },
-    select: {
-      results: true,
-    },
-  });
+  const term = payload.query;
+  const cachedEntry = (
+    await prisma.searchResultOnSearchCache.findMany({
+      where: {
+        searchCacheTerm: term,
+        searchCacheType: payload.type,
+      },
+      select: {
+        searchResult: true,
+      },
+    })
+  ).map((e) => e.searchResult);
 
-  if (cached) return cached.results;
+  if (cachedEntry.length) return cachedEntry;
   const {
-    data: { data },
+    data: { data: tvDbResults },
   } = await tvDbGetRequest("/search", {
-    ...payload,
     limit: 25,
+    offset: 0,
+    query: term,
+    type: payload.type,
   });
 
-  const { results } = await prisma.searchCache.create({
-    data: {
-      term: payload.query,
-      results: {
-        createMany: {
-          data: data.map((result) => ({
-            image_url: result.image_url,
-            id: result.id,
-            name: result.name,
-          })),
-          skipDuplicates: true,
+  if (!tvDbResults.length) return [];
+  const [_, ...results] = await prisma.$transaction([
+    prisma.searchCache.upsert({
+      where: {
+        term_type: {
+          term,
+          type: payload.type,
         },
       },
-    },
-    select: {
-      results: true,
-    },
-  });
-
+      create: {
+        type: payload.type,
+        term,
+      },
+      update: {
+        term,
+        type: payload.type,
+      },
+    }),
+    ...tvDbResults.map(({ id, image_url, name }) =>
+      prisma.searchResult.upsert({
+        where: {
+          id,
+        },
+        create: {
+          id,
+          image_url,
+          name,
+        },
+        update: {
+          id,
+          image_url,
+          name,
+        },
+      })
+    ),
+  ]);
+  await prisma.$transaction(
+    tvDbResults.map((e) =>
+      prisma.searchResultOnSearchCache.create({
+        data: {
+          searchCacheTerm: term,
+          searchResultId: e.id,
+          searchCacheType: payload.type,
+        },
+      })
+    )
+  );
   return results;
 };

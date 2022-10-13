@@ -231,7 +231,7 @@ model SubtitleTrack {
 }
 
 model FileV2 {
-  id               Int             @id @unique @default(autoincrement())
+  id               Int             @unique
   path             String          @unique
   subtitleTracks   SubtitleTrack[]
   fileSource       FileSourceV2    @relation(fields: [fileSourceV2Path], references: [path])
@@ -240,17 +240,43 @@ model FileV2 {
   episode          Episode?        @relation(fields: [episodeId], references: [id])
   movieId          Int?
   episodeId        Int?
+
+  @@id([id, path])
 }
 
 model SearchResult {
-  name            String
-  image_url       String?
-  id              String
-  SearchCache     SearchCache @relation(fields: [searchCacheTerm], references: [term])
-  searchCacheTerm String      @id @unique
+  name                      String
+  image_url                 String?
+  id                        String                      @id @unique
+  searchResultOnSearchCache SearchResultOnSearchCache[]
+  entityAddtionRequest      EntityAddtionRequest[]
+}
+
+model SearchResultOnSearchCache {
+  searchResult    SearchResult @relation(fields: [searchResultId], references: [id])
+  searchResultId  String
+  searchCache     SearchCache  @relation(fields: [searchCacheTerm, searchCacheType], references: [term, type])
+  searchCacheType String
+  searchCacheTerm String
+
+  @@id([searchCacheTerm, searchResultId])
 }
 
 model SearchCache {
-  term    String         @id @unique
-  results SearchResult[]
+  term                      String
+  type                      String
+  SearchResultOnSearchCache SearchResultOnSearchCache[]
+
+  @@id([term, type])
+}
+
+model EntityAddtionRequest {
+  id              Int          @id @unique @default(autoincrement())
+  upvoteUserIds   Int[]
+  createdByUserId Int
+  searchResult    SearchResult @relation(fields: [searchResultId], references: [id])
+  status          String
+  createdOn       DateTime     @default(now())
+  updatedOn       DateTime     @default(now())
+  searchResultId  String
 }

@@ -15,6 +15,11 @@ import { serieGetSeaons } from "./serie";
 import { cacheGetSearch } from "./cacheSearch";
 import getVideoRoute, { getVideoSubtitle } from "./video";
 import { getPeopleById } from "./people";
+import {
+  getEntityAdditionRequests,
+  postEntityAdditionRequest,
+  patchEntityAdditionalRequest,
+} from "./requests";
 
 import { processEntityIdPost } from "./process";
 import { startupProcessSources } from "./utils/processSources";
@@ -24,6 +29,7 @@ const app: Express = express();
 const port = process.env.PORT ?? "8081";
 
 const ROUTES: ScraperRuntimeConfig = [
+  buildSingleRuntimeConfigEntry("get", "/requests", getEntityAdditionRequests),
   buildSingleRuntimeConfigEntry("get", "/latest-movie/", latestTitleGet),
   buildSingleRuntimeConfigEntry("get", "/latest-serie/", latestSerieGet),
   buildSingleRuntimeConfigEntry("get", "/file/movie/:id/", fileGetByMovieId),
@@ -39,8 +45,16 @@ const ROUTES: ScraperRuntimeConfig = [
     cacheGetSearch
   ),
   buildSingleRuntimeConfigEntry("get", "/people/:id/", getPeopleById),
+  // POST
   buildSingleRuntimeConfigEntry("post", "/searchV2", searchV2Post),
   buildSingleRuntimeConfigEntry("post", "/processEntity", processEntityIdPost),
+  buildSingleRuntimeConfigEntry("post", "/requests", postEntityAdditionRequest),
+  // PATCH
+  buildSingleRuntimeConfigEntry(
+    "patch",
+    "/request/:id",
+    patchEntityAdditionalRequest
+  ),
 ];
 
 app.use(bodyParser.json());

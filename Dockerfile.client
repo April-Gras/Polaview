@@ -15,6 +15,9 @@ COPY shared /client/shared
 COPY prisma /client/prisma
 COPY .env /client/.env
 
+# Prisma routine
+RUN npx prisma generate
+
 COPY node_modules /client/node_modules 
 
 COPY src /client/src
@@ -22,8 +25,5 @@ COPY static /client/static
 
 # Install dependencies
 # RUN yarn install
-
-# Prisma routine
-RUN npx prisma generate
 
 EXPOSE 5173

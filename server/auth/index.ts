@@ -16,7 +16,15 @@ export const authUserGet: GetRouteDataHandlerFromUrlAndVerb<
       id: sessionid,
     },
     select: {
-      user: true,
+      user: {
+        select: {
+          email: true,
+          id: true,
+          isActive: true,
+          isAdmin: true,
+          name: true,
+        },
+      },
     },
   });
 

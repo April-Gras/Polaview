@@ -40,14 +40,14 @@ const tvDbTransporter = setupCache(
 );
 
 export const tvDbPostRequest: AxiosTvDbApiPostRequest = tvDbTransporter.post;
-// @ts-ignore
+// @ts-expect-error
 export const tvDbGetRequest: AxiosTvDbApiGetRequest = (
   url,
   payload,
   config
 ) => {
   return tvDbTransporter.get(url, {
-    ...config,
+    ...(config || {}),
     params: payload,
   });
 };

@@ -4,8 +4,8 @@ import { defineComponent } from "vue";
 import { Movie } from "@prisma/client";
 
 import CardGridVue from "@/components/ui/CardGrid.vue";
-import SerieCardVue from "@/components/cards/SerieCard.vue";
-import MovieCardVue from "@/components/cards/MovieCard.vue";
+import SerieCardVue from "@/components/cards/entityCards/SerieCard.vue";
+import MovieCardVue from "@/components/cards/entityCards/MovieCard.vue";
 import VSearchInputVue from "@/components/ui/VSearchInput.vue";
 
 import type { SerieSummary } from "~/types/RouteLibraryScraper";

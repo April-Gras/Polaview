@@ -55,6 +55,15 @@ export default defineComponent({
             text: this.$t("navigation.root"),
             icon: "home",
           },
+          {
+            route:
+              this.$route.name &&
+              this.$route.name.toString().includes("requests__")
+                ? this.$route.path
+                : "/requests",
+            text: this.$t("navigation.requests"),
+            icon: "sync",
+          },
           ...(this.USER_STORE.isAdmin
             ? [
                 {
@@ -114,13 +123,13 @@ export default defineComponent({
         </ul>
       </Transition>
       <div
-        class="flex items-center justify-between space-x-6 overflow-auto text-center"
+        class="flex items-center justify-between gap-x-6 overflow-auto text-center"
       >
-        <div class="flex items-center justify-center space-x-6">
+        <div class="flex items-center justify-center gap-x-6">
           <RouterLink
             v-for="entry in navigationEntries"
             :to="entry.route"
-            class="flex cursor-pointer items-center justify-center space-x-3 rounded-sm bg-neutral-100 px-4 py-2 text-center shadow-sm transition duration-150 ease-in-out hover:bg-gray-300 hover:bg-opacity-25 hover:shadow-lg dark:bg-gray-800 hover:dark:bg-gray-900"
+            class="flex w-max cursor-pointer items-center justify-center gap-x-3 rounded-sm bg-neutral-100 px-4 py-2 text-center shadow-sm transition duration-150 ease-in-out hover:bg-gray-300 hover:bg-opacity-25 hover:shadow-lg dark:bg-gray-800 hover:dark:bg-gray-900"
           >
             <span class="material-symbols-outlined overflow-hidden">{{
               entry.icon
@@ -128,7 +137,7 @@ export default defineComponent({
             <span class="font-bold">{{ entry.text }}</span>
           </RouterLink>
         </div>
-        <div class="icons flex space-x-4">
+        <div class="icons flex gap-x-4">
           <button
             @click="
               appTheme = appTheme === 'dark' ? 'light' : 'dark';

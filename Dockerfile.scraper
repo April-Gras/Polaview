@@ -32,12 +32,12 @@ COPY prisma /scraper/prisma
 COPY .env /scraper/.env
 COPY scraper /scraper/scraper
 
+# Prisma routine
+RUN npx prisma generate
+
 COPY node_modules /scraper/node_modules/
 
 # Install dependencies
 # RUN yarn install
-
-# Prisma routine
-RUN npx prisma generate
 
 EXPOSE 8081

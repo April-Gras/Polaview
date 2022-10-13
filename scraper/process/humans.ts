@@ -46,8 +46,8 @@ export function handleHumans(
     ),
     ...upsertActorCharacterCollection(
       prisma,
-      (entity.characters || []).filter((e) =>
-        ["Actor", "Guest Star"].includes(e.peopleType)
+      (entity.characters || []).filter(
+        (e) => ["Actor", "Guest Star"].includes(e.peopleType) && !!e.name
       ),
       id,
       entityType
