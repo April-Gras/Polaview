@@ -56,7 +56,11 @@ export default defineComponent({
             icon: "home",
           },
           {
-            route: "/requests",
+            route:
+              this.$route.name &&
+              this.$route.name.toString().includes("requests__")
+                ? this.$route.path
+                : "/requests",
             text: this.$t("navigation.requests"),
             icon: "sync",
           },

@@ -26,7 +26,19 @@ export const routerPlugin = createRouter({
     {
       path: "/admin",
       name: "admin",
-      component: () => import("@/views/Admin.vue"),
+      component: () => import("@/views/Admin/Root.vue"),
+      children: [
+        {
+          path: "/admin/user",
+          name: "admin__user",
+          component: () => import("@/views/Admin/User.vue"),
+        },
+        {
+          path: "/admin/requests",
+          name: "admin__requests",
+          component: () => import("@/views/Admin/Requests.vue"),
+        },
+      ],
     },
     {
       path: "/watch/movie/:id",
@@ -60,8 +72,20 @@ export const routerPlugin = createRouter({
     },
     {
       path: "/requests",
-      name: "requests",
-      component: () => import("@/views/ResquestAddtion.vue"),
+      name: "requests__root",
+      component: () => import("@/views/Request/Root.vue"),
+      children: [
+        {
+          path: "/requests/import",
+          name: "requests__import",
+          component: () => import("@/views/Request/Import.vue"),
+        },
+        {
+          path: "/requests/explore",
+          name: "requests__explore",
+          component: () => import("@/views/Request/Explore.vue"),
+        },
+      ],
     },
   ],
 });

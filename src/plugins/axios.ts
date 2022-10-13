@@ -8,6 +8,7 @@ import {
   AxiosPostRequest,
   AxiosScraperPostRequest,
   AxiosScraperGetRequest,
+  AxiosScraperPatchRequest,
 } from "~/types/Axios";
 import {
   serverApiTransporter,
@@ -23,6 +24,7 @@ export const axiosPlugin: Plugin = {
     app.config.globalProperties.$patchRequest = serverApiTransporter.patch;
     app.config.globalProperties.$postScraperRequest = scraperTransporter.post;
     app.config.globalProperties.$getScraperRequest = scraperTransporter.get;
+    app.config.globalProperties.$patchScraperRequest = scraperTransporter.patch;
   },
 };
 
@@ -34,23 +36,20 @@ declare module "vue" {
     $deleteRequest: AxiosDeleteRequest;
     $postScraperRequest: AxiosScraperPostRequest;
     $getScraperRequest: AxiosScraperGetRequest;
+    $patchScraperRequest: AxiosScraperPatchRequest;
   }
 }
 
 // Pinia pluin
 export function axiosPiniaPlugin({ store }: PiniaPluginContext) {
-  // @ts-ignore
   store.$postRequest = markRaw(serverApiTransporter.post);
-  // @ts-ignore
   store.$patchRequest = markRaw(serverApiTransporter.patch);
-  // @ts-ignore
+  // @ts-expect-error
   store.$getRequest = markRaw(serverApiTransporter.get);
-  // @ts-ignore
-  store.$deleteRequest = markRaw(serverApiTransporter.delete);
-  // @ts-ignore
   store.$postScraperRequest = markRaw(scraperTransporter.post);
-  // @ts-ignore
+  // @ts-expect-error
   store.$getScraperRequest = markRaw(scraperTransporter.get);
+  store.$patchScraperRequest = markRaw(scraperTransporter.patch);
 }
 
 declare module "pinia" {
@@ -61,5 +60,6 @@ declare module "pinia" {
     $deleteRequest: AxiosDeleteRequest;
     $postScraperRequest: AxiosScraperPostRequest;
     $getScraperRequest: AxiosScraperGetRequest;
+    $patchScraperRequest: AxiosScraperPatchRequest;
   }
 }

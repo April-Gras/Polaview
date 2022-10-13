@@ -1,7 +1,14 @@
+<script lang="ts" setup>
+import { EntityAddtionRequestSummary } from "~/types/RouteLibraryScraper";
+
+defineEmits<{
+  (e: "update-addition-request", value: EntityAddtionRequestSummary): void;
+}>();
+</script>
 <script lang="ts">
 import { defineComponent } from "vue";
 
-import AddtionRequestSearchResultVue from "@/components/cards/AddtionRequestSearchResult.vue";
+import AddtionRequestSearchResultVue from "@/components/cards/additionRequestCards/AddtionRequestSearchResult.vue";
 import VButtonMainVue from "@/components/ui/VButtonMain.vue";
 import VTextInputVue from "@/components/ui/VTextInput.vue";
 
@@ -42,16 +49,28 @@ export default defineComponent({
       this.searchMode = mode;
       this.lookForEntity(this.searchValue);
     },
+    handleEntitySelect(entityId: string) {
+      if (this.loading) return;
+      this.loading = true;
+      this.$postScraperRequest("/requests", {
+        entityId,
+      })
+        .then(({ data: requestAddition }) => {
+          this.$emit("update-addition-request", requestAddition);
+        })
+        .finally(() => (this.loading = false));
+    },
   },
 });
 </script>
 
 <template>
-  <div class="grid grid-cols-1 gap-10">
-    <header class="grid grid-cols-1 gap-4">
-      <h1 class="title-text">{{ $t("pages.requestAddition.title") }}</h1>
-      <h3 class="subtitle-text">{{ $t("pages.requestAddition.subtitle") }}</h3>
-    </header>
+  <div>
+    <RouterLink to="/requests/explore">
+      <VButtonMainVue>{{
+        $t("pages.requestAddition.button.viewOngoingRequests")
+      }}</VButtonMainVue>
+    </RouterLink>
     <section class="relative flex gap-4">
       <div class="sheen" :class="{ moved: searchMode === 'series' }" />
       <button class="typeToggle" @click="moveSearchMode('movie')">
@@ -97,6 +116,7 @@ export default defineComponent({
               v-for="result in searchResults"
               :key="result.id"
               :result="result"
+              @select="handleEntitySelect"
             />
           </ul>
         </Transition>

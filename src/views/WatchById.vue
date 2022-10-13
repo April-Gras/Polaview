@@ -3,8 +3,8 @@ import { defineComponent } from "vue";
 import { useRoute } from "vue-router";
 
 import FoldCardGridVue from "@/components/ui/FoldCardGrid.vue";
-import PeopleCardVue from "@/components/cards/PeopleCard.vue";
-import CharacterCardVue from "@/components/cards/CharacterCard.vue";
+import PeopleCardVue from "@/components/cards/entityCards/PeopleCard.vue";
+import CharacterCardVue from "@/components/cards/entityCards/CharacterCard.vue";
 import VVideoVue from "@/components/VVideo.vue";
 
 import type {

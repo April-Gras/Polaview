@@ -34,8 +34,18 @@ export const searchV2Post: GetRouteDataHandlerFromUrlAndVerb<
 
   if (!tvDbResults.length) return [];
   const [_, ...results] = await prisma.$transaction([
-    prisma.searchCache.create({
-      data: {
+    prisma.searchCache.upsert({
+      where: {
+        term_type: {
+          term,
+          type: payload.type,
+        },
+      },
+      create: {
+        type: payload.type,
+        term,
+      },
+      update: {
         term,
         type: payload.type,
       },

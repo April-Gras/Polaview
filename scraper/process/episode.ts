@@ -28,6 +28,18 @@ export async function processIdAsEpisode(
   id: number,
   episodeInfo: EpisodeIndexInfo
 ): Promise<Episode> {
+  await processIdAsSerie(prisma, id);
+  return await prisma.episode.findFirstOrThrow({
+    where: {
+      season: {
+        number: episodeInfo.seasonNumber,
+      },
+      number: episodeInfo.episodeNumber,
+    },
+  });
+}
+
+export async function processIdAsSerie(prisma: PrismaClient, id: number) {
   const serie = await getTvDbSerieFromId(id);
   const seasons = getSeasonsFromTvDbSerie(serie);
   const episodeIds = serie.episodes.map(({ id }) => id);
@@ -35,7 +47,9 @@ export async function processIdAsEpisode(
   if (!serie || !seasons.length || !episodeIds.length)
     throw new Error("Missing data to build episode listing");
 
-  const episodes = await getEpisodesFromIds(episodeIds);
+  const episodes = (await getEpisodesFromIds(episodeIds)).filter(
+    ({ name }) => !!name
+  );
   const [
     episodeOnPeople,
     episodeOnOverviewTranslations,
@@ -81,14 +95,6 @@ export async function processIdAsEpisode(
       serieOverviewTranslations
     ),
   ]);
-  return await prisma.episode.findFirstOrThrow({
-    where: {
-      season: {
-        number: episodeInfo.seasonNumber,
-      },
-      number: episodeInfo.episodeNumber,
-    },
-  });
 }
 
 function getSeasonsFromTvDbSerie(tvDbSeries: TvDbSerie) {

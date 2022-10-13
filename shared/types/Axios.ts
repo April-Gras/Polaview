@@ -93,8 +93,13 @@ type ScraperGetRoutes = PrepExpressRoutesToLiveUrls<
   ExtractRouteEntriesByVerb<"get", ScraperRoutes>
 >;
 
+type ScraperPatchRoutes = PrepExpressRoutesToLiveUrls<
+  ExtractRouteEntriesByVerb<"patch", ScraperRoutes>
+>;
+
 export type AxiosScraperPostRequest = BuildAxiosHandler<ScraperPostRoutes>;
 export type AxiosScraperGetRequest = BuildAxiosHandler<ScraperGetRoutes>;
+export type AxiosScraperPatchRequest = BuildAxiosHandler<ScraperPatchRoutes>;
 
 // TvDbApiRoutes
 export type AxiosTvDbApiPostRoutes = PrepExpressRoutesToLiveUrls<

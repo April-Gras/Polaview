@@ -35,15 +35,16 @@ export default defineComponent({
 
 <template>
   <div class="relative grid grid-cols-1 gap-6">
-    <h1 class="title-text">{{ $t("pages.admin.title") }}</h1>
     <div class="relative w-full gap-y-10">
       <div class="tableGrid">
-        <span class="ellipsis">{{ $t("pages.admin.table.name") }}</span>
-        <span class="ellipsis">{{ $t("pages.admin.table.email") }}</span>
-        <span class="ellipsis">{{ $t("pages.admin.table.isAdmin") }}</span>
-        <span class="ellipsis">{{ $t("pages.admin.table.isActive") }}</span>
+        <span class="ellipsis">{{ $t("pages.admin.user.table.name") }}</span>
+        <span class="ellipsis">{{ $t("pages.admin.user.table.email") }}</span>
+        <span class="ellipsis">{{ $t("pages.admin.user.table.isAdmin") }}</span>
         <span class="ellipsis">{{
-          $t("pages.admin.table.toggleIsActive")
+          $t("pages.admin.user.table.isActive")
+        }}</span>
+        <span class="ellipsis">{{
+          $t("pages.admin.user.table.toggleIsActive")
         }}</span>
       </div>
       <ul class="grid gap-6">

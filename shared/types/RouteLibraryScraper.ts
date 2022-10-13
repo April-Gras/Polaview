@@ -12,6 +12,7 @@ import {
   SerieOverviewTranslation,
   SubtitleTrack,
   Biography,
+  EntityAddtionRequest,
 } from "@prisma/client";
 import { BuildRouteEntry, RuntimeConfigBuilder } from "~/types/Route";
 
@@ -101,8 +102,13 @@ export type PeopleExtended = People & {
   }[];
 };
 
+export type EntityAddtionRequestSummary = EntityAddtionRequest & {
+  searchResult: SearchResult;
+};
+
 export type AllRoutes = [
   // GET
+  BuildRouteEntry<"get", "/requests", EntityAddtionRequestSummary[]>,
   BuildRouteEntry<"get", "/latest-movie/", Movie[]>,
   BuildRouteEntry<"get", "/latest-serie/", SerieSummary[]>,
   BuildRouteEntry<"get", "/file/movie/:id/", FileSummary<Movie>>,
@@ -129,8 +135,20 @@ export type AllRoutes = [
     "/processEntity",
     Movie | Episode,
     ProcessEntityPayload
-  >
+  >,
+  BuildRouteEntry<
+    "post",
+    "/requests",
+    EntityAddtionRequestSummary,
+    { entityId: string }
+  >,
   // PATCH
+  BuildRouteEntry<
+    "patch",
+    "/request/:id",
+    EntityAddtionRequest,
+    Pick<EntityAddtionRequest, "status">
+  >
   // DELETE
 ];
 

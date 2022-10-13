@@ -74,18 +74,17 @@ model MovieOverviewTranslation {
 }
 
 model Movie {
-  id                   Int                        @id @unique
-  characters           Character[]
-  createdOn            DateTime                   @default(now())
-  files                FileV2[]
-  image                String?
-  movieOnCast          MovieOnCast[]
-  movieOnDirector      MovieOnDirector[]
-  movieOnWriter        MovieOnWriter[]
-  name                 String
-  overviews            MovieOverviewTranslation[]
-  year                 Int?
-  entityAddtionRequest EntityAddtionRequest[]
+  id              Int                        @id @unique
+  characters      Character[]
+  createdOn       DateTime                   @default(now())
+  files           FileV2[]
+  image           String?
+  movieOnCast     MovieOnCast[]
+  movieOnDirector MovieOnDirector[]
+  movieOnWriter   MovieOnWriter[]
+  name            String
+  overviews       MovieOverviewTranslation[]
+  year            Int?
 }
 
 model EpisodeOverviewTranslation {
@@ -204,16 +203,15 @@ model SerieOverviewTranslation {
 }
 
 model SerieV2 {
-  id                   Int                        @id @unique
-  createdOn            DateTime                   @default(now())
-  episodes             Episode[]
-  name                 String
-  overview             String?
-  seasons              SeasonV2[]
-  image                String?
-  updatedOn            DateTime                   @default(now())
-  overviews            SerieOverviewTranslation[]
-  entityAddtionRequest EntityAddtionRequest[]
+  id        Int                        @id @unique
+  createdOn DateTime                   @default(now())
+  episodes  Episode[]
+  name      String
+  overview  String?
+  seasons   SeasonV2[]
+  image     String?
+  updatedOn DateTime                   @default(now())
+  overviews SerieOverviewTranslation[]
 }
 
 model FileSourceV2 {
@@ -233,7 +231,7 @@ model SubtitleTrack {
 }
 
 model FileV2 {
-  id               Int             @id @unique @default(autoincrement())
+  id               Int             @unique
   path             String          @unique
   subtitleTracks   SubtitleTrack[]
   fileSource       FileSourceV2    @relation(fields: [fileSourceV2Path], references: [path])
@@ -242,13 +240,16 @@ model FileV2 {
   episode          Episode?        @relation(fields: [episodeId], references: [id])
   movieId          Int?
   episodeId        Int?
+
+  @@id([id, path])
 }
 
 model SearchResult {
   name                      String
   image_url                 String?
   id                        String                      @id @unique
-  SearchResultOnSearchCache SearchResultOnSearchCache[]
+  searchResultOnSearchCache SearchResultOnSearchCache[]
+  entityAddtionRequest      EntityAddtionRequest[]
 }
 
 model SearchResultOnSearchCache {
@@ -270,12 +271,12 @@ model SearchCache {
 }
 
 model EntityAddtionRequest {
-  id              Int      @id @unique @default(autoincrement())
+  id              Int          @id @unique @default(autoincrement())
   upvoteUserIds   Int[]
   createdByUserId Int
-  movieId         Int?
-  movie           Movie?   @relation(fields: [movieId], references: [id])
-  serieId         Int?
-  serie           SerieV2? @relation(fields: [serieId], references: [id])
+  searchResult    SearchResult @relation(fields: [searchResultId], references: [id])
   status          String
+  createdOn       DateTime     @default(now())
+  updatedOn       DateTime     @default(now())
+  searchResultId  String
 }

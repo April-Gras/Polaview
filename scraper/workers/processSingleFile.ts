@@ -1,4 +1,5 @@
 import path from "node:path";
+import crypto from "node:crypto";
 import {
   applyFailureColor,
   applySuccessColor,
@@ -11,6 +12,7 @@ import { PrismaClient, SearchResult, Movie, Episode } from "@prisma/client";
 import { compareTwoStrings } from "string-similarity";
 
 import { makeServersidePostScraper } from "#/axiosTransporter";
+import { hash } from "argon2";
 
 const prisma = new PrismaClient();
 
@@ -102,6 +104,7 @@ const processSingleFileThreadWorker: ProcessSingleFileThreadWorker =
         return;
       } else throw new Error("Unvalid entity type");
     } catch (err) {
+      console.error(err);
       console.info(applyFailureColor(` | Failed for ${filePath}`));
       return;
     }
@@ -114,6 +117,7 @@ async function saveFileAndConnectToEntity<T extends "movie" | "episode">(
   targetEntity: T extends "movie" ? Movie : Episode,
   potencialSubtitleTrack: string[]
 ) {
+  const hashFunction = crypto.createHash("sha256");
   const source = await prisma.fileSourceV2.upsert({
     where: {
       path: sourcePath,
@@ -125,11 +129,14 @@ async function saveFileAndConnectToEntity<T extends "movie" | "episode">(
       updatedOn: new Date(),
     },
   });
+  // Hashing the filename to an id so we guaranty the id to be unique when threaded because prisma concurrency is a lie
+  const fileId = Math.abs(hashFunction.update(filePath).digest().readInt32LE());
   const file = await prisma.fileV2.upsert({
     where: {
-      path: filePath,
+      id: fileId,
     },
     create: {
+      id: fileId,
       path: filePath,
       fileSource: {
         connect: {
@@ -143,6 +150,7 @@ async function saveFileAndConnectToEntity<T extends "movie" | "episode">(
       },
     },
     update: {
+      path: filePath,
       fileSource: {
         connect: {
           path: source.path,

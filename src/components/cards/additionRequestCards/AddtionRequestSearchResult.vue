@@ -1,6 +1,12 @@
+<script setup lang="ts">
+defineEmits<{
+  (e: "select", value: string): void;
+}>();
+</script>
 <script lang="ts">
 import { defineComponent } from "vue";
 
+import CommonTemplate from "./CommonTemplate.vue";
 import VPillVue from "@/components/ui/VPill.vue";
 import VLazyPictureVue from "@/components/ui/VLazyPicture.vue";
 
@@ -12,6 +18,7 @@ import type { TranslateResult } from "vue-i18n";
 
 export default defineComponent({
   components: {
+    CommonTemplate,
     VPillVue,
     VLazyPictureVue,
   },
@@ -34,20 +41,16 @@ export default defineComponent({
 </script>
 
 <template>
-  <li
-    class="relative flex overflow-hidden rounded-r-lg border border-gray-300 bg-gray-200 shadow dark:border-slate-600 dark:bg-slate-700"
-  >
-    <div
-      class="relative h-40 w-[100px] flex-shrink-0 overflow-hidden rounded-r-lg object-cover object-center shadow"
-    >
-      <VLazyPictureVue
-        :picture-url="result.image_url"
-        :picture-alt="result.name"
-      />
-    </div>
+  <CommonTemplate :picture-url="result.image_url" :picture-alt="result.name">
     <div class="relative overflow-hidden p-4">
       <h6 v-once class="subtitle-text ellipsis">{{ result.name }}</h6>
       <VPillVue class="w-fit">{{ entityTypeText }}</VPillVue>
     </div>
-  </li>
+    <button
+      @click="$emit('select', result.id)"
+      class="ml-auto flex h-full items-center justify-center bg-gray-300 px-4 transition-colors duration-150 ease-in-out hover:bg-gray-100 dark:bg-slate-600 hover:dark:bg-slate-500"
+    >
+      <span class="material-symbols-outlined"> add </span>
+    </button>
+  </CommonTemplate>
 </template>
