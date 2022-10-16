@@ -20,8 +20,8 @@ export default defineComponent({
   },
   data() {
     return {
-      email: "april@polaview.com",
-      password: "securepasswd",
+      email: "",
+      password: "",
       validationArray: [] as string[],
     };
   },
