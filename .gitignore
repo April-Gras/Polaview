@@ -6,3 +6,4 @@ dev.db
 deb.db-journal
 
 dist/
+sslCertificates/

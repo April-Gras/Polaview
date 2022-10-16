@@ -7,8 +7,10 @@ services:
       context: ./nginx-prod
     ports:
       - 0.0.0.0:80:80
+      - 443:443
     volumes:
       - .:/var/www/
+      - ./sslCertificates:/etc/nginx/certs
     restart: unless-stopped
     networks:
       - polaview.network
