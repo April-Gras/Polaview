@@ -19,11 +19,11 @@ export default defineComponent({
 
 <template>
   <video ref="videoPlayer" controls preload="auto">
-    <source type="video/mp4" :src="`/scraper/video/${fileId}`" />
+    <source type="video/mp4" :src="`/data-layer/video/${fileId}`" />
     <track
       v-for="subtitle in subtitles"
       kind="captions"
-      :src="`/scraper/video/${fileId}/subtitle/${subtitle.id}`"
+      :src="`/data-layer/video/${fileId}/subtitle/${subtitle.id}`"
       :language="$t('lang.eng').toString()"
     />
   </video>

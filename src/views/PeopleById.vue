@@ -11,7 +11,7 @@ import { formatDateLong } from "@/utils/dates";
 // import MovieCardVue from "@/components/cards/MovieCard.vue";
 import VPillVue from "@/components/ui/VPill.vue";
 
-import type { PeopleExtended } from "~/types/RouteLibraryScraper";
+import type { PeopleExtended } from "~/types/RouteLibraryDataLayer";
 
 export default defineComponent({
   components: {
@@ -32,7 +32,7 @@ export default defineComponent({
     };
   },
   created() {
-    this.$getScraperRequest(`/people/${this.id}/`)
+    this.$getDataLayerRequest(`/people/${this.id}/`)
       .then(({ data: people }) => {
         this.people = people;
       })

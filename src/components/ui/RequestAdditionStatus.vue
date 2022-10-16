@@ -2,7 +2,7 @@
 import { defineComponent } from "vue";
 
 import type { PropType } from "vue";
-import type { EntityAddtionRequestSummary } from "~/types/RouteLibraryScraper";
+import type { EntityAddtionRequestSummary } from "~/types/RouteLibraryDataLayer";
 
 export default defineComponent({
   props: {

@@ -3,7 +3,7 @@ import { defineComponent } from "vue";
 
 import ManageAdditionRequestVue from "@/components/cards/additionRequestCards/ManageAdditionRequest.vue";
 
-import type { EntityAddtionRequestSummary } from "~/types/RouteLibraryScraper";
+import type { EntityAddtionRequestSummary } from "~/types/RouteLibraryDataLayer";
 
 export default defineComponent({
   components: {
@@ -15,7 +15,7 @@ export default defineComponent({
     };
   },
   created() {
-    this.$getScraperRequest("/requests").then(({ data: requests }) => {
+    this.$getDataLayerRequest("/requests").then(({ data: requests }) => {
       this.ongoingRequests = requests;
     });
   },

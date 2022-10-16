@@ -1,10 +1,11 @@
 version: "3.9"
 
 services:
-  server:
+  auth-layer:
+    image: auth-layer
     build:
       context: .
-      dockerfile: Dockerfile.server
+      dockerfile: Dockerfile.auth-layer
       target: dev_build
     networks:
       - polaview.network
@@ -12,12 +13,12 @@ services:
       - 8080:8080
     restart: unless-stopped
     tty: true
-    command: npm run server-dev
+    command: npm run auth-layer-dev
     depends_on:
       - postgres
       - cache
     volumes:
-      - ./server:/api/server
+      - ./auth-layer:/api/auth-layer
       - ./shared:/api/shared
       - ./node_modules:/api/node_modules
 
@@ -51,15 +52,15 @@ services:
     networks:
       - polaview.network
     depends_on:
-      - scraper
+      - data-layer
       - client
-      - server
+      - auth-layer
 
-  scraper:
-    image: scraper
+  data-layer:
+    image: data-layer
     build:
       context: .
-      dockerfile: Dockerfile.scraper
+      dockerfile: Dockerfile.data-layer
       target: dev_build
     networks:
       - polaview.network
@@ -69,11 +70,11 @@ services:
     ports:
       - 8081:8081
     restart: unless-stopped
-    command: npm run scraper-dev
+    command: npm run data-layer-dev
     volumes:
-      - ./scraper:/scraper/scraper
-      - ./shared:/scraper/shared
-      - ./node_modules:/scraper/node_modules
+      - ./data-layer:/data-layer/data-layer
+      - ./shared:/data-layer/shared
+      - ./node_modules:/data-layer/node_modules
       - /home/${USER}/Videos:/openMedia
     # deploy:
     #   resources:

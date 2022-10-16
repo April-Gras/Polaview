@@ -6,25 +6,27 @@ import {
   AxiosDeleteRequest,
   AxiosPatchRequest,
   AxiosPostRequest,
-  AxiosScraperPostRequest,
-  AxiosScraperGetRequest,
-  AxiosScraperPatchRequest,
+  AxiosDataLayerPostRequest,
+  AxiosDataLayerGetRequest,
+  AxiosDataLayerPatchRequest,
 } from "~/types/Axios";
 import {
-  serverApiTransporter,
-  scraperTransporter,
+  authLayerApiTransporter,
+  dataLayerTransporter,
 } from "@/utils/axiosTransporters";
 
 // Vue3 Plugin
 export const axiosPlugin: Plugin = {
   install(app) {
-    app.config.globalProperties.$postRequest = serverApiTransporter.post;
-    app.config.globalProperties.$getRequest = serverApiTransporter.get;
-    app.config.globalProperties.$deleteRequest = serverApiTransporter.delete;
-    app.config.globalProperties.$patchRequest = serverApiTransporter.patch;
-    app.config.globalProperties.$postScraperRequest = scraperTransporter.post;
-    app.config.globalProperties.$getScraperRequest = scraperTransporter.get;
-    app.config.globalProperties.$patchScraperRequest = scraperTransporter.patch;
+    app.config.globalProperties.$postRequest = authLayerApiTransporter.post;
+    app.config.globalProperties.$getRequest = authLayerApiTransporter.get;
+    app.config.globalProperties.$deleteRequest = authLayerApiTransporter.delete;
+    app.config.globalProperties.$patchRequest = authLayerApiTransporter.patch;
+    app.config.globalProperties.$postDataLayerRequest =
+      dataLayerTransporter.post;
+    app.config.globalProperties.$getDataLayerRequest = dataLayerTransporter.get;
+    app.config.globalProperties.$patchDataLayerRequest =
+      dataLayerTransporter.patch;
   },
 };
 
@@ -34,22 +36,22 @@ declare module "vue" {
     $getRequest: AxiosGetRequest;
     $patchRequest: AxiosPatchRequest;
     $deleteRequest: AxiosDeleteRequest;
-    $postScraperRequest: AxiosScraperPostRequest;
-    $getScraperRequest: AxiosScraperGetRequest;
-    $patchScraperRequest: AxiosScraperPatchRequest;
+    $postDataLayerRequest: AxiosDataLayerPostRequest;
+    $getDataLayerRequest: AxiosDataLayerGetRequest;
+    $patchDataLayerRequest: AxiosDataLayerPatchRequest;
   }
 }
 
 // Pinia pluin
 export function axiosPiniaPlugin({ store }: PiniaPluginContext) {
-  store.$postRequest = markRaw(serverApiTransporter.post);
-  store.$patchRequest = markRaw(serverApiTransporter.patch);
+  store.$postRequest = markRaw(authLayerApiTransporter.post);
+  store.$patchRequest = markRaw(authLayerApiTransporter.patch);
   // @ts-expect-error
-  store.$getRequest = markRaw(serverApiTransporter.get);
-  store.$postScraperRequest = markRaw(scraperTransporter.post);
+  store.$getRequest = markRaw(authLayerApiTransporter.get);
+  store.$postDataLayerRequest = markRaw(dataLayerTransporter.post);
   // @ts-expect-error
-  store.$getScraperRequest = markRaw(scraperTransporter.get);
-  store.$patchScraperRequest = markRaw(scraperTransporter.patch);
+  store.$getDataLayerRequest = markRaw(dataLayerTransporter.get);
+  store.$patchDataLayerRequest = markRaw(dataLayerTransporter.patch);
 }
 
 declare module "pinia" {
@@ -58,8 +60,8 @@ declare module "pinia" {
     $getRequest: AxiosGetRequest;
     $patchRequest: AxiosPatchRequest;
     $deleteRequest: AxiosDeleteRequest;
-    $postScraperRequest: AxiosScraperPostRequest;
-    $getScraperRequest: AxiosScraperGetRequest;
-    $patchScraperRequest: AxiosScraperPatchRequest;
+    $postDataLayerRequest: AxiosDataLayerPostRequest;
+    $getDataLayerRequest: AxiosDataLayerGetRequest;
+    $patchDataLayerRequest: AxiosDataLayerPatchRequest;
   }
 }

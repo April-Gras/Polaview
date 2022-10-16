@@ -13,7 +13,7 @@ import type {
   MovieOverviewTranslation,
   People,
 } from "@prisma/client";
-import type { FileSummary } from "~/types/RouteLibraryScraper";
+import type { FileSummary } from "~/types/RouteLibraryDataLayer";
 
 export default defineComponent({
   components: {
@@ -40,7 +40,7 @@ export default defineComponent({
   },
   async created() {
     try {
-      const { data: file } = await this.$getScraperRequest(
+      const { data: file } = await this.$getDataLayerRequest(
         `/file/${this.entityType}/${this.id}/`
       );
       this.file = file as FileSummary<Movie | Episode>;

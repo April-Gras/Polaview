@@ -1,0 +1,43 @@
+FROM node:lts AS dev_build
+
+RUN mkdir -p /data-layer/
+WORKDIR /data-layer
+
+RUN mkdir -p /openMedia/
+
+# RUN apt update \
+#     && apt install build-essential yasm cmake nasm libtool libavcodec-extra libc6 libc6-dev unzip wget libnuma1 libnuma-dev sudo libavdevice-dev lshw -y
+  
+
+# RUN mkdir ~/nvidia/ \ 
+#   && cd ~/nvidia/ \
+#   && git clone https://git.videolan.org/git/ffmpeg/nv-codec-headers.git
+
+# RUN cd ~/nvidia/nv-codec-headers && sudo make install
+
+# RUN git clone https://github.com/FFmpeg/FFmpeg.git ~/nvidia/ffmpeg/
+
+# RUN cd ~/nvidia/ffmpeg/ \
+#   && ./configure \
+#   && make -j $(nproc)
+
+RUN apt update && apt install ffmpeg -y
+
+COPY tsconfig.node.json /data-layer/tsconfig.node.json
+COPY tsconfig.json /data-layer/tsconfig.json
+COPY package.json /data-layer/package.json
+
+COPY shared /data-layer/shared
+COPY prisma /data-layer/prisma
+COPY .env /data-layer/.env
+COPY data-layer /data-layer/data-layer
+
+# Prisma routine
+RUN npx prisma generate
+
+COPY node_modules /data-layer/node_modules/
+
+# Install dependencies
+# RUN yarn install
+
+EXPOSE 8081

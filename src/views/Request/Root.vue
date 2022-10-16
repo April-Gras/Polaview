@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 
-import type { EntityAddtionRequestSummary } from "~/types/RouteLibraryScraper";
+import type { EntityAddtionRequestSummary } from "~/types/RouteLibraryDataLayer";
 
 export default defineComponent({
   data() {
@@ -10,7 +10,7 @@ export default defineComponent({
     };
   },
   created() {
-    this.$getScraperRequest("/requests").then(({ data: requests }) => {
+    this.$getDataLayerRequest("/requests").then(({ data: requests }) => {
       this.ongoingRequests = requests;
       if (!requests.length) this.$router.push("/requests/import");
       else this.$router.push("/requests/explore");

@@ -4,7 +4,7 @@ import { useRoute } from "vue-router";
 
 import { selectOverview } from "@/utils/selectOverview";
 
-import { SerieExtendedSummary } from "~/types/RouteLibraryScraper";
+import { SerieExtendedSummary } from "~/types/RouteLibraryDataLayer";
 
 export default defineComponent({
   setup() {
@@ -20,7 +20,7 @@ export default defineComponent({
     };
   },
   created() {
-    this.$getScraperRequest(`/serie/${this.id}/seasons`).then(
+    this.$getDataLayerRequest(`/serie/${this.id}/seasons`).then(
       ({ data: serie }) => {
         this.summary = serie;
       }

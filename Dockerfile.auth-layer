@@ -1,0 +1,21 @@
+FROM node:lts as dev_build
+
+RUN mkdir -p /api/
+
+WORKDIR /api
+
+COPY tsconfig.node.json /api/tsconfig.node.json
+COPY tsconfig.json /api/tsconfig.json
+COPY package.json /api/package.json
+
+COPY shared /api/shared
+COPY prisma /api/prisma
+COPY .env /api/.env
+COPY auth-layer /api/auth-layer
+
+# Prisma routine
+RUN npx prisma generate
+
+COPY node_modules /api/node_modules
+
+EXPOSE 8080

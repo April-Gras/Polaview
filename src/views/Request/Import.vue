@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { EntityAddtionRequestSummary } from "~/types/RouteLibraryScraper";
+import { EntityAddtionRequestSummary } from "~/types/RouteLibraryDataLayer";
 
 defineEmits<{
   (e: "update-addition-request", value: EntityAddtionRequestSummary): void;
@@ -34,7 +34,7 @@ export default defineComponent({
       if (this.loading) return;
       if (!this.searchValue) return (this.searchResults = []);
       this.loading = true;
-      this.$postScraperRequest("/searchV2", {
+      this.$postDataLayerRequest("/searchV2", {
         query: term.toLowerCase(),
         type: this.searchMode,
       })
@@ -52,7 +52,7 @@ export default defineComponent({
     handleEntitySelect(entityId: string) {
       if (this.loading) return;
       this.loading = true;
-      this.$postScraperRequest("/requests", {
+      this.$postDataLayerRequest("/requests", {
         entityId,
       })
         .then(({ data: requestAddition }) => {

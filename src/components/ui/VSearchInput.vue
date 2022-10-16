@@ -37,7 +37,7 @@ export default defineComponent({
       if (!searchTerm.length) return this.resetResults();
       const {
         data: { movies, series },
-      } = await this.$getScraperRequest(`/cache/search/${this.search}`);
+      } = await this.$getDataLayerRequest(`/cache/search/${this.search}`);
 
       this.movies = movies;
       this.series = series;

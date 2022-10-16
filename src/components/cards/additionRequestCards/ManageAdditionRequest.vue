@@ -2,7 +2,7 @@
 import { EntityAddtionRequestStatus } from "~/types/EntityAddtionRequest";
 import { formatDateEllapsed } from "@/utils/dates";
 
-import type { EntityAddtionRequestSummary } from "~/types/RouteLibraryScraper";
+import type { EntityAddtionRequestSummary } from "~/types/RouteLibraryDataLayer";
 
 defineEmits<{
   (e: "update-addition-request", value: EntityAddtionRequestSummary): void;
@@ -39,14 +39,13 @@ export default defineComponent({
 
       if (!nextStatus || this.loading) return;
       this.loading = true;
-      this.$patchScraperRequest(`/request/${this.request.id.toString()}`, {
+      this.$patchDataLayerRequest(`/request/${this.request.id.toString()}`, {
         status: nextStatus,
       })
         .then(({ data: singleRequest }) => {
           this.$emit("update-addition-request", {
             ...singleRequest,
             searchResult: this.request.searchResult,
-            searchResultId: this.request.searchResultId,
           });
         })
         .finally(() => {

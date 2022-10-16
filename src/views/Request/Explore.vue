@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { EntityAddtionRequestSummary } from "~/types/RouteLibraryScraper";
+import { EntityAddtionRequestSummary } from "~/types/RouteLibraryDataLayer";
 
 defineEmits<{
   (e: "update-addition-request", value: EntityAddtionRequestSummary): void;

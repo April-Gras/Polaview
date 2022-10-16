@@ -5,8 +5,8 @@ import type {
   GetEntryInCollectionFromUrl,
 } from "~/types/Route";
 import type { AxiosRequestConfig, AxiosResponse } from "axios";
-import type { AllRoutes as ServerRoutes } from "~/types/RouteLibraryServer";
-import type { AllRoutes as ScraperRoutes } from "~/types/RouteLibraryScraper";
+import type { AllRoutes as ServerRoutes } from "~/types/RouteLibraryAuthLayer";
+import type { AllRoutes as DataLayerRoutes } from "~/types/RouteLibraryDataLayer";
 import type { AllRoutes as TvDbApiRoutes } from "~/types/RouteLibraryTvDbApi";
 
 type Primitive = number | string;
@@ -84,22 +84,23 @@ export type AxiosPostRequest = BuildAxiosHandler<PostRoutes>;
 export type AxiosPatchRequest = BuildAxiosHandler<PatchRoutes>;
 export type AxiosDeleteRequest = BuildAxiosHandler<DeleteRoutes>;
 
-// Scraper Routes
-type ScraperPostRoutes = PrepExpressRoutesToLiveUrls<
-  ExtractRouteEntriesByVerb<"post", ScraperRoutes>
+// DataLayer Routes
+type DataLayerPostRoutes = PrepExpressRoutesToLiveUrls<
+  ExtractRouteEntriesByVerb<"post", DataLayerRoutes>
 >;
 
-type ScraperGetRoutes = PrepExpressRoutesToLiveUrls<
-  ExtractRouteEntriesByVerb<"get", ScraperRoutes>
+type DataLayerGetRoutes = PrepExpressRoutesToLiveUrls<
+  ExtractRouteEntriesByVerb<"get", DataLayerRoutes>
 >;
 
-type ScraperPatchRoutes = PrepExpressRoutesToLiveUrls<
-  ExtractRouteEntriesByVerb<"patch", ScraperRoutes>
+type DataLayerPatchRoutes = PrepExpressRoutesToLiveUrls<
+  ExtractRouteEntriesByVerb<"patch", DataLayerRoutes>
 >;
 
-export type AxiosScraperPostRequest = BuildAxiosHandler<ScraperPostRoutes>;
-export type AxiosScraperGetRequest = BuildAxiosHandler<ScraperGetRoutes>;
-export type AxiosScraperPatchRequest = BuildAxiosHandler<ScraperPatchRoutes>;
+export type AxiosDataLayerPostRequest = BuildAxiosHandler<DataLayerPostRoutes>;
+export type AxiosDataLayerGetRequest = BuildAxiosHandler<DataLayerGetRoutes>;
+export type AxiosDataLayerPatchRequest =
+  BuildAxiosHandler<DataLayerPatchRoutes>;
 
 // TvDbApiRoutes
 export type AxiosTvDbApiPostRoutes = PrepExpressRoutesToLiveUrls<

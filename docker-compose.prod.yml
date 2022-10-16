@@ -13,5 +13,5 @@ services:
     networks:
       - polaview.network
     depends_on:
-      - scraper
-      - server
+      - data-layer
+      - auth-layer

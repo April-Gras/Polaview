@@ -61,5 +61,7 @@
   "pages.signupConfirmed.text": "Quelqeu'un s'occupera de ta demande",
   "pages.signupConfirmed.title": "Bravo",
   "placeholders.email": "Entrez un courriel",
-  "placeholders.name": "Nom d'utilisateur"
+  "placeholders.name": "Nom d'utilisateur",
+  "pages.requestAddition.button.viewOngoingRequests": "Voir les requettes en cours",
+  "pages.requestAddition.button.makeNewRequest": "Faire un nouvelle demande"
 }

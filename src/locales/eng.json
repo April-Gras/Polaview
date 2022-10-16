@@ -30,7 +30,7 @@
   "inputErrors.name": "At least two letters",
   "inputErrors.password": "The password must be at least 8 characters long",
   "lang.deu": "German",
-  "lang.eng": "Englando",
+  "lang.eng": "English",
   "lang.fra": "French",
   "navigation.admin": "Administration",
   "navigation.login": "Login",
@@ -61,5 +61,7 @@
   "pages.signupConfirmed.text": "Someone will take care of your request",
   "pages.signupConfirmed.title": "Congrats",
   "placeholders.email": "Enter email address",
-  "placeholders.name": "User name"
+  "placeholders.name": "User name",
+  "pages.requestAddition.button.viewOngoingRequests": "See ongoing requests",
+  "pages.requestAddition.button.makeNewRequest": "Ask for something else"
 }

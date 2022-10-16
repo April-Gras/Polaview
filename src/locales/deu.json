@@ -50,5 +50,18 @@
   "pages.signupConfirmed.text": "Jemand wird sich Ihrer Anfrage annehmen",
   "pages.signupConfirmed.title": "Glückwunsch",
   "placeholders.email": "E-Mail-Adresse",
-  "placeholders.name": "Benutzername"
+  "placeholders.name": "Benutzername",
+  "common.loading": "Wird geladen...",
+  "entityRequest.status.Finalized": "Abgeschlossen",
+  "entityRequest.status.Ongoing": "Anfrage akzeptiert",
+  "entityRequest.status.Pending": "Ausstehende Bewertung",
+  "pages.requestAddition.labelSearchInput": "Suche",
+  "pages.requestAddition.placeholderSearchInput": "Geben Sie den Namen des gesuchten Films oder der Serie ein",
+  "pages.requestAddition.subtitle": "Fragen vorher an, wir werden versuchen es zu besorgen",
+  "pages.requestAddition.title": "Suchst du etwas, das wir nicht haben?",
+  "navigation.requests": "Antrag auf Hinzufügung",
+  "pages.admin.root.textLink.requests": "Anfragen für Medienzusätze",
+  "pages.admin.root.textLink.user": "Verwalten von Benutzern",
+  "pages.requestAddition.button.makeNewRequest": "Bitte um etwas anderes",
+  "pages.requestAddition.button.viewOngoingRequests": "Siehe laufende Anfragen"
 }

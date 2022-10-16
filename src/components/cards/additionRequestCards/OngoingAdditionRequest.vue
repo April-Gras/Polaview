@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { EntityAddtionRequestSummary } from "~/types/RouteLibraryScraper";
+import type { EntityAddtionRequestSummary } from "~/types/RouteLibraryDataLayer";
 import { formatDateEllapsed } from "@/utils/dates";
 
 defineEmits<{
@@ -46,7 +46,7 @@ export default defineComponent({
       if (this.loading) return;
 
       this.loading = true;
-      this.$postScraperRequest("/requests", {
+      this.$postDataLayerRequest("/requests", {
         entityId: this.request.searchResult.id,
       })
         .then(({ data: request }) => {
