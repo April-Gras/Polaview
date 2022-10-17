@@ -36,7 +36,6 @@
     "redis": "^4.3.1",
     "string-similarity": "^4.0.4",
     "subtitle": "^4.2.1",
-    "systeminformation": "^5.12.6",
     "threads": "^1.7.0",
     "uuid": "^8.3.2",
     "vue": "^3.2.37",

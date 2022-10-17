@@ -86,14 +86,15 @@ async function getFfmpegCommand(
 ): Promise<string> {
   const machineHardwareType = await getMachineHardwareType();
 
-  switch (machineHardwareType) {
-    case MachineHardwareType.Nvidea:
-      return `/root/nvidia/ffmpeg/ffmpeg -hwaccel cuda -i "${filePath}" -c:v h264_nvenc -pix_fmt yuv420p -y "${newFileName}"`;
-    case MachineHardwareType.Amd:
-      return `ffmpeg -h encoder=h264_vaapi -i "${filePath}" -c:v h264_nvenc -pix_fmt yuv420p -y "${newFileName}"`;
-    case MachineHardwareType.Cpu:
-      return `ffmpeg -i "${filePath}" -c:v libx264 -pix_fmt yuv420p -y "${newFileName}"`;
-  }
+  return `ffmpeg -i "${filePath}" -c:v copy -c:a aac -y "${newFileName}"`;
+  // switch (machineHardwareType) {
+  //   case MachineHardwareType.Nvidea:
+  //     return `/root/nvidia/ffmpeg/ffmpeg -hwaccel cuda -i "${filePath}" -c:v h264_nvenc -pix_fmt yuv420p -y "${newFileName}"`;
+  //   case MachineHardwareType.Amd:
+  //     return `ffmpeg -h encoder=h264_vaapi -i "${filePath}" -c:v h264_nvenc -pix_fmt yuv420p -y "${newFileName}"`;
+  //   case MachineHardwareType.Cpu:
+  //     return `ffmpeg -i "${filePath}" -c:v copy -c:a aac -y "${newFileName}"`;
+  // }
 }
 
 async function getMachineHardwareType(): Promise<MachineHardwareType> {
