@@ -88,11 +88,11 @@ async function getFfmpegCommand(
 
   switch (machineHardwareType) {
     case MachineHardwareType.Nvidea:
-      return `/root/nvidia/ffmpeg/ffmpeg -hwaccel cuda "${filePath}" -c:v h264_nvenc -pix_fmt yuv420p -y "${newFileName}"`;
+      return `/root/nvidia/ffmpeg/ffmpeg -hwaccel cuda -i "${filePath}" -c:v h264_nvenc -pix_fmt yuv420p -y "${newFileName}"`;
     case MachineHardwareType.Amd:
-      return `ffmpeg -h encoder=h264_vaapi "${filePath}" -c:v h264_nvenc -pix_fmt yuv420p -y "${newFileName}"`;
+      return `ffmpeg -h encoder=h264_vaapi -i "${filePath}" -c:v h264_nvenc -pix_fmt yuv420p -y "${newFileName}"`;
     case MachineHardwareType.Cpu:
-      return `ffmpeg "${filePath}" -c:v h264_nvenc -pix_fmt yuv420p -y "${newFileName}"`;
+      return `ffmpeg -i "${filePath}" -c:v libx264 -pix_fmt yuv420p -y "${newFileName}"`;
   }
 }
 
