@@ -1,7 +1,6 @@
 import path from "node:path";
 import { expose } from "threads";
 import { spawn, execSync } from "node:child_process";
-import { graphics } from "systeminformation";
 
 export type ConvertFileToMp4ThreadWorkerReturn = void;
 export type ConvertFileToMp4ThreadWorker = (
@@ -84,28 +83,7 @@ async function getFfmpegCommand(
   filePath: string,
   newFileName: string
 ): Promise<string> {
-  const machineHardwareType = await getMachineHardwareType();
-
   return `ffmpeg -i "${filePath}" -c:v copy -c:a aac -y "${newFileName}"`;
-  // switch (machineHardwareType) {
-  //   case MachineHardwareType.Nvidea:
-  //     return `/root/nvidia/ffmpeg/ffmpeg -hwaccel cuda -i "${filePath}" -c:v h264_nvenc -pix_fmt yuv420p -y "${newFileName}"`;
-  //   case MachineHardwareType.Amd:
-  //     return `ffmpeg -h encoder=h264_vaapi -i "${filePath}" -c:v h264_nvenc -pix_fmt yuv420p -y "${newFileName}"`;
-  //   case MachineHardwareType.Cpu:
-  //     return `ffmpeg -i "${filePath}" -c:v copy -c:a aac -y "${newFileName}"`;
-  // }
-}
-
-async function getMachineHardwareType(): Promise<MachineHardwareType> {
-  const gpuInfo = await graphics();
-  const firstControlerInfo = gpuInfo.controllers[0];
-
-  if (!firstControlerInfo) return MachineHardwareType.Cpu;
-  if (firstControlerInfo.vendor.includes("AMD")) return MachineHardwareType.Amd;
-  if (firstControlerInfo.vendor.includes("Nvidea"))
-    return MachineHardwareType.Nvidea;
-  return MachineHardwareType.Cpu;
 }
 
 expose(convertFileToMp4ThreadWorker);
