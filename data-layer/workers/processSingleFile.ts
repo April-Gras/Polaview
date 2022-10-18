@@ -213,7 +213,6 @@ async function saveFileAndConnectToEntity<T extends "movie" | "episode">(
 function cleanupTitleName(name: string) {
   return (
     name
-      .replace(/\(.*?\)/g, "")
       .replace(/\[.*?\]/g, "")
       .replace(/\{}.*?\}/g, "")
       .replace(/\<.*?\>/g, "")

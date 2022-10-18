@@ -27,6 +27,7 @@ const convertFileToMp4ThreadWorker: ConvertFileToMp4ThreadWorker = async (
     let NUMBER_OF_FRAMES: number | undefined;
 
     console.log(`Started conversion for ${path.basename(filePath)}`);
+    console.log({ command });
     const child = spawn(command, {
       shell: true,
     });
@@ -34,6 +35,7 @@ const convertFileToMp4ThreadWorker: ConvertFileToMp4ThreadWorker = async (
     child.stderr.on("data", (err: Buffer) => {
       const message = err.toString("utf-8");
 
+      // console.log({ message });
       if (NUMBER_OF_FRAMES === undefined) {
         if (!message.includes("NUMBER_OF_FRAMES")) return;
         const regex = /NUMBER_OF_FRAMES(-\D*)?:(\s*)?(?<frame>\d*)/gi;
@@ -83,7 +85,7 @@ async function getFfmpegCommand(
   filePath: string,
   newFileName: string
 ): Promise<string> {
-  return `ffmpeg -i "${filePath}" -c:v copy -c:a aac -y "${newFileName}"`;
+  return `ffmpeg -vaapi_device /dev/dri/renderD128 -i "${filePath}" -vf 'format=nv12,hwupload' -c:v h264_vaapi "${newFileName}" -y`;
 }
 
 expose(convertFileToMp4ThreadWorker);
