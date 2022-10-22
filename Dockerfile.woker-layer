@@ -1,0 +1,27 @@
+FROM node:lts AS dev_build
+
+RUN mkdir -p /worker-layer/
+WORKDIR /worker-layer
+
+RUN sh setupMediaSourceDirectories
+
+RUN apt update && apt install ffmpeg -y
+
+COPY tsconfig.node.json /worker-layer/tsconfig.node.json
+COPY tsconfig.json /worker-layer/tsconfig.json
+COPY package.json /worker-layer/package.json
+
+COPY shared /worker-layer/shared
+COPY prisma /worker-layer/prisma
+COPY .env /worker-layer/.env
+COPY worker-layer /worker-layer/worker-layer
+
+# Prisma routine
+RUN npx prisma generate
+
+COPY node_modules /worker-layer/node_modules/
+
+# Install dependencies
+# RUN yarn install
+
+EXPOSE 8081

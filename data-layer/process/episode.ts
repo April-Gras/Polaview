@@ -53,6 +53,7 @@ export async function processIdAsSerie(
   const episodes = (await getEpisodesFromIds(episodeIds)).filter(
     ({ name }) => !!name
   );
+
   const [
     episodeOnPeople,
     episodeOnOverviewTranslations,
@@ -70,6 +71,9 @@ export async function processIdAsSerie(
       seasons,
       serie
     ),
+  ]);
+
+  await Promise.allSettled([
     ...episodes.flatMap((episode) => {
       const { cast, writers, directors } = episodeOnPeople[episode.id];
       const allPeoples = [...cast, ...writers, ...directors];
@@ -85,9 +89,6 @@ export async function processIdAsSerie(
         "episode"
       );
     }),
-  ]);
-
-  await Promise.allSettled([
     ...episodes.flatMap((episode) => {
       const translations = episodeOnOverviewTranslations[episode.id];
 

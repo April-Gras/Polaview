@@ -1,16 +1,18 @@
-import { Episode, Movie, PrismaClient } from "@prisma/client";
-
 import { GetRouteDataHandlerFromUrlAndVerb } from "~/types/Route";
 import { AllRoutes } from "~/types/RouteLibraryDataLayer";
 
 import { processIdAsMovie } from "./movie";
 import { processIdAsEpisode } from "./episode";
 
+import { userIsAdmin } from "~/middlewares/userIsAdmin";
+
 export const processEntityIdPost: GetRouteDataHandlerFromUrlAndVerb<
   "post",
   AllRoutes,
   "/processEntity"
-> = async (prisma, _, __, payload) => {
+> = async (prisma, req, res, payload) => {
+  if (!(await userIsAdmin(prisma, req)))
+    return res.status(403).json("Not allowed") as any;
   const { entityId, episodeInfo } = payload;
   const { type, id } = getTypeAndIdFromEntityId(entityId);
 

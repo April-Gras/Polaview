@@ -106,7 +106,6 @@ const processSingleFileThreadWorker: ProcessSingleFileThreadWorker =
         return;
       } else throw new Error("Unvalid entity type");
     } catch (err) {
-      console.error(err);
       console.info(applyFailureColor(` | Failed for ${filePath}`));
       return;
     }
