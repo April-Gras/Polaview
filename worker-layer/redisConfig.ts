@@ -1,7 +1,6 @@
-import type { QueueOptions, WorkerOptions } from "bullmq";
-
-export const redisConfig: QueueOptions | WorkerOptions = {
+export const redisConfig = {
   connection: {
     port: 6380,
+    host: "cache_worker",
   },
-};
+} as const;

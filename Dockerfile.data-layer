@@ -1,9 +1,10 @@
 FROM node:lts AS dev_build
 
+ADD setupMediaSourceDirectories.sh setupMediaSourceDirectories.sh
+RUN bash setupMediaSourceDirectories.sh
 RUN mkdir -p /data-layer/
 WORKDIR /data-layer
 
-RUN sh setupMediaSourceDirectories
 
 COPY tsconfig.node.json /data-layer/tsconfig.node.json
 COPY tsconfig.json /data-layer/tsconfig.json

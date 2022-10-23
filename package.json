@@ -12,6 +12,7 @@
     "auth-layer-dev": "nodemon ./auth-layer/index.ts",
     "auth-layer-start": "nodemon ./auth-layer/index.ts",
     "data-layer-dev": "nodemon ./data-layer/index.ts",
+    "worker-layer-dev": "nodemon ./worker-layer/index.ts",
     "data-layer-start": "nodemon ./data-layer/index.ts",
     "lint:check": "eslint \"**/*.{ts,js,vue}\"",
     "lint:fix": "eslint --fix \"**/*.{ts,js,vue}\"",

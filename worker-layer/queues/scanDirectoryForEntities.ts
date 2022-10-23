@@ -10,5 +10,5 @@ export function QueueScanDirectoryForEntities() {
     ScanDirectoryForEntitiesData,
     ScanDirectoryForEntitiesReturn,
     "scanDirectoryForEntities"
-  >("scanDirectoryForEntities", redisConfig as QueueOptions);
+  >("scanDirectoryForEntities", redisConfig);
 }

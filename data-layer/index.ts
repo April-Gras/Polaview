@@ -6,7 +6,6 @@ import cookieParser from "cookie-parser";
 import { buildSingleRuntimeConfigEntry } from "~/expressUtils";
 import { DataLayerRuntimeConfig } from "~/types/RouteLibraryDataLayer";
 import { userHasSessionMiddleware } from "~/middlewares/userHasSession";
-import { addTvDbTokenToProcessEnv } from "~/addTvDbTokenToProcessEnv";
 
 import { searchV2Post } from "./searchV2/index";
 import { latestSerieGet, latestTitleGet } from "./latest";
@@ -22,7 +21,6 @@ import {
 } from "./requests";
 
 import { processEntityIdPost } from "./process";
-import { startupProcessSources } from "./utils/processSources";
 
 const prisma = new PrismaClient();
 const app: Express = express();
@@ -84,16 +82,6 @@ for (const index in ROUTES) {
 app.get("/video/:id", getVideoRoute);
 app.get("/video/:fileId/subtitle/:subtitleId", getVideoSubtitle);
 
-async function startup() {
-  await addTvDbTokenToProcessEnv();
-  startupProcessSources();
-  if (!process.env.TVDB_API_KEY)
-    throw new Error(
-      "Couldn't retrieve TVDB API KEY, are you sure your token / PIN are valid ?"
-    );
-  app.listen(port, async () => {
-    console.log(`ܡ data-layer is running at http://localhost:${port}`);
-  });
-}
-
-startup();
+app.listen(port, async () => {
+  console.log(`ܡ data-layer is running at http://localhost:${port}`);
+});
