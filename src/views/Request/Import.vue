@@ -34,7 +34,7 @@ export default defineComponent({
       if (this.loading) return;
       if (!this.searchValue) return (this.searchResults = []);
       this.loading = true;
-      this.$postDataLayerRequest("/searchV2", {
+      this.$postDataLayerRequest("/searchTvDbFuzzy", {
         query: term.toLowerCase(),
         type: this.searchMode,
       })

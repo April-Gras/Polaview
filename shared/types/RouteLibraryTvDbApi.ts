@@ -1,14 +1,13 @@
-import { Movie } from ".prisma/client";
-import { number } from "@intlify/core-base";
-import { BuildRouteEntry } from "./Route";
+import type { Movie, SerieV2 } from "@prisma/client";
+import type { BuildRouteEntry } from "./Route";
 
 export type DefaultTvDbResponse<T> = {
   status: string;
   data: T;
 };
 
-type TvDbSearchResult = {
-  id: `movie-${string}` | `serie-${string}`;
+export type TvDbSearchResult = {
+  id: `movie-${string}` | `series-${string}`;
   image_url: string;
   name: string;
   [key: string]: any;
@@ -134,6 +133,16 @@ export type AllRoutes = [
     "get",
     "/people/:id/extended",
     DefaultTvDbResponse<TvDbPeople>
+  >,
+  BuildRouteEntry<
+    "get",
+    "/search/remoteid/:remoteId",
+    DefaultTvDbResponse<
+      Partial<{
+        series: SerieV2;
+        movie: Movie;
+      }>[]
+    >
   >,
   BuildRouteEntry<
     "get",

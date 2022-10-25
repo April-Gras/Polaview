@@ -8,7 +8,8 @@ import { buildSingleRuntimeConfigEntry } from "~/expressUtils";
 import { DataLayerRuntimeConfig } from "~/types/RouteLibraryDataLayer";
 import { userHasSessionMiddleware } from "~/middlewares/userHasSession";
 
-import { searchV2Post } from "./searchV2/index";
+import { searchTvDb } from "./searchTvDb";
+import { searchTvDbFuzzy } from "./searchTvDbFuzzy/index";
 import { latestSerieGet, latestTitleGet } from "./latest";
 import { fileGetByMovieId, fileGetByEpisodeId } from "./file";
 import { serieGetSeaons } from "./serie";
@@ -45,7 +46,8 @@ const ROUTES: DataLayerRuntimeConfig = [
   ),
   buildSingleRuntimeConfigEntry("get", "/people/:id/", getPeopleById),
   // POST
-  buildSingleRuntimeConfigEntry("post", "/searchV2", searchV2Post),
+  buildSingleRuntimeConfigEntry("post", "/searchTvDb", searchTvDb),
+  buildSingleRuntimeConfigEntry("post", "/searchTvDbFuzzy", searchTvDbFuzzy),
   buildSingleRuntimeConfigEntry("post", "/requests", postEntityAdditionRequest),
   // PATCH
   buildSingleRuntimeConfigEntry(

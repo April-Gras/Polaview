@@ -66,6 +66,7 @@ const convertFileToWebMp4: (
     child.on("exit", (returnCode) => {
       if (returnCode === 0) {
         // execSync(removeCommand);
+        console.log("Would've removed media");
         const registerEntityQueue = QueueBindFileToEntity();
 
         registerEntityQueue.add("bindFileToDbEntity", {

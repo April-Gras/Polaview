@@ -3,10 +3,10 @@ import { AllRoutes } from "~/types/RouteLibraryDataLayer";
 
 import { tvDbGetRequest } from "~/tvDbApi";
 
-export const searchV2Post: GetRouteDataHandlerFromUrlAndVerb<
+export const searchTvDbFuzzy: GetRouteDataHandlerFromUrlAndVerb<
   "post",
   AllRoutes,
-  "/searchV2"
+  "/searchTvDbFuzzy"
 > = async (prisma, _req, _res, payload) => {
   if (!payload.query || !payload.query.length) return [];
   const term = payload.query;

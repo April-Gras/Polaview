@@ -124,9 +124,10 @@ export type AllRoutes = [
   >,
   BuildRouteEntry<"get", "/people/:id/", PeopleExtended>,
   // POST
+  BuildRouteEntry<"post", "/searchTvDb", SearchResult, { remoteId: string }>,
   BuildRouteEntry<
     "post",
-    "/searchV2",
+    "/searchTvDbFuzzy",
     SearchResult[],
     { query: string; type: "movie" | "series" }
   >,

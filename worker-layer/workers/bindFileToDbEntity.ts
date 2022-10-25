@@ -1,14 +1,13 @@
 import path from "node:path";
 
-import { Movie, Episode } from "@prisma/client";
+import { Movie, Episode, SearchResult } from "@prisma/client";
 import { Worker } from "bullmq";
 
 import { redisConfig } from "#/redisConfig";
-import { makeServersidePostDataLayer } from "#/axiosTransporter";
+import { fuzzySearchPatternMatching } from "#/processEntityHelper/fuzzySearchPatternMatching";
+import { remoteIdBasedPaternMatching } from "#/processEntityHelper/remoteIdBasedPaternMatching";
 import { applyInfoColor, applyFailureColor } from "#/utils/workerLayerLogs";
-import { cleanupFileName } from "#/processEntityHelper/cleanupFileName";
 import { saveFileAndConnectToEntity } from "#/processEntityHelper/saveFileAndConnectToEntity";
-import { fromSearchDataSelectBestMatch } from "#/processEntityHelper/fromSearchDataSelectBestMatch";
 import { fromBestMatchFillDb } from "#/processEntityHelper/fromBestMatchFillDb";
 import { getSeasonAndEpisodeNumberFromFilePath } from "#/processEntityHelper/getSeasonAndEpisodeNumberFromFilePath";
 
@@ -25,36 +24,25 @@ async function bindFileToDbEntity({
   filePath,
   potencialSubtitleTrack,
 }: BindFileToDbEntityData) {
-  const fileBaseName = path.basename(filePath);
-  const magicRegex =
-    /^(.+?)[.( \t]*(?:(?:(19\d{2}|20(?:0\d|1[0-9]))).*|(?:(?=bluray|\d+p|brrip|WEBRip)..*)?[.](mkv|avi|mpe?g|mp4)$)/gim;
-
-  const regexReturn = magicRegex.exec(fileBaseName);
-  if (!regexReturn) return;
-  const [, movieTitle] = regexReturn;
-  const cleanTitleName = cleanupFileName(movieTitle);
-  const fileIsProbablyPartOfSerie = new RegExp(
-    /S(?<seasonNumber>[0-9]).E(?<episodeNumber>[0-9])/
-  ).test(fileBaseName);
-
   try {
-    console.log(applyInfoColor(`Looking for ${cleanTitleName}`));
-    const { data } = await makeServersidePostDataLayer("/searchV2", {
-      query: cleanTitleName,
-      type: fileIsProbablyPartOfSerie ? "series" : "movie",
-    });
-    const mostProbableChoice = fromSearchDataSelectBestMatch(
-      data,
-      cleanTitleName
-    );
+    const fileBaseName = path.basename(filePath);
+    const remoteIdProbe = probeForEmbededRemoteId(fileBaseName);
+    let foundResult: SearchResult;
 
-    if (!mostProbableChoice) throw new Error("No result found for this entry");
-    if (mostProbableChoice.id.includes("movie")) {
+    if (remoteIdProbe)
+      foundResult = await remoteIdBasedPaternMatching(remoteIdProbe);
+    else
+      foundResult = await fuzzySearchPatternMatching(
+        { sourcePath, filePath, potencialSubtitleTrack },
+        fileBaseName
+      );
+
+    if (foundResult.id.includes("movie")) {
       console.log(
-        applyInfoColor(` | Found movie search match ${mostProbableChoice.name}`)
+        applyInfoColor(` | Found movie search match ${foundResult.name}`)
       );
       const movie = await fromBestMatchFillDb<"movie">({
-        entityId: mostProbableChoice.id as `movie-${number}`,
+        entityId: foundResult.id as `movie-${number}`,
         episodeInfo: undefined,
       });
 
@@ -69,15 +57,15 @@ async function bindFileToDbEntity({
         potencialSubtitleTrack
       );
       return;
-    } else if (mostProbableChoice.id.includes("serie")) {
+    } else if (foundResult.id.includes("serie")) {
       const episodeInfo = getSeasonAndEpisodeNumberFromFilePath(fileBaseName);
       console.log(
         applyInfoColor(
-          ` | Found episode search match ${mostProbableChoice.name} S${episodeInfo.seasonNumber}E${episodeInfo.episodeNumber}`
+          ` | Found episode search match ${foundResult.name} S${episodeInfo.seasonNumber}E${episodeInfo.episodeNumber}`
         )
       );
       const episode = await fromBestMatchFillDb<"serie">({
-        entityId: mostProbableChoice.id as `serie-${number}`,
+        entityId: foundResult.id as `serie-${number}`,
         episodeInfo: episodeInfo,
       });
 
@@ -97,6 +85,16 @@ async function bindFileToDbEntity({
     console.info(applyFailureColor(` | Failed for ${filePath}`));
     return;
   }
+}
+
+function probeForEmbededRemoteId(filePath: string): null | string {
+  const regex = new RegExp(/ImdbId-(?<imdbId>.+)\.[\S\d]+/gi);
+  const matches = regex.exec(filePath);
+
+  console.log({ matches });
+  if (!matches || !matches.groups || typeof matches.groups.imdbId !== "string")
+    return null;
+  return matches.groups.imdbId;
 }
 
 new Worker<
