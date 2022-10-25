@@ -31,7 +31,7 @@ export default defineComponent({
     },
     validateSignupData(): boolean {
       this.validationArray = userValidator({
-        email: this.email,
+        email: this.email.trim(),
         name: this.name,
         clearPassword: this.password,
       });

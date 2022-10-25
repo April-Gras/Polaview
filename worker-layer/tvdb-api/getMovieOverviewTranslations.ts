@@ -2,7 +2,7 @@ import { MovieOverviewTranslation } from "@prisma/client";
 
 import { TvDbMovie } from "~/types/RouteLibraryTvDbApi";
 
-import { tvDbGetRequest } from "#/tvDbApi";
+import { tvDbGetRequest } from "~/tvDbApi";
 import { availableLocales } from "~/availableLocales";
 
 import { removeEmptyTextOverviewsAndFormat } from "./utils";

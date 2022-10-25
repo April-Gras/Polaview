@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { PrismaClient, Prisma } from "@prisma/client";
 import express, { Express } from "express";
 import bodyParser from "body-parser";
@@ -6,7 +7,6 @@ import cookieParser from "cookie-parser";
 import { buildSingleRuntimeConfigEntry } from "~/expressUtils";
 import { DataLayerRuntimeConfig } from "~/types/RouteLibraryDataLayer";
 import { userHasSessionMiddleware } from "~/middlewares/userHasSession";
-import { addTvDbTokenToProcessEnv } from "~/addTvDbTokenToProcessEnv";
 
 import { searchV2Post } from "./searchV2/index";
 import { latestSerieGet, latestTitleGet } from "./latest";
@@ -21,8 +21,7 @@ import {
   patchEntityAdditionalRequest,
 } from "./requests";
 
-import { processEntityIdPost } from "./process";
-import { startupProcessSources } from "./utils/processSources";
+import { addTvDbTokenToProcessEnv } from "~/addTvDbTokenToProcessEnv";
 
 const prisma = new PrismaClient();
 const app: Express = express();
@@ -47,7 +46,6 @@ const ROUTES: DataLayerRuntimeConfig = [
   buildSingleRuntimeConfigEntry("get", "/people/:id/", getPeopleById),
   // POST
   buildSingleRuntimeConfigEntry("post", "/searchV2", searchV2Post),
-  buildSingleRuntimeConfigEntry("post", "/processEntity", processEntityIdPost),
   buildSingleRuntimeConfigEntry("post", "/requests", postEntityAdditionRequest),
   // PATCH
   buildSingleRuntimeConfigEntry(
@@ -84,16 +82,8 @@ for (const index in ROUTES) {
 app.get("/video/:id", getVideoRoute);
 app.get("/video/:fileId/subtitle/:subtitleId", getVideoSubtitle);
 
-async function startup() {
-  await addTvDbTokenToProcessEnv();
-  startupProcessSources();
-  if (!process.env.TVDB_API_KEY)
-    throw new Error(
-      "Couldn't retrieve TVDB API KEY, are you sure your token / PIN are valid ?"
-    );
+addTvDbTokenToProcessEnv().then(() => {
   app.listen(port, async () => {
     console.log(`ܡ data-layer is running at http://localhost:${port}`);
   });
-}
-
-startup();
+});

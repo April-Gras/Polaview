@@ -18,7 +18,7 @@ export const userLoginValidator: ValidatorFunction<UserLogin> = function ({
 }) {
   const out: (keyof UserLogin)[] = [];
 
-  if (!validateEmail(email)) out.push("email");
+  if (!validateEmail(email.trim())) out.push("email");
   if (!validateClearPassword(clearPassword)) out.push("clearPassword");
   return out;
 };

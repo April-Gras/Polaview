@@ -7,7 +7,7 @@
     "paths": {
       "~/*": ["./shared/*"],
       "@/*": ["./src/*"],
-      "#/*": ["./auth-layer/*", "data-layer/*"]
+      "#/*": ["./auth-layer/*", "data-layer/*", "worker-layer/*"]
     },
     "sourceMap": true,
     "moduleResolution": "Node",

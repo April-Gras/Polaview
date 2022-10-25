@@ -16,7 +16,7 @@ services:
     command: npm run auth-layer-dev
     depends_on:
       - postgres
-      - cache
+      - cache_axios
     volumes:
       - ./auth-layer:/api/auth-layer
       - ./shared:/api/shared
@@ -65,7 +65,7 @@ services:
     networks:
       - polaview.network
     depends_on:
-      - cache
+      - cache_axios
       - postgres
     ports:
       - 8081:8081
@@ -81,13 +81,27 @@ services:
       - /dev/dri/renderD128:/dev/dri/renderD128
       - /dev/dri/card0:/dev/dri/card0
 
-  cache:
+  cache_axios:
     image: redis
-    container_name: cache
+    container_name: cache_axios
     expose:
       - 6379
     ports:
       - "6379:6379"
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - polaview.network
+
+  cache_worker:
+    image: redis
+    container_name: cache_worker
+    expose:
+      - 6380
+    ports:
+      - "6380:6380"
+    command: --port 6380
     restart: unless-stopped
     volumes:
       - redis_data:/data
@@ -108,6 +122,32 @@ services:
       - db:/var/lib/postgresql/data
     networks:
       - polaview.network
+
+  worker-layer:
+    image: worker-layer
+    build:
+      context: .
+      dockerfile: Dockerfile.worker-layer
+      target: dev_build
+    networks:
+      - polaview.network
+    depends_on:
+      - cache_axios
+      - cache_worker
+      - postgres
+    ports:
+      - 8082:8082
+    restart: unless-stopped
+    command: npm run worker-layer-dev
+    volumes:
+      - ./worker-layer:/worker-layer/worker-layer
+      - ./shared:/data-layer/shared
+      - ./node_modules:/data-layer/node_modules
+      - /home/${USER}/Videos:/openMedia
+      - /dev/dri/renderD128:/dev/dri/renderD128
+    devices:
+      - /dev/dri/renderD128:/dev/dri/renderD128
+      - /dev/dri/card0:/dev/dri/card0
 
 networks:
   polaview.network:

@@ -1,23 +1,34 @@
-import { Episode, Movie, PrismaClient } from "@prisma/client";
-
 import { GetRouteDataHandlerFromUrlAndVerb } from "~/types/Route";
 import { AllRoutes } from "~/types/RouteLibraryDataLayer";
 
-import { processIdAsMovie } from "./movie";
-import { processIdAsEpisode } from "./episode";
+import { processIdAsMovie } from "#/processEntityHelper/processIdAsMovie";
+import { processIdAsEpisode } from "#/processEntityHelper/processIdAsEpisode";
+import { PrismaClient, Episode, Movie, SerieV2 } from "@prisma/client";
 
-export const processEntityIdPost: GetRouteDataHandlerFromUrlAndVerb<
-  "post",
-  AllRoutes,
-  "/processEntity"
-> = async (prisma, _, __, payload) => {
-  const { entityId, episodeInfo } = payload;
+type ProcessEntityPayload<T extends "movie" | "serie" = "movie" | "serie"> = {
+  entityId: `${T}-${number}`;
+  episodeInfo: T extends "movie" ? undefined : EpisodeIndexInfo;
+};
+
+export type EpisodeIndexInfo = {
+  episodeNumber: number;
+  seasonNumber: number;
+};
+
+const prisma = new PrismaClient();
+
+export async function fromBestMatchFillDb<T extends "movie" | "serie">({
+  entityId,
+  episodeInfo,
+}: ProcessEntityPayload<T>): Promise<T extends "serie" ? Episode : Movie> {
   const { type, id } = getTypeAndIdFromEntityId(entityId);
 
+  // @ts-expect-error
   if (type === "movie") return await processIdAsMovie(prisma, id);
   if (!episodeInfo) throw new Error("Missing episode infos");
+  // @ts-expect-error
   return await processIdAsEpisode(prisma, id, episodeInfo);
-};
+}
 
 function getTypeAndIdFromEntityId(entityId: string | undefined): {
   type: "movie" | "serie";

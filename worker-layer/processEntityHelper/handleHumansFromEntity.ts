@@ -1,9 +1,9 @@
 import { PrismaClient } from "@prisma/client";
 
-import { upsertPeopleCollection } from "#/transactionsV2/upsertPeopleCollection";
-import { upsertBiographyCollection } from "#/transactionsV2/upsertBiographyCollection";
-import { upsertActorCharacterCollection } from "#/transactionsV2/upsertActorCharacterCollection";
-import { connectHumanCollectionToEntity } from "#/transactionsV2/connectHumanCollectionToEntity";
+import { upsertPeopleCollection } from "#/transactions/upsertPeopleCollection";
+import { upsertBiographyCollection } from "#/transactions/upsertBiographyCollection";
+import { upsertActorCharacterCollection } from "#/transactions/upsertActorCharacterCollection";
+import { connectHumanCollectionToEntity } from "#/transactions/connectHumanCollectionToEntity";
 import {
   TvDbEpisode,
   TvDbMovie,
