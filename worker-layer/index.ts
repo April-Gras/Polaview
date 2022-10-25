@@ -7,10 +7,7 @@ import { QueueProcessSources } from "#/queues/processSources";
 
 import { addTvDbTokenToProcessEnv } from "~/addTvDbTokenToProcessEnv";
 
-console.log("haha");
-
 addTvDbTokenToProcessEnv().then(() => {
-  console.log("hehe");
   const queue = QueueProcessSources();
 
   // Initial job calls
