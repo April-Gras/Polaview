@@ -1,9 +1,13 @@
 import path from "node:path";
-import fs, { readdirSync, lstatSync } from "node:fs";
+import { readdirSync, lstatSync } from "node:fs";
 import { Worker } from "bullmq";
 import { redisConfig } from "#/redisConfig";
 
+import { findMatchingSubTracks } from "#/processEntityHelper/findMatchingSubTracksFromFullPath";
+
 import { QueueScanDirectoryForEntities } from "#/queues/scanDirectoryForEntities";
+import { QueueConvertFileToWebMp4 } from "#/queues/convertFileToWebMp4";
+import { QueueBindFileToEntity } from "#/queues/bindFileToDbEntity";
 
 export type ScanDirectoryForEntitiesReturn = void;
 export type ScanDirectoryForEntitiesData = {
@@ -48,38 +52,36 @@ const scanDirectoryForMovies: ScanDirectoryForEntities = async ({
     }
   );
 
-  handleFilesFormat(toProcessFiles);
-  // Send found directories to the queue
+  handleFilesFormat(toProcessFiles, source);
+
   const directoryQueue = QueueScanDirectoryForEntities();
   toProcessDirectories.map((directory) =>
     directoryQueue.add("scanDirectoryForEntities", { directory, source })
   );
-  // TODO Send already well formated files to get catalogued
+  const registerEntityQueue = QueueBindFileToEntity();
+
+  toProcessFiles
+    .filter((pathName) => path.extname(pathName) === ".mp4")
+    .forEach((filePath) => {
+      const wholePath = path.resolve(directory, filePath);
+
+      return registerEntityQueue.add("bindFileToDbEntity", {
+        filePath: wholePath,
+        potencialSubtitleTrack: findMatchingSubTracks(wholePath),
+        sourcePath: source,
+      });
+    });
 };
 
-function handleFilesFormat(files: string[]): void {
+function handleFilesFormat(files: string[], sourcePath: string): void {
   const notMp4Files = files.filter(
     (pathName) => path.extname(pathName) !== ".mp4"
   );
+  const queue = QueueConvertFileToWebMp4();
 
-  // Todo send to mp4 converter
-  // mp4 conversion will launch catalog process itself
-  return;
-}
-
-function findMatchingSubTracks(wellFormatedFilePath: string) {
-  const targetExtentions = [".srt"];
-
-  return targetExtentions.reduce((accumulator, targetExtention) => {
-    const potencialSubtitleTrack = wellFormatedFilePath.replace(
-      /\.mp4/,
-      targetExtention
-    );
-
-    if (fs.existsSync(potencialSubtitleTrack))
-      accumulator.push(potencialSubtitleTrack);
-    return accumulator;
-  }, [] as string[]);
+  notMp4Files.forEach((filePath) => {
+    queue.add("convertFileToWebMp4", { filePath, sourcePath });
+  });
 }
 
 new Worker<
@@ -88,8 +90,11 @@ new Worker<
   "scanDirectoryForEntities"
 >(
   "scanDirectoryForEntities",
-  async ({ data: { source, directory } }) => {
-    scanDirectoryForMovies({ source, directory });
+  async ({ data }) => {
+    console.log(
+      `Started scanning for content in directory "${data.directory}"`
+    );
+    scanDirectoryForMovies(data);
   },
   redisConfig
 );

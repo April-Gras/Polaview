@@ -1,4 +1,4 @@
-import { tvDbGetRequest } from "#/tvDbApi";
+import { tvDbGetRequest } from "~/tvDbApi";
 
 export async function getTvDbEpisodeFromId(id: number) {
   const {

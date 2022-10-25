@@ -132,12 +132,6 @@ export type AllRoutes = [
   >,
   BuildRouteEntry<
     "post",
-    "/processEntity",
-    Movie | Episode,
-    ProcessEntityPayload
-  >,
-  BuildRouteEntry<
-    "post",
     "/requests",
     EntityAddtionRequestSummary,
     { entityId: string }

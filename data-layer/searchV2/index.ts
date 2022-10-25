@@ -1,7 +1,7 @@
 import { GetRouteDataHandlerFromUrlAndVerb } from "~/types/Route";
 import { AllRoutes } from "~/types/RouteLibraryDataLayer";
 
-import { tvDbGetRequest } from "#/tvDbApi";
+import { tvDbGetRequest } from "~/tvDbApi";
 
 export const searchV2Post: GetRouteDataHandlerFromUrlAndVerb<
   "post",

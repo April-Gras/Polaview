@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { PrismaClient, Prisma } from "@prisma/client";
 import express, { Express } from "express";
 import bodyParser from "body-parser";
@@ -20,7 +21,7 @@ import {
   patchEntityAdditionalRequest,
 } from "./requests";
 
-import { processEntityIdPost } from "./process";
+import { addTvDbTokenToProcessEnv } from "~/addTvDbTokenToProcessEnv";
 
 const prisma = new PrismaClient();
 const app: Express = express();
@@ -45,7 +46,6 @@ const ROUTES: DataLayerRuntimeConfig = [
   buildSingleRuntimeConfigEntry("get", "/people/:id/", getPeopleById),
   // POST
   buildSingleRuntimeConfigEntry("post", "/searchV2", searchV2Post),
-  buildSingleRuntimeConfigEntry("post", "/processEntity", processEntityIdPost),
   buildSingleRuntimeConfigEntry("post", "/requests", postEntityAdditionRequest),
   // PATCH
   buildSingleRuntimeConfigEntry(
@@ -82,6 +82,8 @@ for (const index in ROUTES) {
 app.get("/video/:id", getVideoRoute);
 app.get("/video/:fileId/subtitle/:subtitleId", getVideoSubtitle);
 
-app.listen(port, async () => {
-  console.log(`ܡ data-layer is running at http://localhost:${port}`);
+addTvDbTokenToProcessEnv().then(() => {
+  app.listen(port, async () => {
+    console.log(`ܡ data-layer is running at http://localhost:${port}`);
+  });
 });

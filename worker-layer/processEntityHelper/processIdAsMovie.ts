@@ -1,12 +1,12 @@
 import { Movie, PrismaClient } from "@prisma/client";
 
-import { upsertMovie } from "#/transactionsV2/upsertMovie";
+import { upsertMovie } from "#/transactions/upsertMovie";
 import { getTvDbMovieFomId } from "#/tvdb-api/getTvDbMovieFomId";
 import { getTranslations } from "#/tvdb-api/getMovieOverviewTranslations";
 
-import { handleHumans } from "./humans";
-import { getCharactersFromEntity } from "./character";
-import { upsertAndConnectMovieOverviewTranslations } from "#/transactionsV2/upsertAndConnectMovieOverviewTranslationCollection";
+import { handleHumans } from "#/processEntityHelper/handleHumansFromEntity";
+import { getCharactersFromEntity } from "#/processEntityHelper/tvDbData/getCharactersFromEntity";
+import { upsertAndConnectMovieOverviewTranslations } from "#/transactions/upsertAndConnectMovieOverviewTranslationCollection";
 
 export async function processIdAsMovie(
   prisma: PrismaClient,

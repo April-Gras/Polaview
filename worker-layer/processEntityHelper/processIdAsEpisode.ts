@@ -16,12 +16,12 @@ import { getTvDbSerieFromId } from "#/tvdb-api/getTvDbSerieFromId";
 import { getTvDbEpisodeFromId } from "#/tvdb-api/getTvDbEpisodeFromId";
 import { getTranslations as getEpisodeTranslations } from "#/tvdb-api/getEpisodeOverviewTranslations";
 import { getTranslations as getSerieTranslations } from "#/tvdb-api/getSerieOverviewTranslations";
-import { upsertEpisodeCollectionAndSerieAndSeason } from "#/transactionsV2/upsertEpisodeCollectionAndSerieAndSeason";
-import { upsertAndConnectEpisodeOverviewTranslations } from "#/transactionsV2/upsertAndConnectEpisodeOverviewTranslationCollection";
-import { upsertAndConnectSerieOverviewTranslations } from "#/transactionsV2/upsertAndConnectSerieOverviewTranslationCollection";
+import { upsertEpisodeCollectionAndSerieAndSeason } from "#/transactions/upsertEpisodeCollectionAndSerieAndSeason";
+import { upsertAndConnectEpisodeOverviewTranslations } from "#/transactions/upsertAndConnectEpisodeOverviewTranslationCollection";
+import { upsertAndConnectSerieOverviewTranslations } from "#/transactions/upsertAndConnectSerieOverviewTranslationCollection";
 
-import { getCharactersFromEntity } from "./character";
-import { handleHumans } from "./humans";
+import { getCharactersFromEntity } from "./tvDbData/getCharactersFromEntity";
+import { handleHumans } from "./handleHumansFromEntity";
 
 export async function processIdAsEpisode(
   prisma: PrismaClient,
