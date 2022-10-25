@@ -5,7 +5,7 @@
   "scripts": {
     "build-dev": "docker-compose build",
     "build-prod": "sh build-prod.sh",
-    "start-prod": "docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d auth-layer data-layer nginx",
+    "start-prod": "docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d auth-layer data-layer worker-layer nginx",
     "client-dev": "vite --host",
     "client-build": "vite build",
     "client-preview": "vite preview",
