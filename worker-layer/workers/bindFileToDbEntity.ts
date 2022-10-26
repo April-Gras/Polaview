@@ -82,6 +82,7 @@ async function bindFileToDbEntity({
       return;
     } else throw new Error("Unvalid entity type");
   } catch (err) {
+    console.error(err);
     console.info(applyFailureColor(` | Failed for ${filePath}`));
     return;
   }
@@ -91,7 +92,6 @@ function probeForEmbededRemoteId(filePath: string): null | string {
   const regex = new RegExp(/ImdbId-(?<imdbId>.+)\.[\S\d]+/gi);
   const matches = regex.exec(filePath);
 
-  console.log({ matches });
   if (!matches || !matches.groups || typeof matches.groups.imdbId !== "string")
     return null;
   return matches.groups.imdbId;
@@ -107,5 +107,5 @@ new Worker<
     console.log(`Processing single file ${data.filePath}`);
     await bindFileToDbEntity(data);
   },
-  redisConfig
+  { ...redisConfig, concurrency: 1 }
 );

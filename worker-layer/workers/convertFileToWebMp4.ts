@@ -17,10 +17,17 @@ const convertFileToWebMp4: (
   const newFileName = `${parsedPath.dir}/${parsedPath.name}.mp4`;
   const removeCommand = `rm "${filePath}"`;
   const command = getFfmpegCommand(filePath, newFileName);
-  let fileIsMostProbablyGoodToGo = false;
+  const registerEntityQueue = QueueBindFileToEntity();
+  if (filePath.endsWith(".mp4")) {
+    registerEntityQueue.add("bindFileToDbEntity", {
+      filePath: newFileName,
+      potencialSubtitleTrack: findMatchingSubTracks(newFileName),
+      sourcePath,
+    });
+    return;
+  }
 
   return new Promise((resolve, reject) => {
-    if (filePath.endsWith(".mp4")) return;
     let NUMBER_OF_FRAMES: number | undefined;
 
     console.log(`Started conversion for ${path.basename(filePath)}`);
@@ -59,16 +66,12 @@ const convertFileToWebMp4: (
     });
 
     child.on("close", () => {
-      console.log("close called");
       resolve();
     });
 
     child.on("exit", (returnCode) => {
       if (returnCode === 0) {
-        // execSync(removeCommand);
-        console.log("Would've removed media");
-        const registerEntityQueue = QueueBindFileToEntity();
-
+        execSync(removeCommand);
         registerEntityQueue.add("bindFileToDbEntity", {
           filePath: newFileName,
           potencialSubtitleTrack: findMatchingSubTracks(newFileName),
@@ -79,14 +82,16 @@ const convertFileToWebMp4: (
     });
 
     child.on("error", (err) => {
-      console.log("error called", err);
+      console.error(err);
       reject(err);
     });
   });
 };
 
 function getFfmpegCommand(filePath: string, newFileName: string): string {
-  return `ffmpeg -vaapi_device /dev/dri/renderD128 -i "${filePath}" -vf 'format=nv12,hwupload' -c:v h264_vaapi "${newFileName}" -y`;
+  return `ffmpeg -i "${filePath}" -c:v libx264 "${newFileName}" -y`;
+  // TODO waiting for vaapi support on ubuntu server 22.04 LTS
+  // return `ffmpeg -vaapi_device /dev/dri/renderD128 -i "${filePath}" -vf 'format=nv12,hwupload' -c:v h264_vaapi "${newFileName}" -y`;
 }
 
 new Worker<
@@ -100,5 +105,5 @@ new Worker<
     await convertFileToWebMp4(data);
     console.log(`"${data.filePath}" conversion job finished`);
   },
-  { ...redisConfig, concurrency: 4 }
+  { ...redisConfig, concurrency: 1 }
 );

@@ -29,20 +29,21 @@ export const searchTvDb: GetRouteDataHandlerFromUrlAndVerb<
   const foundEntityType = Object.keys(searchRecord)[0] as "series" | "movie";
   const entity = searchRecord[foundEntityType];
   if (!entity) throw "missing searched entity";
+  const term = `${foundEntityType}-${remoteId}`;
   const [, result] = await prisma.$transaction([
     prisma.searchCache.upsert({
       where: {
         term_type: {
-          term: `${foundEntityType}-${remoteId}`,
+          term,
           type: foundEntityType,
         },
       },
       create: {
         type: foundEntityType,
-        term: remoteId,
+        term,
       },
       update: {
-        term: remoteId,
+        term,
         type: foundEntityType,
       },
     }),
@@ -62,9 +63,20 @@ export const searchTvDb: GetRouteDataHandlerFromUrlAndVerb<
       },
     }),
   ]);
-  await prisma.searchResultOnSearchCache.create({
-    data: {
-      searchCacheTerm: remoteId,
+  await prisma.searchResultOnSearchCache.upsert({
+    where: {
+      searchCacheTerm_searchResultId: {
+        searchCacheTerm: term,
+        searchResultId: result.id,
+      },
+    },
+    create: {
+      searchCacheTerm: term,
+      searchResultId: result.id,
+      searchCacheType: foundEntityType,
+    },
+    update: {
+      searchCacheTerm: term,
       searchResultId: result.id,
       searchCacheType: foundEntityType,
     },
