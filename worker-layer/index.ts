@@ -15,7 +15,7 @@ addTvDbTokenToProcessEnv().then(() => {
     // Repeat scan sources every 5 hours
     repeat: {
       every: 1000 * 60 * 60 * 5,
+      immediately: true,
     },
   });
-  queue.add("processSources");
 });
