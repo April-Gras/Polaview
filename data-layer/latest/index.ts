@@ -9,7 +9,7 @@ export const latestTitleGet: GetRouteDataHandlerFromUrlAndVerb<
   "/latest-movie/"
 > = async (prisma) => {
   const response = await prisma.fileV2.findMany({
-    take: 50,
+    take: 10,
     orderBy: {
       movie: {
         createdOn: "asc",
