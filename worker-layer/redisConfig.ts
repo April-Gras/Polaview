@@ -1,6 +1,6 @@
 export const redisConfig = {
   connection: {
     port: 6380,
-    host: "cache_worker",
+    host: "cache-worker",
   },
 } as const;

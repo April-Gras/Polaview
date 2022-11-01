@@ -16,7 +16,7 @@ services:
     command: npm run auth-layer-dev
     depends_on:
       - postgres
-      - cache_axios
+      - cache-axios
     volumes:
       - ./auth-layer:/api/auth-layer
       - ./shared:/api/shared
@@ -65,7 +65,7 @@ services:
     networks:
       - polaview.network
     depends_on:
-      - cache_axios
+      - cache-axios
       - postgres
     ports:
       - 8081:8081
@@ -81,22 +81,22 @@ services:
       - /dev/dri/renderD128:/dev/dri/renderD128
       - /dev/dri/card0:/dev/dri/card0
 
-  cache_axios:
+  cache-axios:
     image: redis
-    container_name: cache_axios
+    container_name: cache-axios
     expose:
       - 6379
     ports:
       - "6379:6379"
     restart: unless-stopped
     volumes:
-      - redis_data:/data
+      - redis-data-axios:/data
     networks:
       - polaview.network
 
-  cache_worker:
+  cache-worker:
     image: redis
-    container_name: cache_worker
+    container_name: cache-worker
     expose:
       - 6380
     ports:
@@ -104,7 +104,7 @@ services:
     command: --port 6380
     restart: unless-stopped
     volumes:
-      - redis_data:/data
+      - redis-data-worker:/data
     networks:
       - polaview.network
 
@@ -132,8 +132,8 @@ services:
     networks:
       - polaview.network
     depends_on:
-      - cache_axios
-      - cache_worker
+      - cache-axios
+      - cache-worker
       - postgres
     ports:
       - 8082:8082
@@ -156,5 +156,7 @@ networks:
 volumes:
   db:
     driver: local
-  redis_data:
+  redis-data-axios:
+    driver: local
+  redis-data-worker:
     driver: local

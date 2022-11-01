@@ -89,9 +89,9 @@ const convertFileToWebMp4: (
 };
 
 function getFfmpegCommand(filePath: string, newFileName: string): string {
-  return `ffmpeg -i "${filePath}" -c:v libx264 "${newFileName}" -y`;
+  // return `ffmpeg -i "${filePath}" -map 0 -c:v libx264 "${newFileName}" -y`;
   // TODO waiting for vaapi support on ubuntu server 22.04 LTS
-  // return `ffmpeg -vaapi_device /dev/dri/renderD128 -i "${filePath}" -vf 'format=nv12,hwupload' -c:v h264_vaapi "${newFileName}" -y`;
+  return `ffmpeg -vaapi_device /dev/dri/renderD128 -i "${filePath}" -map 0 -vf 'format=nv12,hwupload' -c:v h264_vaapi "${newFileName}" -y`;
 }
 
 new Worker<

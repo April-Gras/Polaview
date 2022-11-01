@@ -6,7 +6,7 @@ RUN mkdir -p /worker-layer/
 WORKDIR /worker-layer
 
 
-RUN apt update && apt install ffmpeg -y
+RUN apt update && apt install ffmpeg mesa-utils mesa-utils-extra -y
 
 COPY tsconfig.node.json /worker-layer/tsconfig.node.json
 COPY tsconfig.json /worker-layer/tsconfig.json

@@ -4,7 +4,7 @@ import { createClient } from "redis";
 import { AxiosTvDbApiPostRequest, AxiosTvDbApiGetRequest } from "~/types/Axios";
 
 const client = createClient({
-  url: "redis://cache_axios:6379",
+  url: "redis://cache-axios:6379",
 });
 client.on("error", function (err) {
   console.error(err);
